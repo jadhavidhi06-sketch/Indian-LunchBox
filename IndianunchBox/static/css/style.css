@@ -6,6 +6,8 @@ background: #f5e6d3;
 /* Navbar */
 .custom-navbar {
 background: rgba(255,255,255,0.7);
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
 padding: 10px;
 }
 
@@ -54,4 +56,44 @@ border: none;
 background: #c94c4c;
 color: white;
 border-radius: 20px;
+}
+
+
+.recipe-card {
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    background: #fff8f0;
+}
+
+.recipe-card:hover {
+    transform: scale(1.03);
+}
+
+.card-title {
+    font-weight: 600;
+    color: #c94c4c;
+}
+
+.card-text {
+    font-size: 14px;
+    color: #555;
+}
+
+.recipe-section h4 {
+    color: #c94c4c;
+    font-weight: 600;
+    margin-top: 15px;
+}
+
+textarea, input[type="text"], input[type="file"], select {
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.btn-auth {
+    background-color: #c94c4c;
+    color: white;
+    border-radius: 20px;
 }

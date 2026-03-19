@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero-section text-center mt-5">
+    {% if request.session.user_name %}
+        <h1 class="hero-title">Welcome back, {{ request.session.user_name }} ❤️</h1>
+        <p class="hero-subtitle">Check out the latest recipes from our community!</p>
+    {% else %}
+        <h1 class="hero-title">🍱 IndianLunchBox</h1>
+        <p class="hero-subtitle">Relive Your Food Memories ❤️</p>
+    {% endif %}
+</div>
+
+<div class="container mt-5">
+    <h2>Latest Recipes</h2>
+    <div class="row mt-3">
+
+        {% for r in recipes %}
+        <div class="col-md-4 mb-4">
+            <div class="card recipe-card shadow-sm">
+                <img src="/media/{{ r.3 }}" class="card-img-top" style="height:200px; object-fit:cover;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ r.1 }}</h5>
+                    <p class="card-text">{{ r.2|truncatechars:80 }}</p>
+                    <a href="/recipe/{{ r.0 }}/" class="btn btn-auth btn-sm">View Recipe</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No recipes found. Be the first to <a href="/add-recipe/">add one!</a></p>
+        {% endfor %}
+
+    </div>
+</div>
+{% endblock %}

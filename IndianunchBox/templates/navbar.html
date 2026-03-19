@@ -1,29 +1,55 @@
-<nav class="navbar navbar-expand-lg custom-navbar">
+<nav class="navbar navbar-expand-lg custom-navbar shadow-sm p-3 mb-5 bg-body rounded">
   <div class="container">
 
-```
-<a class="navbar-brand brand-logo" href="/">🍱 IndianLunchBox</a>
+    <!-- Brand -->
+    <a class="navbar-brand brand-logo" href="/">🍱 IndianLunchBox</a>
 
-<div class="ms-auto">
+    <!-- Toggler for mobile -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-    {% if request.session.user_id %}
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-center">
 
-        <span class="me-3 welcome-text">
-            Welcome, {{ request.session.user_name }} 👋
-        </span>
+        {% if request.session.user_id %}
+        
+          <!-- Welcome -->
+          <li class="nav-item me-3">
+            <span class="welcome-text">
+              Welcome, {{ request.session.user_name }} 👋
+            </span>
+          </li>
 
-        <a href="/logout/" class="btn btn-auth">Logout</a>
+          <!-- Add Recipe -->
+          <li class="nav-item me-2">
+            <a class="btn btn-auth btn-sm" href="/add-recipe/">Add Recipe</a>
+          </li>
 
-    {% else %}
+          <!-- Explore Recipes -->
+          <li class="nav-item me-2">
+            <a class="btn btn-auth btn-sm" href="/recipes/">Explore</a>
+          </li>
 
-        <a href="/login/" class="btn btn-auth me-2">Login</a>
-        <a href="/register/" class="btn btn-auth">Register</a>
+          <!-- Logout -->
+          <li class="nav-item">
+            <a class="btn btn-danger btn-sm" href="/logout/">Logout</a>
+          </li>
 
-    {% endif %}
+        {% else %}
 
-</div>
-```
+          <!-- Login / Register -->
+          <li class="nav-item me-2">
+            <a class="btn btn-auth btn-sm" href="/login/">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-auth btn-sm" href="/register/">Register</a>
+          </li>
+
+        {% endif %}
+
+      </ul>
+    </div>
 
   </div>
 </nav>
-

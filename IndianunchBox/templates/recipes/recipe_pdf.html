@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        h1 { color: #c94c4c; }
+        img { max-width: 100%; margin-bottom: 15px; border-radius:10px; }
+        h3 { margin-top: 15px; }
+        p, li { margin-bottom: 8px; font-size: 14px; }
+        ol, ul { padding-left: 20px; }
+    </style>
+</head>
+<body>
+    <h1>{{ recipe.0 }}</h1>
+    <p><strong>By:</strong> {{ recipe.5 }}</p>
+
+    {% if image_path %}
+    <img src="{{ image_path }}" alt="Recipe Image">
+    {% endif %}
+
+    <h3>Description</h3>
+    <p>{{ recipe.1 }}</p>
+
+    <h3>Ingredients</h3>
+    <ul>
+        {% for ing in recipe.2.splitlines %}
+            {% if ing %}
+                <li>{{ ing }}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    <h3>Steps</h3>
+    <ol>
+        {% for step in recipe.3.splitlines %}
+            {% if step %}
+                <li>{{ step }}</li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</body>
+</html>

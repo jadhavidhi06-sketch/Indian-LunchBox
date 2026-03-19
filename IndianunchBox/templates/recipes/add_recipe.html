@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Add New Recipe 🍛</h2>
+
+    <form method="POST" enctype="multipart/form-data" class="recipe-form shadow-sm p-4 rounded bg-light">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Recipe Title" class="form-control mb-3" required>
+        <textarea name="description" placeholder="Short Description" class="form-control mb-3" rows="2" required></textarea>
+        <textarea name="ingredients" placeholder="Ingredients (one per line)" class="form-control mb-3" rows="4" required></textarea>
+        <textarea name="steps" placeholder="Steps" class="form-control mb-3" rows="4" required></textarea>
+
+        <!-- File input hidden -->
+        <input type="file" name="image" id="imageInput" class="form-control mb-3" required>
+        <p class="text-muted">Or paste an image directly (Ctrl+V / Cmd+V)</p>
+
+        <div id="preview" class="mb-3"></div>
+
+        <button type="submit" class="btn btn-auth w-100">Submit Recipe</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('paste', function(e) {
+    const items = e.clipboardData.items;
+    for (let i=0; i<items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const blob = items[i].getAsFile();
+            const dt = new DataTransfer();
+            dt.items.add(blob);
+            const fileInput = document.getElementById('imageInput');
+            fileInput.files = dt.files;
+
+            // Show preview
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            img.style.maxHeight = "200px";
+            img.style.borderRadius = "10px";
+            document.getElementById('preview').innerHTML = "";
+            document.getElementById('preview').appendChild(img);
+        }
+    }
+});
+</script>
+{% endblock %}

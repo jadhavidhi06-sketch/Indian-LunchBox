@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+
+            <!-- Recipe Header -->
+            <h2 class="mb-2" style="font-family: 'Playfair Display', serif; color:#c94c4c;">{{ recipe.1 }}</h2>
+            <p class="text-muted small">By {{ recipe.6 }}</p>
+
+            <!-- Recipe Image -->
+            <img src="/media/{{ recipe.5 }}" class="img-fluid mb-3 rounded" style="max-height:400px; object-fit:cover;">
+
+            <!-- Description -->
+            <div class="recipe-section mb-3">
+                <h4 style="color:#c94c4c;">Description</h4>
+                <p>{{ recipe.2 }}</p>
+            </div>
+
+            <!-- Ingredients -->
+            <div class="recipe-section mb-3">
+                <h4 style="color:#c94c4c;">Ingredients</h4>
+                <ul>
+                    {% for ing in recipe.3.splitlines %}
+                        {% if ing %}
+                        <li>{{ ing }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Steps with automatic numbering -->
+            <div class="recipe-section mb-3">
+                <h4 style="color:#c94c4c;">Steps</h4>
+                <ol class="recipe-steps">
+                    {% for step in recipe.4.splitlines %}
+                        {% if step %}
+                        <li>{{ step }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+
+            <!-- PDF Download -->
+            <a href="/recipe/{{ recipe.0 }}/download/" class="btn btn-primary mb-3">📄 Download as PDF</a>
+
+            <!-- Like Button -->
+            <button class="btn btn-outline-danger mb-3" id="likeBtn">❤️ Like</button>
+
+            <hr>
+
+            <!-- Comments Section -->
+            <h4 style="color:#c94c4c;">Comments & Ratings</h4>
+            {% for c in comments %}
+                <div class="mb-2 p-2 shadow-sm rounded bg-light">
+                    <strong>{{ c.3 }}</strong> rated ⭐ {{ c.2 }}<br>
+                    <p>{{ c.1 }}</p>
+                </div>
+            {% empty %}
+                <p>No comments yet. Be the first to comment!</p>
+            {% endfor %}
+
+            <!-- Add Comment Form -->
+            {% if request.session.user_id %}
+            <form method="POST" class="mt-3">
+                {% csrf_token %}
+                <textarea name="comment" placeholder="Write your comment..." class="form-control mb-2" required></textarea>
+                <select name="rating" class="form-control mb-2" required>
+                    <option value="">Rate the recipe</option>
+                    <option value="1">⭐ 1</option>
+                    <option value="2">⭐ 2</option>
+                    <option value="3">⭐ 3</option>
+                    <option value="4">⭐ 4</option>
+                    <option value="5">⭐ 5</option>
+                </select>
+                <button type="submit" class="btn btn-auth w-100">Submit Comment</button>
+            </form>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<!-- Like Button Script -->
+<script>
+document.getElementById('likeBtn').addEventListener('click', function() {
+    fetch("/recipe/{{ recipe.0 }}/like/")
+    .then(res => res.json())
+    .then(data => {
+        if(data.liked) {
+            document.getElementById('likeBtn').innerText = "💔 Unlike";
+        } else {
+            document.getElementById('likeBtn').innerText = "❤️ Like";
+        }
+    });
+});
+</script>
+
+<!-- Custom CSS for Steps -->
+<style>
+.recipe-steps {
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.recipe-steps li {
+    margin-bottom: 8px;
+}
+
+.recipe-section h4 {
+    font-weight: 600;
+    margin-top: 15px;
+}
+
+.btn-auth {
+    background-color: #c94c4c;
+    color: white;
+    border-radius: 20px;
+}
+
+textarea, select {
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+</style>
+{% endblock %}

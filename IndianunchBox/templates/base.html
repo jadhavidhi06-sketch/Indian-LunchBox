@@ -1,44 +1,37 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IndianLunchBox</title>
 
-```
-<link href="https://fonts.googleapis.com/css2?family=Poppins&family=Playfair+Display&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Playfair+Display&display=swap" rel="stylesheet">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<link rel="stylesheet" href="/static/css/style.css">
-```
-
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-
 <body>
 
-```
-{% include 'navbar.html' %}
+    <!-- Navbar -->
+    {% include 'navbar.html' %}
 
-<div class="hero-section text-center">
+    <!-- Main Content -->
+    <div class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
 
-```
-{% if request.session.user_name %}
-    <h1 class="hero-title">
-        Welcome back, {{ request.session.user_name }} ❤️
-    </h1>
-    <p class="hero-subtitle">
-        Ready to relive your lunchbox memories?
-    </p>
-{% else %}
-    <h1 class="hero-title">🍱 IndianLunchBox</h1>
-    <p class="hero-subtitle">Relive Your Food Memories ❤️</p>
-{% endif %}
-```
+    <!-- Footer -->
+    <footer class="text-center mt-5 mb-3">
+        <p>© 2026 IndianLunchBox | Made with ❤️ for food lovers</p>
+    </footer>
 
-</div>
-
-```
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
