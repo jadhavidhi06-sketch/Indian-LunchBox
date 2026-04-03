@@ -1,0 +1,862 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="contact-container">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="contact-hero text-center">
+            <div class="contact-hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-heart"></i> We'd Love to Hear From You
+                </div>
+                <h1 class="contact-title">
+                    Get in Touch
+                    <span class="title-underline">with Our Team</span>
+                </h1>
+                <p class="contact-subtitle">
+                    Have a question, suggestion, or just want to share your food story? 
+                    We're here to listen and help!
+                </p>
+            </div>
+        </div>
+
+        <div class="contact-grid">
+            <!-- Contact Form Section -->
+            <div class="contact-form-section">
+                <div class="nostalgic-card p-4 p-md-5">
+                    <div class="section-header">
+                        <div class="section-tag">
+                            <i class="fas fa-paper-plane"></i> Send us a Message
+                        </div>
+                        <h2>Let's Talk Food!</h2>
+                        <p>Fill out the form below and we'll get back to you within 24 hours</p>
+                        <div class="divider-nostalgic"></div>
+                    </div>
+
+                    <!-- Display Django Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert-message {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Contact Form -->
+                    <form method="POST" id="contactForm" action="{% url 'contact' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Name Field -->
+                        <div class="form-group mb-3">
+                            <label for="name" class="form-label fw-semibold">
+                                <i class="fas fa-user me-2" style="color: #e2b13b;"></i>Your Name
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text contact-input-icon">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" 
+                                       name="name" 
+                                       id="name" 
+                                       class="form-control contact-input" 
+                                       placeholder="Enter your full name" 
+                                       required
+                                       value="{{ request.POST.name|default:request.session.user_name|default:'' }}">
+                            </div>
+                            <div class="invalid-feedback" id="nameError"></div>
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="form-group mb-3">
+                            <label for="email" class="form-label fw-semibold">
+                                <i class="fas fa-envelope me-2" style="color: #e2b13b;"></i>Email Address
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text contact-input-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" 
+                                       name="email" 
+                                       id="email" 
+                                       class="form-control contact-input" 
+                                       placeholder="your@email.com" 
+                                       required
+                                       value="{{ request.POST.email|default:'' }}">
+                            </div>
+                            <div class="invalid-feedback" id="emailError"></div>
+                        </div>
+
+                        <!-- Subject Field -->
+                        <div class="form-group mb-3">
+                            <label for="subject" class="form-label fw-semibold">
+                                <i class="fas fa-tag me-2" style="color: #e2b13b;"></i>Subject
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text contact-input-icon">
+                                    <i class="fas fa-tag"></i>
+                                </span>
+                                <select name="subject" id="subject" class="form-control contact-input" required>
+                                    <option value="">Select a subject</option>
+                                    <option value="general">General Inquiry</option>
+                                    <option value="recipe">Recipe Suggestion</option>
+                                    <option value="support">Technical Support</option>
+                                    <option value="collaboration">Collaboration/Business</option>
+                                    <option value="feedback">Feedback</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="invalid-feedback" id="subjectError"></div>
+                        </div>
+
+                        <!-- Message Field -->
+                        <div class="form-group mb-4">
+                            <label for="message" class="form-label fw-semibold">
+                                <i class="fas fa-comment me-2" style="color: #e2b13b;"></i>Your Message
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text contact-input-icon" style="align-items: flex-start; padding-top: 12px;">
+                                    <i class="fas fa-comment"></i>
+                                </span>
+                                <textarea name="message" 
+                                          id="message" 
+                                          class="form-control contact-input" 
+                                          rows="5" 
+                                          placeholder="Tell us what's on your mind..." 
+                                          required>{{ request.POST.message|default:'' }}</textarea>
+                            </div>
+                            <div class="invalid-feedback" id="messageError"></div>
+                            <div class="char-count" id="charCount">0/500 characters</div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-cozy w-100 py-2" id="submitBtn">
+                            <i class="fas fa-paper-plane me-2"></i> Send Message
+                        </button>
+
+                        <!-- Loading State -->
+                        <div class="text-center d-none mt-3" id="loadingSpinner">
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 small text-muted">Sending your message...</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Info Section -->
+            <div class="contact-info-section">
+                <!-- Contact Cards -->
+                <div class="info-card nostalgia-card">
+                    <div class="info-header">
+                        <i class="fas fa-address-card"></i>
+                        <h3>Contact Information</h3>
+                    </div>
+                    <div class="info-details">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="info-text">
+                                <h4>Our Location</h4>
+                                <p>123 Foodie Street,<br>Mumbai, Maharashtra 400001,<br>India</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-text">
+                                <h4>Email Us</h4>
+                                <p><a href="mailto:hello@indianlunchbox.com">hello@indianlunchbox.com</a></p>
+                                <p><a href="mailto:support@indianlunchbox.com">support@indianlunchbox.com</a></p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <div class="info-text">
+                                <h4>Call Us</h4>
+                                <p><a href="tel:+919876543210">+91 98765 43210</a></p>
+                                <p><small>Mon-Fri, 10 AM - 6 PM IST</small></p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="info-text">
+                                <h4>Response Time</h4>
+                                <p>We typically respond within 24 hours</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Connect -->
+                <div class="social-card nostalgia-card">
+                    <div class="info-header">
+                        <i class="fas fa-share-alt"></i>
+                        <h3>Connect With Us</h3>
+                    </div>
+                    <p class="social-text">Follow us on social media for daily food inspiration, new recipes, and community updates!</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link instagram">
+                            <i class="fab fa-instagram"></i>
+                            <span>Instagram</span>
+                        </a>
+                        <a href="#" class="social-link facebook">
+                            <i class="fab fa-facebook-f"></i>
+                            <span>Facebook</span>
+                        </a>
+                        <a href="#" class="social-link youtube">
+                            <i class="fab fa-youtube"></i>
+                            <span>YouTube</span>
+                        </a>
+                        <a href="#" class="social-link pinterest">
+                            <i class="fab fa-pinterest"></i>
+                            <span>Pinterest</span>
+                        </a>
+                        <a href="#" class="social-link twitter">
+                            <i class="fab fa-twitter"></i>
+                            <span>Twitter</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- FAQ Quick Links -->
+                <div class="faq-card nostalgia-card">
+                    <div class="info-header">
+                        <i class="fas fa-question-circle"></i>
+                        <h3>Quick Help</h3>
+                    </div>
+                    <div class="faq-links">
+                        <a href="/faq/">
+                            <i class="fas fa-question"></i>
+                            <span>Frequently Asked Questions</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="/privacy/">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Privacy Policy</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <a href="/terms/">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Terms of Service</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="map-section">
+            <div class="nostalgic-card p-4">
+                <div class="section-header text-center">
+                    <div class="section-tag center">
+                        <i class="fas fa-map-marked-alt"></i> Find Us
+                    </div>
+                    <h2>Our Location</h2>
+                    <p>Visit us or send us mail - we'd love to meet you!</p>
+                </div>
+                <div class="map-container">
+                    <!-- Google Maps Embed (Mumbai location) -->
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241316.64333263844!2d72.74110128562485!3d19.08252233415094!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d648c69!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
+                        width="100%" 
+                        height="400" 
+                        style="border:0; border-radius: 20px;" 
+                        allowfullscreen="" 
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonial/Quote Section -->
+        <div class="quote-section text-center">
+            <div class="quote-card">
+                <i class="fas fa-quote-left"></i>
+                <p>Food is our common ground, a universal experience. We're here to make every meal memorable.</p>
+                <span>- The IndianLunchBox Team</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Contact Container */
+    .contact-container {
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+        padding: 2rem 0 4rem;
+        min-height: calc(100vh - 200px);
+    }
+
+    /* Hero Section */
+    .contact-hero {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 1rem;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: white;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .hero-badge i {
+        margin-right: 6px;
+    }
+
+    .contact-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .title-underline {
+        display: block;
+        font-size: 1.5rem;
+        color: #c96b4a;
+        margin-top: 0.25rem;
+    }
+
+    .contact-subtitle {
+        font-size: 1rem;
+        color: #7a624b;
+        max-width: 600px;
+        margin: 1rem auto 0;
+        line-height: 1.6;
+    }
+
+    /* Contact Grid */
+    .contact-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    /* Section Header */
+    .section-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-tag {
+        display: inline-block;
+        background: #fff5ea;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+    }
+
+    .section-tag i {
+        margin-right: 6px;
+    }
+
+    .section-tag.center {
+        display: inline-block;
+    }
+
+    .section-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-header p {
+        color: #7a624b;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        color: #5a4a3a;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .contact-input {
+        border: 2px solid #f0dfbf;
+        border-radius: 12px;
+        padding: 12px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .contact-input:focus {
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 4px rgba(226, 177, 59, 0.1);
+        outline: none;
+    }
+
+    .contact-input.error {
+        border-color: #dc3545;
+    }
+
+    .input-group .contact-input {
+        border-radius: 0 12px 12px 0;
+    }
+
+    .contact-input-icon {
+        background: #fff5ea;
+        border: 2px solid #f0dfbf;
+        border-right: none;
+        border-radius: 12px 0 0 12px;
+        color: #c96b4a;
+    }
+
+    .invalid-feedback {
+        font-size: 0.75rem;
+        margin-top: 5px;
+        color: #dc3545;
+        display: none;
+    }
+
+    .char-count {
+        font-size: 0.7rem;
+        color: #7a624b;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    /* Alert Messages */
+    .alert-message {
+        padding: 12px 16px;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    .alert-error {
+        background: #fff0f0;
+        color: #dc3545;
+        border-left: 4px solid #dc3545;
+    }
+
+    .alert-success {
+        background: #f0fff4;
+        color: #28a745;
+        border-left: 4px solid #28a745;
+    }
+
+    /* Contact Info Cards */
+    .info-card, .social-card, .faq-card {
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 24px;
+        transition: transform 0.3s ease;
+    }
+
+    .info-card:hover, .social-card:hover, .faq-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .info-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0dfbf;
+    }
+
+    .info-header i {
+        font-size: 1.5rem;
+        color: #c96b4a;
+    }
+
+    .info-header h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin: 0;
+    }
+
+    .info-item {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: #fff5ea;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #c96b4a;
+        font-size: 1.2rem;
+    }
+
+    .info-text h4 {
+        font-size: 0.9rem;
+        color: #5a3e2e;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-text p {
+        color: #7a624b;
+        font-size: 0.85rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .info-text a {
+        color: #c96b4a;
+        text-decoration: none;
+    }
+
+    .info-text a:hover {
+        text-decoration: underline;
+    }
+
+    /* Social Links */
+    .social-text {
+        color: #7a624b;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .social-links {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .social-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+    .social-link i {
+        font-size: 1.2rem;
+    }
+
+    .social-link.instagram {
+        background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+        color: white;
+    }
+
+    .social-link.facebook {
+        background: #1877f2;
+        color: white;
+    }
+
+    .social-link.youtube {
+        background: #ff0000;
+        color: white;
+    }
+
+    .social-link.pinterest {
+        background: #bd081c;
+        color: white;
+    }
+
+    .social-link.twitter {
+        background: #1da1f2;
+        color: white;
+    }
+
+    .social-link:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+
+    /* FAQ Links */
+    .faq-links a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        color: #5a3e2e;
+        text-decoration: none;
+        border-bottom: 1px solid #f0dfbf;
+        transition: all 0.2s;
+    }
+
+    .faq-links a:last-child {
+        border-bottom: none;
+    }
+
+    .faq-links a:hover {
+        color: #c96b4a;
+        padding-left: 8px;
+    }
+
+    .faq-links a i:first-child {
+        width: 24px;
+        color: #e2b13b;
+    }
+
+    .faq-links a i:last-child {
+        margin-left: auto;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .faq-links a:hover i:last-child {
+        opacity: 1;
+    }
+
+    /* Map Section */
+    .map-section {
+        margin-bottom: 3rem;
+    }
+
+    .map-container {
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    /* Quote Section */
+    .quote-section {
+        margin-top: 2rem;
+    }
+
+    .quote-card {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        padding: 2rem;
+        border-radius: 32px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .quote-card i {
+        font-size: 2rem;
+        opacity: 0.3;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
+
+    .quote-card p {
+        font-size: 1.2rem;
+        font-style: italic;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .quote-card span {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Animations */
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .contact-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .contact-info-section {
+            order: -1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .contact-title {
+            font-size: 1.8rem;
+        }
+        
+        .title-underline {
+            font-size: 1.2rem;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .social-links {
+            grid-template-columns: 1fr;
+        }
+        
+        .quote-card p {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<script>
+    // Character counter for message
+    const messageInput = document.getElementById('message');
+    const charCount = document.getElementById('charCount');
+    
+    if (messageInput && charCount) {
+        function updateCharCount() {
+            const length = messageInput.value.length;
+            charCount.textContent = `${length}/500 characters`;
+            if (length > 450) {
+                charCount.style.color = '#e25822';
+            } else if (length > 480) {
+                charCount.style.color = '#dc3545';
+            } else {
+                charCount.style.color = '#7a624b';
+            }
+        }
+        
+        messageInput.addEventListener('input', updateCharCount);
+        updateCharCount();
+    }
+
+    // Form validation
+    const form = document.getElementById('contactForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const subjectInput = document.getElementById('subject');
+    const messageInputField = document.getElementById('message');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // Real-time validation
+    nameInput.addEventListener('input', function() {
+        if (this.value.trim().length < 2) {
+            showFieldError(this, 'nameError', 'Name must be at least 2 characters');
+        } else {
+            clearFieldError(this, 'nameError');
+        }
+    });
+
+    emailInput.addEventListener('input', function() {
+        const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+        if (!emailRegex.test(this.value)) {
+            showFieldError(this, 'emailError', 'Please enter a valid email address');
+        } else {
+            clearFieldError(this, 'emailError');
+        }
+    });
+
+    subjectInput.addEventListener('change', function() {
+        if (!this.value) {
+            showFieldError(this, 'subjectError', 'Please select a subject');
+        } else {
+            clearFieldError(this, 'subjectError');
+        }
+    });
+
+    messageInputField.addEventListener('input', function() {
+        if (this.value.trim().length < 10) {
+            showFieldError(this, 'messageError', 'Message must be at least 10 characters');
+        } else if (this.value.trim().length > 500) {
+            showFieldError(this, 'messageError', 'Message cannot exceed 500 characters');
+        } else {
+            clearFieldError(this, 'messageError');
+        }
+    });
+
+    function showFieldError(field, errorId, message) {
+        field.classList.add('error');
+        const errorDiv = document.getElementById(errorId);
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    }
+
+    function clearFieldError(field, errorId) {
+        field.classList.remove('error');
+        const errorDiv = document.getElementById(errorId);
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+    }
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Name validation
+        if (!nameInput.value.trim() || nameInput.value.trim().length < 2) {
+            showFieldError(nameInput, 'nameError', 'Please enter your full name');
+            isValid = false;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+        if (!emailInput.value || !emailRegex.test(emailInput.value)) {
+            showFieldError(emailInput, 'emailError', 'Please enter a valid email address');
+            isValid = false;
+        }
+        
+        // Subject validation
+        if (!subjectInput.value) {
+            showFieldError(subjectInput, 'subjectError', 'Please select a subject');
+            isValid = false;
+        }
+        
+        // Message validation
+        if (!messageInputField.value.trim() || messageInputField.value.trim().length < 10) {
+            showFieldError(messageInputField, 'messageError', 'Please enter a message (minimum 10 characters)');
+            isValid = false;
+        } else if (messageInputField.value.trim().length > 500) {
+            showFieldError(messageInputField, 'messageError', 'Message cannot exceed 500 characters');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        const btnText = submitBtn.querySelector('i');
+        if (btnText) {
+            btnText.className = 'fas fa-spinner fa-spin me-2';
+        }
+        loadingSpinner.classList.remove('d-none');
+        
+        return true;
+    });
+</script>
+
+{% endblock %}

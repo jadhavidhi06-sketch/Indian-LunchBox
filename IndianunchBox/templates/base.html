@@ -2,36 +2,907 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IndianLunchBox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>IndianLunchBox — Cozy Bites, Nostalgic Delights</title>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Playfair+Display&display=swap" rel="stylesheet">
+    <!-- Google Fonts: A warm, readable mix for all ages -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Kalam:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap 5 CSS (with subtle warmth) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Font Awesome 6 (free icons for homy touches) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Custom CSS: cozy, nostalgic, aesthetic palette & details -->
+    <style>
+        /* ---------- ROOT VARIABLES: WARMTH & NOSTALGIA ---------- */
+        :root {
+            --bg-cream: #fff9ef;
+            --warm-terracotta: #c96b4a;
+            --deep-masala: #a55233;
+            --golden-mustard: #e2b13b;
+            --soft-teal: #558b8f;
+            --charcoal-soft: #2d2f36;
+            --card-bg: #ffffffea;
+            --border-nostalgic: #f0e0c0;
+            --shadow-cozy: 0 12px 28px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+            --shadow-hover: 0 20px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-cream);
+            font-family: 'Inter', sans-serif;
+            color: #2c2b28;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        /* nostalgic header / typography */
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #2f2a24;
+        }
+
+        .handwritten-accent {
+            font-family: 'Kalam', cursive;
+            font-weight: 400;
+            color: var(--warm-terracotta);
+        }
+
+        /* Navbar Container */
+        .custom-navbar {
+            background: linear-gradient(135deg, #ffffff 0%, #fffaf5 100%);
+            border-bottom: 3px solid #e2b13b;
+            padding: 0.75rem 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Brand Logo Styling */
+        .brand-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #c96b4a !important;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .brand-logo i {
+            color: #e2b13b;
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+
+        .brand-logo:hover {
+            transform: scale(1.02);
+            color: #a55233 !important;
+        }
+
+        .brand-tagline {
+            font-size: 0.7rem;
+            font-family: 'Kalam', cursive;
+            color: #d9a066;
+            margin-left: 5px;
+            font-weight: normal;
+        }
+
+        /* Nav Links */
+        .nav-link-custom {
+            color: #5a4a3a !important;
+            font-weight: 500;
+            padding: 8px 16px !important;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+
+        .nav-link-custom i {
+            margin-right: 6px;
+            font-size: 0.9rem;
+            color: #e2b13b;
+        }
+
+        .nav-link-custom:hover {
+            background: #ffefdd;
+            color: #c96b4a !important;
+            transform: translateY(-2px);
+        }
+
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            color: #5a4a3a !important;
+            padding: 8px 12px !important;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            min-width: 300px;
+            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .dropdown-header {
+            background: #fff9ef;
+            padding: 12px 16px;
+            font-weight: 600;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-item.unread {
+            background: #fff9ef;
+        }
+
+        .notification-item:hover {
+            background: #f5f5f5;
+        }
+
+        .notification-item .dropdown-item {
+            white-space: normal;
+            padding: 10px 16px;
+        }
+
+        /* User Profile */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px !important;
+            background: #fff5ea;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            background: #ffefdd;
+            transform: translateY(-2px);
+        }
+
+        .user-avatar {
+            font-size: 1.8rem;
+            color: #c96b4a;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #5a4a3a;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* User Dropdown */
+        .user-dropdown {
+            min-width: 260px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+            padding: 8px 0;
+        }
+
+        .user-avatar-large {
+            color: #c96b4a;
+        }
+
+        .user-dropdown .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.2s;
+        }
+
+        .user-dropdown .dropdown-item i {
+            width: 24px;
+            margin-right: 8px;
+            color: #e2b13b;
+        }
+
+        .user-dropdown .dropdown-item:hover {
+            background: #fff9ef;
+            padding-left: 26px;
+        }
+
+        /* Buttons */
+        .btn-add-recipe {
+            background: linear-gradient(135deg, #c96b4a, #a55233);
+            border: none;
+            color: white;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(201, 107, 74, 0.3);
+        }
+
+        .btn-add-recipe:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 107, 74, 0.4);
+            background: linear-gradient(135deg, #b85c3a, #964a2e);
+        }
+
+        .btn-login {
+            border-color: #c96b4a;
+            color: #c96b4a;
+            border-radius: 50px;
+            padding: 8px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: #c96b4a;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-register {
+            background: #e2b13b;
+            border: none;
+            color: #5a3e2e;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-register:hover {
+            background: #d4a32e;
+            transform: translateY(-2px);
+            color: #3a2a1e;
+        }
+
+        /* Guest Message */
+        .guest-message {
+            background: #fff5ea;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: #c96b4a;
+            font-weight: 500;
+        }
+
+        .guest-message i {
+            margin-right: 6px;
+            color: #e2b13b;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 992px) {
+            .custom-navbar {
+                padding: 0.5rem 0;
+            }
+            
+            .brand-logo {
+                font-size: 1.3rem;
+            }
+            
+            .brand-tagline {
+                display: none;
+            }
+            
+            .navbar-nav {
+                margin-top: 1rem;
+                gap: 8px !important;
+            }
+            
+            .nav-link-custom, .user-profile, .notification-bell {
+                padding: 8px 12px !important;
+            }
+            
+            .btn-add-recipe, .btn-login, .btn-register {
+                width: 100%;
+                text-align: center;
+                margin: 5px 0;
+            }
+            
+            .guest-message {
+                text-align: center;
+                margin: 10px 0;
+            }
+            
+            .user-name {
+                display: inline;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .user-name {
+                display: none;
+            }
+            
+            .brand-logo i {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Custom Toggler */
+        .custom-toggler {
+            border: none;
+            background: #fff5ea;
+        }
+
+        .custom-toggler:focus {
+            box-shadow: none;
+        }
+
+        /* Animation for new items */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-menu.show {
+            animation: slideDown 0.2s ease;
+        }
+
+        /* main container – cozy breathing space */
+        .main-cozy {
+            background: var(--bg-cream);
+            min-height: 65vh;
+            padding-top: 1rem;
+            padding-bottom: 3rem;
+        }
+
+        /* card style for any blocks – vintage recipe card feel */
+        .nostalgic-card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            border: 1px solid var(--border-nostalgic);
+            box-shadow: var(--shadow-cozy);
+            transition: all 0.25s ease;
+            backdrop-filter: blur(0px);
+            overflow: hidden;
+        }
+        
+        .nostalgic-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+            border-color: #eedbba;
+        }
+
+        /* buttons with homy texture */
+        .btn-cozy {
+            background: var(--warm-terracotta);
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            padding: 8px 22px;
+            border-radius: 50px;
+            color: white;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        
+        .btn-cozy:hover {
+            background: #b85c3a;
+            transform: scale(0.97);
+            color: #fff5ea;
+        }
+        
+        .btn-outline-cozy {
+            background: transparent;
+            border: 2px solid var(--warm-terracotta);
+            color: var(--warm-terracotta);
+            border-radius: 50px;
+            font-weight: 600;
+            padding: 6px 20px;
+            transition: 0.2s;
+        }
+        
+        .btn-outline-cozy:hover {
+            background: var(--warm-terracotta);
+            color: white;
+        }
+
+        /* footer – sweet & nostalgic */
+        .cozy-footer {
+            background: #fef2e3;
+            border-top: 1px solid #f2e2ce;
+            margin-top: 2rem;
+            padding: 2rem 0 1.5rem;
+            font-family: 'Inter', sans-serif;
+            color: #6b5a48;
+        }
+        
+        .footer-heart {
+            color: #d97755;
+            font-size: 0.9rem;
+        }
+        
+        .social-icons a {
+            color: #b87a5a;
+            font-size: 1.3rem;
+            margin: 0 12px;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        
+        .social-icons a:hover {
+            color: #9b553b;
+            transform: translateY(-3px);
+        }
+
+        /* additional vintage details */
+        .divider-nostalgic {
+            height: 2px;
+            background: linear-gradient(90deg, #f0dfbf, #eacf9e, #f0dfbf);
+            width: 80px;
+            margin: 1rem auto;
+        }
+
+        .quote-badge {
+            font-size: 0.85rem;
+            background: #fff3e4;
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 60px;
+            font-family: 'Kalam', cursive;
+            color: #a86848;
+        }
+
+        /* responsive tweaks */
+        @media (max-width: 768px) {
+            .main-cozy {
+                padding-top: 0.5rem;
+            }
+        }
+
+        /* extra warmth for any alert messages */
+        .alert-cozy {
+            background-color: #fff0e0;
+            border-left: 6px solid var(--golden-mustard);
+            color: #5f3f2c;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* make images blend softly (optional for future content) */
+        img {
+            border-radius: 20px;
+            max-width: 100%;
+        }
+
+        /* custom scrollbar — nostalgic touch */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3e7d9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d6b088;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bd7a58;
+        }
+    </style>
+
+    <!-- block for extra page-specific css -->
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-    <!-- Navbar -->
-    {% include 'navbar.html' %}
+    <!-- ==================== ENHANCED NAVBAR ==================== -->
+    <nav class="navbar navbar-expand-lg custom-navbar shadow-sm sticky-top">
+        <div class="container">
+            <!-- Brand with hover effect and animated icon -->
+            <a class="navbar-brand brand-logo" href="/">
+                <i class="fas fa-utensil-spoon"></i> 
+                IndianLunchBox
+                <span class="brand-tagline">❤️ Taste of Home</span>
+            </a>
 
-    <!-- Main Content -->
-    <div class="container mt-4">
-        {% block content %}
-        {% endblock %}
+            <!-- Toggler for mobile with custom styling -->
+            <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navMenu">
+                <ul class="navbar-nav ms-auto align-items-center gap-2 gap-lg-1">
+                    <!-- Common Navigation Links for All Users -->
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="/">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="/recipes/">
+                            <i class="fas fa-utensils"></i> Recipes
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="/about/">
+                            <i class="fas fa-info-circle"></i> About
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="/contact/">
+                            <i class="fas fa-envelope"></i> Contact
+                        </a>
+                    </li>
+
+                    <!-- Conditional Content Based on Login Status -->
+                    {% if request.session.user_id %}
+                    
+                        <!-- User is LOGGED IN -->
+                        
+                        <!-- Notification Bell with Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link notification-bell" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge" id="notificationCount">3</span>
+                            </a>
+                            <ul class="dropdown-menu notification-dropdown" aria-labelledby="notificationDropdown">
+                                <li class="dropdown-header">
+                                    <i class="fas fa-bell"></i> Notifications
+                                    <button class="btn btn-sm btn-link mark-all-read" onclick="markAllNotificationsRead()">Mark all read</button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="notification-item unread">
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-heart text-danger"></i> Your recipe got 5 new likes!
+                                        <small class="d-block text-muted">2 hours ago</small>
+                                    </a>
+                                </li>
+                                <li class="notification-item unread">
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-comment text-primary"></i> New comment on "Butter Chicken"
+                                        <small class="d-block text-muted">5 hours ago</small>
+                                    </a>
+                                </li>
+                                <li class="notification-item">
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-user-plus text-success"></i> Welcome to IndianLunchBox!
+                                        <small class="d-block text-muted">Yesterday</small>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="text-center">
+                                    <a class="dropdown-item small" href="/notifications/">View all notifications</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- User Profile Dropdown with Avatar -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle user-profile" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <span class="user-name">{{ request.session.user_name }}</span>
+                            </a>
+                            <ul class="dropdown-menu user-dropdown">
+                                <li class="dropdown-header text-center">
+                                    <div class="user-avatar-large mb-2">
+                                        <i class="fas fa-user-circle fa-3x"></i>
+                                    </div>
+                                    <strong>{{ request.session.user_name }}</strong>
+                                    <small class="d-block text-muted">{{ request.session.user_email|default:"foodie@indianlunchbox.com" }}</small>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="/my-profile/">
+                                        <i class="fas fa-id-card"></i> My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/my-recipes/">
+                                        <i class="fas fa-utensils"></i> My Recipes
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/saved-recipes/">
+                                        <i class="fas fa-bookmark"></i> Saved Recipes
+                                        <span class="badge bg-warning text-dark ms-2" id="savedCount">0</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/favorites/">
+                                        <i class="fas fa-heart"></i> Favorites
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="/my-reviews/">
+                                        <i class="fas fa-star"></i> My Reviews
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="/settings/">
+                                        <i class="fas fa-cog"></i> Settings
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="/logout/">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Add Recipe Button (Prominent) -->
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-add-recipe" href="/add-recipe/">
+                                <i class="fas fa-plus-circle"></i> Add Recipe
+                            </a>
+                        </li>
+
+                    {% else %}
+                    
+                        <!-- User is NOT LOGGED IN -->
+                        
+                        <!-- Login Button -->
+                        <li class="nav-item">
+                            <a class="btn btn-outline-primary btn-login" href="/login/">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        
+                        <!-- Register Button with Special Styling -->
+                        <li class="nav-item">
+                            <a class="btn btn-primary btn-register" href="/register/">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+
+                        <!-- Guest Message -->
+                        <li class="nav-item">
+                            <span class="guest-message">
+                                <i class="fas fa-utensil-spoon"></i> Join our food family!
+                            </span>
+                        </li>
+
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- A tiny nostalgic spice banner (subtle message for every visitor) -->
+    <div class="container mt-2 text-center">
+        <div class="quote-badge">
+            <i class="fas fa-egg"></i>  From grandma's kitchen to your tiffin  <i class="fas fa-mug-hot"></i>
+        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center mt-5 mb-3">
-        <p>© 2026 IndianLunchBox | Made with ❤️ for food lovers</p>
+    <!-- ==================== MAIN DYNAMIC BLOCK (with cozy container) ==================== -->
+    <main class="main-cozy">
+        <div class="container">
+            <!-- Django message alerts (if any) with cozy style -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-cozy alert-dismissible fade show shadow-sm mb-4" role="alert">
+                        <i class="fas fa-spa me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- CONTENT BLOCK (child templates will insert here) -->
+            {% block content %}
+            <!-- default cozy placeholder (can be overridden) -->
+            <div class="text-center py-5">
+                <div class="nostalgic-card p-5">
+                    <i class="fas fa-dharmachakra fa-3x" style="color: #d9a066;"></i>
+                    <h2 class="mt-3">Welcome to IndianLunchBox</h2>
+                    <div class="divider-nostalgic"></div>
+                    <p class="lead handwritten-accent">Memories are made of spices & love.</p>
+                    <p>Explore timeless recipes, lunchbox stories, and homy flavours for all generations.</p>
+                    <a href="/recipes/" class="btn btn-cozy mt-2"><i class="fas fa-arrow-right"></i> Discover Recipes</a>
+                </div>
+            </div>
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- ==================== FOOTER (nostalgic, aesthetic & full of warmth) ==================== -->
+    <footer class="cozy-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <h5 style="font-family: 'Playfair Display'; font-weight: 600; color:#835e46;">
+                        <i class="fas fa-tiffin-carrier"></i> IndianLunchBox
+                    </h5>
+                    <p class="small mt-2" style="color: #7a634f;">Preserving the soul of Indian homecooked meals — from dabbas to digital, every recipe carries a story. Warm, simple, timeless.</p>
+                    <div class="social-icons mt-3">
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
+                        <a href="#" aria-label="Youtube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h6 style="font-weight: 600; color:#a75938;">Explore</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="/recipes/" class="text-decoration-none" style="color:#7b5d46;">🍛 All Recipes</a></li>
+                        <li><a href="/lunchbox-stories/" class="text-decoration-none" style="color:#7b5d46;">📖 Nostalgic Tales</a></li>
+                        <li><a href="/seasonal/" class="text-decoration-none" style="color:#7b5d46;">🌿 Seasonal Bites</a></li>
+                        <li><a href="/kitchen-tips/" class="text-decoration-none" style="color:#7b5d46;">👩‍🍳 Grandma's Tips</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 style="font-weight: 600; color:#a75938;">The Tiffin Club</h6>
+                    <p class="small">Subscribe to get a dash of nostalgia in your inbox ✨</p>
+                    <div class="input-group">
+                        <input type="email" class="form-control form-control-sm" placeholder="your email" style="border-radius: 50px 0 0 50px; background: #fff6ea; border:1px solid #eedbba;">
+                        <button class="btn btn-sm" style="background: #d49c6c; color: white; border-radius: 0 50px 50px 0;" type="button">Join</button>
+                    </div>
+                    <p class="small mt-2 handwritten-accent" style="font-size: 0.7rem;">❤️ No spam, only warm memories.</p>
+                </div>
+            </div>
+            <hr class="mt-4" style="background: #e4cfb5;">
+            <div class="text-center pt-2">
+                <p class="mb-0 small">© 2026 IndianLunchBox — Made with <span class="footer-heart"><i class="fas fa-heart"></i></span> for food lovers & generations | <i class="fas fa-thermometer-half"></i> Always homestyle</p>
+                <p class="mb-0 small mt-1">
+                    <a href="#" class="text-decoration-none" style="color:#b68662;">Privacy</a> • 
+                    <a href="#" class="text-decoration-none" style="color:#b68662;">Accessibility</a> • 
+                    <span><i class="fas fa-chai"></i> Chai & stories</span>
+                </p>
+            </div>
+        </div>
     </footer>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap JS Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Navbar JavaScript for Interactive Features -->
+    <script>
+        // Load saved recipes count from localStorage
+        function loadSavedCount() {
+            const savedRecipes = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            const savedCountElement = document.getElementById('savedCount');
+            if (savedCountElement) {
+                savedCountElement.textContent = savedRecipes.length;
+            }
+        }
 
+        // Mark all notifications as read
+        function markAllNotificationsRead() {
+            const unreadItems = document.querySelectorAll('.notification-item.unread');
+            unreadItems.forEach(item => {
+                item.classList.remove('unread');
+            });
+            
+            const badge = document.getElementById('notificationCount');
+            if (badge) {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+            }
+            
+            // Store in localStorage that notifications are read
+            localStorage.setItem('notificationsRead', 'true');
+            
+            // Show toast message
+            showNavbarToast('All notifications marked as read!', 'success');
+        }
+
+        // Show toast message
+        function showNavbarToast(message, type = 'info') {
+            let toastContainer = document.querySelector('.navbar-toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'navbar-toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            bsToast.show();
+            toast.addEventListener('hidden.bs.toast', () => toast.remove());
+        }
+
+        // Initialize navbar features
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedCount();
+            
+            // Set initial notification count from localStorage
+            const notificationsRead = localStorage.getItem('notificationsRead');
+            if (!notificationsRead) {
+                // Keep the notification badge as is (3 from HTML)
+                const badge = document.getElementById('notificationCount');
+                if (badge && badge.textContent === '0') {
+                    badge.style.display = 'none';
+                }
+            } else {
+                const badge = document.getElementById('notificationCount');
+                if (badge) {
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                }
+            }
+            
+            // Add active class to current page link
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link-custom').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
+                    link.classList.add('active');
+                    link.style.background = '#ffefdd';
+                    link.style.color = '#c96b4a';
+                }
+            });
+        });
+    </script>
+
+    <!-- Toast Container for Notifications -->
+    <div class="navbar-toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+    <!-- Optional: tiny script for cozy interactions -->
+    <script>
+        (function() {
+            // Add a little floating tooltip for search input (warm placeholder effect)
+            const searchInput = document.querySelector('.search-input');
+            if(searchInput) {
+                searchInput.addEventListener('focus', () => {
+                    searchInput.placeholder = "e.g., aloo paratha, dal makhani...";
+                });
+                searchInput.addEventListener('blur', () => {
+                    searchInput.placeholder = "Search daal, paratha...";
+                });
+            }
+
+            // Optional: cozy console greeting (just for aesthetic fun)
+            console.log("%c✨ Welcome to IndianLunchBox — where every meal tastes like home ✨", "color: #c96b4a; font-size: 16px; font-family: monospace;");
+        })();
+    </script>
+
+    <!-- block for extra javascript (child pages can add) -->
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

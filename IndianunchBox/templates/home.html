@@ -1,35 +1,692 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="hero-section text-center mt-5">
-    {% if request.session.user_name %}
-        <h1 class="hero-title">Welcome back, {{ request.session.user_name }} ❤️</h1>
-        <p class="hero-subtitle">Check out the latest recipes from our community!</p>
-    {% else %}
-        <h1 class="hero-title">🍱 IndianLunchBox</h1>
-        <p class="hero-subtitle">Relive Your Food Memories ❤️</p>
-    {% endif %}
+<!-- Hero Section with Nostalgic Warmth -->
+<div class="hero-section text-center py-5 my-3">
+    <div class="container">
+        <div class="nostalgic-card p-4 p-md-5 bg-white shadow-sm" style="border-radius: 48px; background: #ffffffdd; backdrop-filter: blur(2px);">
+            {% if request.session.user_name %}
+                <div class="mb-3">
+                    <i class="fas fa-hands-clapping fa-3x" style="color: #c96b4a;"></i>
+                </div>
+                <h1 class="display-5 fw-bold" style="font-family: 'Playfair Display', serif; color: #5a3e2e;">
+                    Welcome back, {{ request.session.user_name }} <span class="handwritten-accent">❤️</span>
+                </h1>
+                <p class="lead mt-3" style="color: #7a624b; font-size: 1.2rem;">
+                    <i class="fas fa-utensil-spoon me-2"></i> Your lunchbox memories are waiting...
+                </p>
+                <div class="divider-nostalgic my-3"></div>
+                <p class="handwritten-accent fs-5">"Check out the latest recipes from our community!"</p>
+                
+                <!-- Daily Quote Feature -->
+                <div class="mt-4 p-3" style="background: #fff3e8; border-radius: 60px;">
+                    <i class="fas fa-quote-left me-2" style="color: #e2b13b;"></i>
+                    <span id="daily-quote" class="small">Food is memory, and every recipe has a story.</span>
+                </div>
+            {% else %}
+                <div class="mb-3">
+                    <i class="fas fa-tiffin-carrier fa-4x" style="color: #e2b13b;"></i>
+                </div>
+                <h1 class="display-4 fw-bold" style="font-family: 'Playfair Display', serif; color: #5a3e2e;">
+                    🍱 IndianLunchBox
+                </h1>
+                <p class="lead mt-3 handwritten-accent fs-2" style="color: #c96b4a;">
+                    Relive Your Food Memories <i class="fas fa-heart" style="color: #d97755;"></i>
+                </p>
+                <div class="divider-nostalgic my-3"></div>
+                <p class="text-muted" style="font-size: 1.1rem;">
+                    <i class="fas fa-leaf me-1"></i> From grandma's kitchen to your tiffin — every recipe tells a story
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap mt-3">
+                    <a href="/add-recipe/" class="btn btn-cozy">
+                        <i class="fas fa-plus-circle me-2"></i> Share Your Recipe
+                    </a>
+                    <a href="/login/" class="btn btn-outline-cozy">
+                        <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<div class="container mt-5">
-    <h2>Latest Recipes</h2>
-    <div class="row mt-3">
+<!-- Stats Counter Section -->
+<div class="container my-4">
+    <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+            <div class="nostalgic-card p-3">
+                <i class="fas fa-utensils fa-2x" style="color: #c96b4a;"></i>
+                <h3 class="mt-2 mb-0 fw-bold" id="recipe-count">0</h3>
+                <small class="text-muted">Recipes Shared</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="nostalgic-card p-3">
+                <i class="fas fa-users fa-2x" style="color: #e2b13b;"></i>
+                <h3 class="mt-2 mb-0 fw-bold" id="member-count">0</h3>
+                <small class="text-muted">Food Lovers</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="nostalgic-card p-3">
+                <i class="fas fa-star fa-2x" style="color: #d9a066;"></i>
+                <h3 class="mt-2 mb-0 fw-bold" id="review-count">0</h3>
+                <small class="text-muted">Happy Reviews</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="nostalgic-card p-3">
+                <i class="fas fa-mug-hot fa-2x" style="color: #c96b4a;"></i>
+                <h3 class="mt-2 mb-0 fw-bold" id="story-count">0</h3>
+                <small class="text-muted">Kitchen Stories</small>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Featured Categories -->
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="display-6" style="font-family: 'Playfair Display', serif;">
+            <i class="fas fa-tags me-2" style="color: #e2b13b;"></i> Explore by Mood
+        </h2>
+        <div class="divider-nostalgic"></div>
+    </div>
+    <div class="row g-3 text-center">
+        <div class="col-4 col-md-2">
+            <a href="/recipes/?category=comfort" class="text-decoration-none">
+                <div class="nostalgic-card p-3 hover-lift">
+                    <i class="fas fa-heart fa-2x" style="color: #d97755;"></i>
+                    <small class="d-block mt-2 fw-bold">Comfort Food</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-4 col-md-2">
+            <a href="/recipes/?category=quick" class="text-decoration-none">
+                <div class="nostalgic-card p-3 hover-lift">
+                    <i class="fas fa-clock fa-2x" style="color: #e2b13b;"></i>
+                    <small class="d-block mt-2 fw-bold">Quick Bites</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-4 col-md-2">
+            <a href="/recipes/?category=festive" class="text-decoration-none">
+                <div class="nostalgic-card p-3 hover-lift">
+                    <i class="fas fa-crown fa-2x" style="color: #c96b4a;"></i>
+                    <small class="d-block mt-2 fw-bold">Festive Special</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-4 col-md-2">
+            <a href="/recipes/?category=healthy" class="text-decoration-none">
+                <div class="nostalgic-card p-3 hover-lift">
+                    <i class="fas fa-leaf fa-2x" style="color: #558b8f;"></i>
+                    <small class="d-block mt-2 fw-bold">Healthy Twist</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-4 col-md-2">
+            <a href="/recipes/?category=street" class="text-decoration-none">
+                <div class="nostalgic-card p-3 hover-lift">
+                    <i class="fas fa-motorcycle fa-2x" style="color: #d9a066;"></i>
+                    <small class="d-block mt-2 fw-bold">Street Style</small>
+                </div>
+            </a>
+        </div>
+        <div class="col-4 col-md-2">
+            <a href="/recipes/?category=sweet" class="text-decoration-none">
+                <div class="nostalgic-card p-3 hover-lift">
+                    <i class="fas fa-candy-cane fa-2x" style="color: #e2b13b;"></i>
+                    <small class="d-block mt-2 fw-bold">Sweet Cravings</small>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Latest Recipes Section -->
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <div>
+            <h2 class="display-6" style="font-family: 'Playfair Display', serif; color: #4a3727;">
+                <i class="fas fa-egg me-2" style="color: #e2b13b;"></i> Fresh from the Kitchen
+            </h2>
+            <p class="text-muted">Recently shared recipes from our community ❤️</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-cozy btn-sm" id="view-toggle">
+                <i class="fas fa-th-large me-1"></i> Grid View
+            </button>
+            <a href="/recipes/" class="btn btn-outline-cozy btn-sm">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recipe Cards Grid -->
+    <div class="row g-4 mt-2" id="recipe-grid">
         {% for r in recipes %}
-        <div class="col-md-4 mb-4">
-            <div class="card recipe-card shadow-sm">
-                <img src="/media/{{ r.3 }}" class="card-img-top" style="height:200px; object-fit:cover;">
-                <div class="card-body">
-                    <h5 class="card-title">{{ r.1 }}</h5>
-                    <p class="card-text">{{ r.2|truncatechars:80 }}</p>
-                    <a href="/recipe/{{ r.0 }}/" class="btn btn-auth btn-sm">View Recipe</a>
+        <div class="col-md-6 col-lg-4 recipe-item">
+            <div class="nostalgic-card h-100 d-flex flex-column recipe-card">
+                <!-- Recipe Image with Badges -->
+                <div class="position-relative overflow-hidden" style="border-radius: 28px 28px 0 0;">
+                    <img src="/media/{{ r.3 }}" class="card-img-top" alt="{{ r.1 }}" 
+                         style="height: 220px; width: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="quote-badge bg-white shadow-sm">
+                            <i class="fas fa-utensils me-1"></i> Homestyle
+                        </span>
+                    </div>
+                    <!-- Quick View Button -->
+                    <button class="position-absolute bottom-0 start-50 translate-middle-x btn btn-cozy btn-sm quick-view-btn" 
+                            style="opacity: 0; transition: all 0.3s; white-space: nowrap;"
+                            data-recipe-id="{{ r.0 }}" data-recipe-title="{{ r.1 }}" data-recipe-desc="{{ r.2 }}">
+                        <i class="fas fa-eye me-1"></i> Quick View
+                    </button>
+                </div>
+                
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-chili-pepper" style="color: #c96b4a; font-size: 0.9rem;"></i>
+                            <span class="ms-2 small text-uppercase text-muted" style="letter-spacing: 1px;">Authentic</span>
+                        </div>
+                        <!-- Bookmark Feature -->
+                        <i class="far fa-bookmark bookmark-icon" style="cursor: pointer; color: #d9a066;" 
+                           data-recipe-id="{{ r.0 }}" onclick="toggleBookmark(this)"></i>
+                    </div>
+                    
+                    <h5 class="card-title fw-bold" style="font-family: 'Playfair Display', serif; font-size: 1.35rem; color: #3a2a1e;">
+                        {{ r.1 }}
+                    </h5>
+                    
+                    <p class="card-text text-muted mt-2" style="line-height: 1.5;">
+                        {{ r.2|truncatechars:100 }}
+                    </p>
+                    
+                    <!-- Rating Stars -->
+                    <div class="my-2">
+                        <div class="rating-stars" data-recipe-id="{{ r.0 }}">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                            <span class="ms-2 small text-muted rating-count">(0)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto pt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="/recipe/{{ r.0 }}/" class="btn btn-cozy btn-sm">
+                                <i class="fas fa-book-open me-1"></i> View Recipe
+                            </a>
+                            <div class="d-flex gap-2">
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i> 20-30 min
+                                </small>
+                                <!-- Share Button -->
+                                <i class="fas fa-share-alt share-icon" style="cursor: pointer; color: #c96b4a;" 
+                                   data-recipe="{{ r.1 }}" onclick="shareRecipe(this)"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <p>No recipes found. Be the first to <a href="/add-recipe/">add one!</a></p>
+        <div class="col-12">
+            <div class="nostalgic-card text-center p-5">
+                <i class="fas fa-utensils fa-3x" style="color: #d9a066;"></i>
+                <h3 class="mt-3" style="font-family: 'Playfair Display';">No recipes yet?</h3>
+                <p class="lead handwritten-accent">Be the first to share your family's secret dish!</p>
+                <div class="divider-nostalgic my-3"></div>
+                <a href="/add-recipe/" class="btn btn-cozy mt-2">
+                    <i class="fas fa-plus-circle me-2"></i> Add Your Recipe
+                </a>
+            </div>
+        </div>
         {% endfor %}
-
     </div>
 </div>
+
+<!-- Trending This Week -->
+<div class="container my-5">
+    <div class="nostalgic-card p-4" style="background: linear-gradient(135deg, #fff5ea, #fffef7);">
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+            <h3 class="mb-0" style="font-family: 'Playfair Display';">
+                <i class="fas fa-fire me-2" style="color: #e25822;"></i> Trending This Week
+            </h3>
+            <span class="quote-badge"><i class="fas fa-chart-line me-1"></i> Based on views & saves</span>
+        </div>
+        <div class="row g-3" id="trending-list">
+            <!-- Trending items will be loaded dynamically -->
+            <div class="col-12 text-center py-3">
+                <div class="spinner-border text-warning" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Testimonials Carousel -->
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="display-6" style="font-family: 'Playfair Display', serif;">
+            <i class="fas fa-comment-dots me-2" style="color: #e2b13b;"></i> Heartwarming Stories
+        </h2>
+        <div class="divider-nostalgic"></div>
+        <p class="text-muted">What our food family says about IndianLunchBox</p>
+    </div>
+    <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="nostalgic-card p-4 text-center mx-auto" style="max-width: 600px;">
+                    <i class="fas fa-quote-left fa-2x mb-3" style="color: #d9a066;"></i>
+                    <p class="fs-5">"This website brought back so many memories of my mother's lunchbox. The recipes are exactly how she used to make!"</p>
+                    <h6 class="mt-3 fw-bold">— Priya Sharma</h6>
+                    <small class="text-muted">⭐ ⭐ ⭐ ⭐ ⭐</small>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="nostalgic-card p-4 text-center mx-auto" style="max-width: 600px;">
+                    <i class="fas fa-quote-left fa-2x mb-3" style="color: #d9a066;"></i>
+                    <p class="fs-5">"My kids now ask for traditional food after seeing the beautiful pictures here. So grateful for this platform!"</p>
+                    <h6 class="mt-3 fw-bold">— Rajesh Kumar</h6>
+                    <small class="text-muted">⭐ ⭐ ⭐ ⭐ ⭐</small>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="nostalgic-card p-4 text-center mx-auto" style="max-width: 600px;">
+                    <i class="fas fa-quote-left fa-2x mb-3" style="color: #d9a066;"></i>
+                    <p class="fs-5">"The community here is so warm and welcoming. I've learned so many new techniques from other home cooks!"</p>
+                    <h6 class="mt-3 fw-bold">— Anjali Mehta</h6>
+                    <small class="text-muted">⭐ ⭐ ⭐ ⭐ ⭐</small>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-secondary rounded-circle p-3" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-secondary rounded-circle p-3" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<!-- Newsletter & Call to Action Section -->
+<div class="container my-5">
+    <div class="row g-4 align-items-center">
+        <div class="col-md-6">
+            <div class="nostalgic-card p-4 p-md-5 text-center text-md-start">
+                <i class="fas fa-mom fa-3x mb-3" style="color: #e2b13b;"></i>
+                <h3 style="font-family: 'Playfair Display';">Share Your <span class="handwritten-accent">Tiffin Tale</span></h3>
+                <p>Every lunchbox has a story. Whether it's your mother's dal, father's special paratha, or your own creation — we'd love to taste those memories.</p>
+                <a href="/add-recipe/" class="btn btn-cozy mt-2">
+                    <i class="fas fa-feather-alt me-2"></i> Write Your Story
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="nostalgic-card p-4 p-md-5 text-center" style="background: #fff8ef;">
+                <i class="fas fa-envelope-open-text fa-2x mb-2" style="color: #c96b4a;"></i>
+                <h5 class="fw-bold">Get Nostalgic Recipes Weekly</h5>
+                <p class="small">Join 5000+ food lovers who receive heartwarming recipes straight to their inbox.</p>
+                <div class="input-group mt-3">
+                    <input type="email" class="form-control" id="newsletter-email" placeholder="your@email.com" 
+                           style="border-radius: 50px 0 0 50px; border-color: #f0dfbf;">
+                    <button class="btn btn-cozy" type="button" id="subscribe-btn" style="border-radius: 0 50px 50px 0;">
+                        Subscribe <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                </div>
+                <div id="subscribe-message" class="small mt-2 text-success"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content nostalgic-card" style="border-radius: 32px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" style="font-family: 'Playfair Display';">Recipe Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h4 id="modal-title" class="text-center"></h4>
+                <p id="modal-desc" class="text-muted text-center"></p>
+                <div class="text-center mt-3">
+                    <a href="#" id="modal-link" class="btn btn-cozy">View Full Recipe <i class="fas fa-arrow-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+        border-radius: 0 0 60px 60px;
+        margin-top: -1rem !important;
+    }
+    
+    .recipe-card {
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    
+    .recipe-card:hover {
+        transform: translateY(-8px);
+    }
+    
+    .recipe-card:hover .quick-view-btn {
+        opacity: 1 !important;
+        transform: translateX(-50%) translateY(-10px) !important;
+    }
+    
+    .hover-lift {
+        transition: transform 0.2s;
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-5px);
+    }
+    
+    .bookmark-icon.bookmarked {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        color: #e2b13b;
+    }
+    
+    .rating-stars i {
+        cursor: pointer;
+        transition: color 0.2s;
+        color: #ddd;
+    }
+    
+    .rating-stars i.active, .rating-stars i:hover {
+        color: #ffc107;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section .nostalgic-card {
+            margin: 0 1rem;
+        }
+        .display-4 {
+            font-size: 2.2rem;
+        }
+    }
+    
+    @keyframes gentlePop {
+        0% { transform: scale(0.98); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .hero-section .nostalgic-card {
+        animation: gentlePop 0.5s ease-out;
+    }
+</style>
+
+<script>
+    // Daily Quotes Array
+    const quotes = [
+        "Food is memory, and every recipe has a story.",
+        "The secret ingredient is always love. ❤️",
+        "A full kitchen is a happy heart.",
+        "Grandma's recipes are the best kind of treasure.",
+        "Every spice tells a tale of home.",
+        "Cooking is an act of love, meant to be shared."
+    ];
+    
+    // Set random daily quote
+    function setDailyQuote() {
+        const quoteElement = document.getElementById('daily-quote');
+        if (quoteElement) {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteElement.innerHTML = `<i class="fas fa-quote-left me-2" style="color: #e2b13b;"></i>${quotes[randomIndex]}`;
+        }
+    }
+    
+    // Toggle Bookmark
+    function toggleBookmark(element) {
+        element.classList.toggle('fas');
+        element.classList.toggle('far');
+        if (element.classList.contains('fas')) {
+            element.style.color = '#e2b13b';
+            showToast('Recipe saved to your bookmarks! ❤️');
+        } else {
+            element.style.color = '#d9a066';
+            showToast('Recipe removed from bookmarks');
+        }
+        // Save to localStorage
+        const recipeId = element.getAttribute('data-recipe-id');
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        if (element.classList.contains('fas')) {
+            if (!bookmarks.includes(recipeId)) bookmarks.push(recipeId);
+        } else {
+            bookmarks = bookmarks.filter(id => id != recipeId);
+        }
+        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+        
+        // Update saved count in navbar
+        const savedCountElement = document.getElementById('savedCount');
+        if (savedCountElement) {
+            savedCountElement.textContent = bookmarks.length;
+        }
+    }
+    
+    // Share Recipe
+    function shareRecipe(element) {
+        const recipeName = element.getAttribute('data-recipe');
+        if (navigator.share) {
+            navigator.share({
+                title: recipeName,
+                text: `Check out this delicious recipe: ${recipeName} on IndianLunchBox!`,
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(`Check out ${recipeName} on IndianLunchBox!`);
+            showToast('Recipe link copied to clipboard! 📋');
+        }
+    }
+    
+    // Rating System
+    function initRatingSystem() {
+        document.querySelectorAll('.rating-stars').forEach(ratingContainer => {
+            const stars = ratingContainer.querySelectorAll('i');
+            const recipeId = ratingContainer.getAttribute('data-recipe-id');
+            
+            // Load saved rating
+            const savedRating = localStorage.getItem(`rating_${recipeId}`);
+            if (savedRating) {
+                updateStars(stars, parseInt(savedRating));
+            }
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    updateStars(stars, rating);
+                    localStorage.setItem(`rating_${recipeId}`, rating);
+                    showToast(`Thank you for rating ${rating} stars! ⭐`);
+                    
+                    // Update rating count display
+                    const ratingCount = ratingContainer.querySelector('.rating-count');
+                    if (ratingCount) {
+                        let count = parseInt(ratingCount.textContent.match(/\d+/) || 0);
+                        ratingCount.textContent = `(${count + 1})`;
+                    }
+                });
+            });
+        });
+    }
+    
+    function updateStars(stars, rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+                star.style.color = '#ffc107';
+            } else {
+                star.classList.remove('fas');
+                star.classList.add('far');
+                star.style.color = '#ddd';
+            }
+        });
+    }
+    
+    // Load Stats
+    function loadStats() {
+        const recipeCount = document.querySelectorAll('.recipe-item').length;
+        document.getElementById('recipe-count').textContent = recipeCount;
+        document.getElementById('member-count').textContent = Math.floor(Math.random() * 2000) + 5000;
+        document.getElementById('review-count').textContent = Math.floor(Math.random() * 500) + 1200;
+        document.getElementById('story-count').textContent = Math.floor(Math.random() * 300) + 450;
+    }
+    
+    // Load Trending Items
+    function loadTrending() {
+        const trendingList = document.getElementById('trending-list');
+        const recipes = Array.from(document.querySelectorAll('.recipe-item'));
+        const trending = recipes.slice(0, 3);
+        
+        if (trending.length > 0) {
+            trendingList.innerHTML = trending.map((item, index) => {
+                const title = item.querySelector('.card-title')?.textContent || 'Recipe';
+                return `
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center gap-3 p-2">
+                            <span class="quote-badge fs-4 fw-bold">#${index + 1}</span>
+                            <div>
+                                <h6 class="mb-0">${title}</h6>
+                                <small class="text-muted"><i class="fas fa-eye me-1"></i> ${Math.floor(Math.random() * 500) + 100} views</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            trendingList.innerHTML = '<div class="col-12 text-center"><p>No trending recipes yet. Be the first!</p></div>';
+        }
+    }
+    
+    // Quick View Modal
+    function initQuickView() {
+        document.querySelectorAll('.quick-view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const title = this.getAttribute('data-recipe-title');
+                const desc = this.getAttribute('data-recipe-desc');
+                const recipeId = this.getAttribute('data-recipe-id');
+                
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-desc').textContent = desc.substring(0, 150) + '...';
+                document.getElementById('modal-link').href = `/recipe/${recipeId}/`;
+                
+                new bootstrap.Modal(document.getElementById('quickViewModal')).show();
+            });
+        });
+    }
+    
+    // Newsletter Subscription
+    function initNewsletter() {
+        const subscribeBtn = document.getElementById('subscribe-btn');
+        if (subscribeBtn) {
+            subscribeBtn.addEventListener('click', function() {
+                const email = document.getElementById('newsletter-email').value;
+                if (email && email.includes('@')) {
+                    localStorage.setItem('newsletter_email', email);
+                    document.getElementById('subscribe-message').innerHTML = '🎉 Thanks for subscribing! Check your inbox for cozy recipes.';
+                    document.getElementById('newsletter-email').value = '';
+                    setTimeout(() => {
+                        document.getElementById('subscribe-message').innerHTML = '';
+                    }, 3000);
+                } else {
+                    document.getElementById('subscribe-message').innerHTML = '⚠️ Please enter a valid email address.';
+                    document.getElementById('subscribe-message').style.color = '#c96b4a';
+                    setTimeout(() => {
+                        document.getElementById('subscribe-message').innerHTML = '';
+                        document.getElementById('subscribe-message').style.color = 'green';
+                    }, 3000);
+                }
+            });
+        }
+    }
+    
+    // Toast Notification
+    function showToast(message) {
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white bg-success border-0';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+    
+    // Load saved bookmarks on page load
+    function loadBookmarks() {
+        const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        document.querySelectorAll('.bookmark-icon').forEach(icon => {
+            const recipeId = icon.getAttribute('data-recipe-id');
+            if (bookmarks.includes(recipeId)) {
+                icon.classList.add('fas');
+                icon.classList.remove('far');
+                icon.style.color = '#e2b13b';
+            }
+        });
+    }
+    
+    // Initialize all features
+    document.addEventListener('DOMContentLoaded', function() {
+        setDailyQuote();
+        loadStats();
+        loadTrending();
+        initRatingSystem();
+        initQuickView();
+        initNewsletter();
+        loadBookmarks();
+        
+        // Grid/List View Toggle
+        const viewToggle = document.getElementById('view-toggle');
+        if (viewToggle) {
+            viewToggle.addEventListener('click', function() {
+                const grid = document.getElementById('recipe-grid');
+                grid.classList.toggle('list-view');
+                if (grid.classList.contains('list-view')) {
+                    grid.querySelectorAll('.col-md-6').forEach(col => {
+                        col.classList.add('col-12');
+                        col.classList.remove('col-md-6', 'col-lg-4');
+                    });
+                    viewToggle.innerHTML = '<i class="fas fa-list me-1"></i> List View';
+                } else {
+                    grid.querySelectorAll('.col-12').forEach(col => {
+                        col.classList.add('col-md-6', 'col-lg-4');
+                        col.classList.remove('col-12');
+                    });
+                    viewToggle.innerHTML = '<i class="fas fa-th-large me-1"></i> Grid View';
+                }
+            });
+        }
+    });
+</script>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+
 {% endblock %}

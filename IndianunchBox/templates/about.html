@@ -1,0 +1,913 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="about-container">
+    <!-- Hero Section -->
+    <div class="about-hero">
+        <div class="about-hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-heart"></i> Since 2024
+            </div>
+            <h1 class="about-title">
+                More Than Just Recipes
+                <span class="title-underline">It's a Taste of Home</span>
+            </h1>
+            <p class="about-subtitle">
+                Every family has that one dish that makes everything feel right. 
+                We're here to preserve those flavors, one lunchbox at a time.
+            </p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number" id="recipeCount">500+</span>
+                    <span class="stat-label">Recipes Shared</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="memberCount">10K+</span>
+                    <span class="stat-label">Food Lovers</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number" id="storyCount">1K+</span>
+                    <span class="stat-label">Stories Told</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-decoration">
+            <div class="floating-icon icon-1"><i class="fas fa-utensils"></i></div>
+            <div class="floating-icon icon-2"><i class="fas fa-heart"></i></div>
+            <div class="floating-icon icon-3"><i class="fas fa-mug-hot"></i></div>
+            <div class="floating-icon icon-4"><i class="fas fa-apple-alt"></i></div>
+        </div>
+    </div>
+
+    <!-- Our Story Section -->
+    <div class="story-section">
+        <div class="container">
+            <div class="story-grid">
+                <div class="story-image">
+                    <div class="image-frame">
+                        <div class="image-placeholder">
+                            <i class="fas fa-tiffin-carrier"></i>
+                        </div>
+                        <div class="image-caption">The warmth of a home-cooked meal</div>
+                    </div>
+                </div>
+                <div class="story-content">
+                    <div class="section-tag">
+                        <i class="fas fa-leaf"></i> Our Journey
+                    </div>
+                    <h2>From a Simple Lunchbox to a Loving Community</h2>
+                    <div class="story-text">
+                        <p>It all started with a <strong>grandmother's tiffin</strong> — the one that carried not just food, but <strong>unconditional love</strong>. The aroma of freshly made parathas, the comfort of dal chawal, the joy of sharing meals with loved ones... these are memories that stay with us forever.</p>
+                        
+                        <p>IndianLunchBox was born from a simple belief: <strong>food is memory</strong>, and every recipe has a story worth telling. What began as a small collection of family recipes has now grown into a <strong>vibrant community</strong> of food lovers who believe in preserving culinary heritage.</p>
+                        
+                        <p>Today, we're proud to be a home for <strong>thousands of authentic recipes</strong>, each carrying the essence of someone's kitchen, someone's love, someone's story.</p>
+                    </div>
+                    
+                    <div class="story-quote">
+                        <i class="fas fa-quote-left"></i>
+                        <p>"Food is not just fuel. It's information. It talks to your DNA and tells it what to do."</p>
+                        <span>- The IndianLunchBox Family</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What We Believe Section -->
+    <div class="beliefs-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag center">
+                    <i class="fas fa-star"></i> Our Philosophy
+                </div>
+                <h2>What We Stand For</h2>
+                <p>Simple values that make every meal special</p>
+            </div>
+            
+            <div class="beliefs-grid">
+                <div class="belief-card">
+                    <div class="belief-icon">
+                        <i class="fas fa-hand-sparkles"></i>
+                    </div>
+                    <h3>Authenticity</h3>
+                    <p>Every recipe comes from real kitchens, tried and tested by families who've perfected them over generations.</p>
+                </div>
+                
+                <div class="belief-card">
+                    <div class="belief-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Community First</h3>
+                    <p>We're building a family, not just a platform. Share, learn, and grow together with fellow food lovers.</p>
+                </div>
+                
+                <div class="belief-card">
+                    <div class="belief-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h3>Sustainability</h3>
+                    <p>Celebrating traditional cooking methods that respect both our health and our planet.</p>
+                </div>
+                
+                <div class="belief-card">
+                    <div class="belief-icon">
+                        <i class="fas fa-memory"></i>
+                    </div>
+                    <h3>Preserving Heritage</h3>
+                    <p>Keeping family recipes alive for future generations to enjoy and cherish.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The Faces Behind the Magic -->
+    <div class="team-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag center">
+                    <i class="fas fa-heart"></i> Meet the Hearts
+                </div>
+                <h2>The Faces Behind the Magic</h2>
+                <p>Passionate foodies dedicated to your culinary journey</p>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    <h3>Priya Sharma</h3>
+                    <span class="team-role">Founder & Head Curator</span>
+                    <p>"I started IndianLunchBox to preserve my grandmother's recipes. Now, it's my life's mission to help others do the same."</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    <h3>Rajesh Kumar</h3>
+                    <span class="team-role">Recipe Tester</span>
+                    <p>"If it doesn't taste like home, it doesn't make it to our platform. I test every recipe personally!"</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    <h3>Anjali Mehta</h3>
+                    <span class="team-role">Community Manager</span>
+                    <p>"Building this community has been the most rewarding experience. Every member feels like family."</p>
+                    <div class="team-social">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Impact Section -->
+    <div class="impact-section">
+        <div class="container">
+            <div class="impact-content">
+                <div class="impact-text">
+                    <div class="section-tag">
+                        <i class="fas fa-chart-line"></i> Our Impact
+                    </div>
+                    <h2>Making a Difference, One Recipe at a Time</h2>
+                    <p>We're not just building a recipe platform. We're creating a movement that celebrates home cooking and brings families together.</p>
+                    
+                    <div class="impact-stats">
+                        <div class="impact-stat">
+                            <div class="impact-number" data-target="500">0</div>
+                            <div class="impact-label">Recipes Preserved</div>
+                        </div>
+                        <div class="impact-stat">
+                            <div class="impact-number" data-target="10000">0</div>
+                            <div class="impact-label">Happy Members</div>
+                        </div>
+                        <div class="impact-stat">
+                            <div class="impact-number" data-target="50">0</div>
+                            <div class="impact-label">Countries Reached</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="impact-image">
+                    <div class="image-placeholder impact-img">
+                        <i class="fas fa-globe-asia"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag center">
+                    <i class="fas fa-comment-dots"></i> Love from Our Family
+                </div>
+                <h2>What Our Community Says</h2>
+                <p>Real stories from real food lovers</p>
+            </div>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"IndianLunchBox brought back memories of my mother's kitchen. The recipes are authentic and the community is so welcoming!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div>
+                            <div class="author-name">Neha Gupta</div>
+                            <div class="author-location">Delhi, India</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"I've rediscovered my love for cooking thanks to this platform. The step-by-step guides make even complex dishes easy to make."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div>
+                            <div class="author-name">Michael Rodrigues</div>
+                            <div class="author-location">Mumbai, India</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Finally a place that values authentic home cooking! My kids now ask for traditional food after seeing the beautiful recipes here."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div>
+                            <div class="author-name">Sneha Patel</div>
+                            <div class="author-location">Ahmedabad, India</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Our Journey CTA -->
+    <div class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <div class="cta-icon">
+                    <i class="fas fa-utensil-spoon"></i>
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-mug-hot"></i>
+                </div>
+                <h2>Ready to Share Your Story?</h2>
+                <p>Join thousands of food lovers who are preserving their family's culinary heritage.</p>
+                <div class="cta-buttons">
+                    <a href="/register/" class="btn-cozy">Start Your Journey <i class="fas fa-arrow-right"></i></a>
+                    <a href="/recipes/" class="btn-outline-cozy">Explore Recipes <i class="fas fa-search"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* About Page Specific Styles */
+    .about-container {
+        overflow-x: hidden;
+    }
+
+    /* Hero Section */
+    .about-hero {
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+        padding: 4rem 2rem;
+        position: relative;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .about-hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: white;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        color: #c96b4a;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .hero-badge i {
+        margin-right: 6px;
+    }
+
+    .about-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        color: #5a3e2e;
+        margin-bottom: 1rem;
+    }
+
+    .title-underline {
+        display: block;
+        font-size: 1.8rem;
+        color: #c96b4a;
+        margin-top: 0.5rem;
+    }
+
+    .about-subtitle {
+        font-size: 1.1rem;
+        color: #7a624b;
+        max-width: 600px;
+        margin: 1rem auto;
+        line-height: 1.6;
+    }
+
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #c96b4a;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #7a624b;
+    }
+
+    /* Floating Decorations */
+    .hero-decoration {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+
+    .floating-icon {
+        position: absolute;
+        font-size: 2rem;
+        opacity: 0.3;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .icon-1 { top: 10%; left: 5%; animation-delay: 0s; color: #c96b4a; }
+    .icon-2 { bottom: 15%; right: 8%; animation-delay: 1s; color: #e2b13b; }
+    .icon-3 { top: 20%; right: 12%; animation-delay: 2s; color: #558b8f; }
+    .icon-4 { bottom: 25%; left: 10%; animation-delay: 1.5s; color: #d9a066; }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    /* Story Section */
+    .story-section {
+        padding: 5rem 0;
+        background: white;
+    }
+
+    .story-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .image-frame {
+        background: #fff5ea;
+        border-radius: 32px;
+        padding: 2rem;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+
+    .image-placeholder {
+        background: linear-gradient(135deg, #fff0e0, #ffe8d6);
+        border-radius: 24px;
+        padding: 3rem;
+        font-size: 4rem;
+        color: #c96b4a;
+    }
+
+    .image-caption {
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: #7a624b;
+        font-style: italic;
+    }
+
+    .section-tag {
+        display: inline-block;
+        background: #fff5ea;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+    }
+
+    .section-tag i {
+        margin-right: 6px;
+    }
+
+    .section-tag.center {
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .story-content h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #5a3e2e;
+        margin-bottom: 1.5rem;
+    }
+
+    .story-text p {
+        color: #7a624b;
+        line-height: 1.8;
+        margin-bottom: 1rem;
+    }
+
+    .story-text strong {
+        color: #c96b4a;
+    }
+
+    .story-quote {
+        background: #fff9ef;
+        padding: 1.5rem;
+        border-radius: 24px;
+        margin-top: 1.5rem;
+        border-left: 4px solid #e2b13b;
+    }
+
+    .story-quote i {
+        color: #e2b13b;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .story-quote p {
+        font-style: italic;
+        margin-bottom: 0.5rem;
+    }
+
+    .story-quote span {
+        font-size: 0.85rem;
+        color: #c96b4a;
+    }
+
+    /* Beliefs Section */
+    .beliefs-section {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, #fff9ef, #fff5ea);
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .section-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-header p {
+        color: #7a624b;
+    }
+
+    .beliefs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .belief-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .belief-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(201, 107, 74, 0.1);
+    }
+
+    .belief-icon {
+        font-size: 2.5rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+    }
+
+    .belief-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .belief-card p {
+        color: #7a624b;
+        line-height: 1.6;
+        font-size: 0.9rem;
+    }
+
+    /* Team Section */
+    .team-section {
+        padding: 5rem 0;
+        background: white;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .team-card {
+        background: #fff9ef;
+        padding: 2rem;
+        border-radius: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    }
+
+    .team-avatar {
+        margin-bottom: 1rem;
+    }
+
+    .avatar-placeholder {
+        font-size: 4rem;
+        color: #c96b4a;
+    }
+
+    .team-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin-bottom: 0.25rem;
+    }
+
+    .team-role {
+        display: block;
+        font-size: 0.8rem;
+        color: #e2b13b;
+        margin-bottom: 1rem;
+    }
+
+    .team-card p {
+        color: #7a624b;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .team-social a {
+        color: #c96b4a;
+        margin: 0 0.5rem;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+    }
+
+    .team-social a:hover {
+        color: #a55233;
+    }
+
+    /* Impact Section */
+    .impact-section {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, #fff0e0, #ffe8d6);
+    }
+
+    .impact-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .impact-text h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #5a3e2e;
+        margin-bottom: 1rem;
+    }
+
+    .impact-text > p {
+        color: #7a624b;
+        line-height: 1.8;
+        margin-bottom: 2rem;
+    }
+
+    .impact-stats {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .impact-stat {
+        text-align: center;
+    }
+
+    .impact-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #c96b4a;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .impact-label {
+        font-size: 0.85rem;
+        color: #7a624b;
+    }
+
+    .impact-img {
+        background: white;
+        font-size: 5rem;
+        padding: 3rem;
+        text-align: center;
+        border-radius: 32px;
+    }
+
+    /* Testimonials Section */
+    .testimonials-section {
+        padding: 5rem 0;
+        background: white;
+    }
+
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .testimonial-card {
+        background: #fff9ef;
+        padding: 2rem;
+        border-radius: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .testimonial-rating {
+        margin-bottom: 1rem;
+        color: #e2b13b;
+    }
+
+    .testimonial-text {
+        color: #5a3e2e;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+        font-style: italic;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .author-avatar {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .author-name {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .author-location {
+        font-size: 0.75rem;
+        color: #7a624b;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        color: white;
+    }
+
+    .cta-content {
+        text-align: center;
+    }
+
+    .cta-icon {
+        margin-bottom: 1.5rem;
+    }
+
+    .cta-icon i {
+        font-size: 2rem;
+        margin: 0 0.5rem;
+        animation: bounce 2s ease infinite;
+    }
+
+    .cta-icon i:nth-child(2) {
+        animation-delay: 0.3s;
+    }
+
+    .cta-icon i:nth-child(3) {
+        animation-delay: 0.6s;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .cta-content h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .cta-content p {
+        margin-bottom: 2rem;
+        opacity: 0.95;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .cta-buttons .btn-cozy {
+        background: white;
+        color: #c96b4a;
+    }
+
+    .cta-buttons .btn-cozy:hover {
+        background: #fff5ea;
+        transform: translateY(-2px);
+    }
+
+    .cta-buttons .btn-outline-cozy {
+        background: transparent;
+        border-color: white;
+        color: white;
+    }
+
+    .cta-buttons .btn-outline-cozy:hover {
+        background: white;
+        color: #c96b4a;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .about-title {
+            font-size: 2rem;
+        }
+        
+        .title-underline {
+            font-size: 1.3rem;
+        }
+        
+        .story-grid,
+        .impact-content {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-stats {
+            gap: 1.5rem;
+        }
+        
+        .beliefs-grid,
+        .team-grid,
+        .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .impact-stats {
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // Animated counter for impact numbers
+    function animateCounter(element, target) {
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target.toLocaleString();
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current).toLocaleString();
+            }
+        }, 30);
+    }
+
+    // Trigger animations when elements come into view
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const numbers = entry.target.querySelectorAll('.impact-number');
+                numbers.forEach(num => {
+                    const target = parseInt(num.getAttribute('data-target'));
+                    animateCounter(num, target);
+                });
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    const impactSection = document.querySelector('.impact-stats');
+    if (impactSection) {
+        observer.observe(impactSection.parentElement);
+    }
+
+    // Set initial stats
+    document.getElementById('recipeCount').textContent = '500+';
+    document.getElementById('memberCount').textContent = '10K+';
+    document.getElementById('storyCount').textContent = '1K+';
+</script>
+
+{% endblock %}

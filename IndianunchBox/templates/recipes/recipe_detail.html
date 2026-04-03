@@ -1,130 +1,873 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-
-            <!-- Recipe Header -->
-            <h2 class="mb-2" style="font-family: 'Playfair Display', serif; color:#c94c4c;">{{ recipe.1 }}</h2>
-            <p class="text-muted small">By {{ recipe.6 }}</p>
-
-            <!-- Recipe Image -->
-            <img src="/media/{{ recipe.5 }}" class="img-fluid mb-3 rounded" style="max-height:400px; object-fit:cover;">
-
-            <!-- Description -->
-            <div class="recipe-section mb-3">
-                <h4 style="color:#c94c4c;">Description</h4>
-                <p>{{ recipe.2 }}</p>
+<div class="recipe-detail-container">
+    <div class="recipe-card-elegant">
+        <!-- Hero image section with emoji overlay -->
+        <div class="recipe-image-hero">
+            <img src="/media/{{ recipe.5 }}" 
+                 alt="{{ recipe.1 }}" 
+                 class="recipe-main-img"
+                 id="recipeImage"
+                 onerror="this.onerror=null; this.src='https://placehold.co/800x500/fef1e6/c94c4c?text=🍳+Yummy+Recipe'; this.style.objectFit='contain';">
+            <div class="image-emoji-overlay">
+                <span>👨‍🍳</span> <span>❤️</span> <span>⭐</span>
+            </div>
+        </div>
+        
+        <div class="recipe-content-padded">
+            <!-- Title + author with emojis -->
+            <div class="recipe-title-header">
+                <h2>{{ recipe.1 }} <span class="title-emoji">🍲</span></h2>
+                <div class="author-badge-large mt-2">
+                    <i class="fas fa-user-chef"></i> 👨‍🍳 by {{ recipe.6 }}
+                    <span class="ms-2"><i class="fas fa-clock"></i> ⏱️ 15 min read</span>
+                    <span class="ms-2"><i class="fas fa-fire"></i> 🔥 Popular</span>
+                </div>
             </div>
 
-            <!-- Ingredients -->
-            <div class="recipe-section mb-3">
-                <h4 style="color:#c94c4c;">Ingredients</h4>
-                <ul>
+            <!-- Description section with friendly emojis -->
+            <div>
+                <div class="section-title">
+                    <i class="fas fa-align-left"></i> 📖 Story Time
+                </div>
+                <div class="description-text">
+                    {{ recipe.2|default:"No description provided, but trust us — it's mouthwatering! 🍽️✨" }}
+                </div>
+            </div>
+
+            <!-- Ingredients - beautifully organized with emojis -->
+            <div>
+                <div class="section-title">
+                    <i class="fas fa-shopping-basket"></i> 🛒 What You'll Need
+                </div>
+                <div class="ingredients-grid">
                     {% for ing in recipe.3.splitlines %}
-                        {% if ing %}
-                        <li>{{ ing }}</li>
+                        {% if ing and ing.strip %}
+                            <div class="ingredient-card">
+                                <div class="ingredient-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="ingredient-content">
+                                    🥄 {{ ing|truncatechars:100 }}
+                                </div>
+                            </div>
                         {% endif %}
+                    {% empty %}
+                        <div class="ingredient-empty">
+                            <i class="fas fa-leaf"></i>
+                            <p>✨ No ingredients listed yet! Feel free to get creative in the kitchen! 🎨🍳</p>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
 
-            <!-- Steps with automatic numbering -->
-            <div class="recipe-section mb-3">
-                <h4 style="color:#c94c4c;">Steps</h4>
-                <ol class="recipe-steps">
+            <!-- Steps with automatic numbering and emojis -->
+            <div>
+                <div class="section-title">
+                    <i class="fas fa-list-ol"></i> 👩‍🍳 Let's Cook!
+                </div>
+                <div class="steps-container">
                     {% for step in recipe.4.splitlines %}
-                        {% if step %}
-                        <li>{{ step }}</li>
+                        {% if step and step.strip %}
+                            <div class="step-card">
+                                <div class="step-number">{{ forloop.counter }}</div>
+                                <div class="step-content">
+                                    {% if forloop.counter == 1 %}🔪 {% elif forloop.counter == 2 %}🍳 {% elif forloop.counter == 3 %}🥣 {% elif forloop.counter == 4 %}🔥 {% elif forloop.counter == 5 %}✨ {% else %}👉 {% endif %}
+                                    {{ step }}
+                                </div>
+                            </div>
                         {% endif %}
+                    {% empty %}
+                        <div class="step-empty">
+                            <i class="fas fa-utensils"></i>
+                            <p>📝 No steps provided — time to unleash your inner chef! 🎉👨‍🍳</p>
+                        </div>
                     {% endfor %}
-                </ol>
+                </div>
             </div>
 
-            <!-- PDF Download -->
-            <a href="/recipe/{{ recipe.0 }}/download/" class="btn btn-primary mb-3">📄 Download as PDF</a>
+            <!-- Pro tip section with emojis -->
+            <div class="pro-tip">
+                <i class="fas fa-lightbulb"></i>
+                <span><strong>💡 Pro Tip:</strong> Don't forget to taste as you go! 🧂👅 Every chef's secret weapon is love and a little extra seasoning! ❤️✨</span>
+            </div>
 
-            <!-- Like Button -->
-            <button class="btn btn-outline-danger mb-3" id="likeBtn">❤️ Like</button>
+            <!-- Action buttons with emojis -->
+            <div class="action-row">
+                <a href="/recipe/{{ recipe.0 }}/download/" class="btn-pdf">
+                    <i class="fas fa-file-pdf"></i> 📄 Download PDF
+                </a>
+                <button class="btn-like-modern" id="likeBtn">
+                    <i class="far fa-heart"></i> 💖 Save Recipe
+                </button>
+                <button class="btn-share" onclick="shareRecipe()">
+                    <i class="fas fa-share-alt"></i> 📢 Share
+                </button>
+            </div>
 
             <hr>
 
-            <!-- Comments Section -->
-            <h4 style="color:#c94c4c;">Comments & Ratings</h4>
-            {% for c in comments %}
-                <div class="mb-2 p-2 shadow-sm rounded bg-light">
-                    <strong>{{ c.3 }}</strong> rated ⭐ {{ c.2 }}<br>
-                    <p>{{ c.1 }}</p>
+            <!-- Comments & Ratings Section with friendly emojis -->
+            <div class="comments-section">
+                <div class="comments-header">
+                    <i class="fas fa-comments"></i>
+                    <h4>💬 What Foodies Are Saying 🗣️</h4>
+                    <span class="comments-count">{{ comments|length }} comments 💭</span>
                 </div>
-            {% empty %}
-                <p>No comments yet. Be the first to comment!</p>
-            {% endfor %}
 
-            <!-- Add Comment Form -->
-            {% if request.session.user_id %}
-            <form method="POST" class="mt-3">
-                {% csrf_token %}
-                <textarea name="comment" placeholder="Write your comment..." class="form-control mb-2" required></textarea>
-                <select name="rating" class="form-control mb-2" required>
-                    <option value="">Rate the recipe</option>
-                    <option value="1">⭐ 1</option>
-                    <option value="2">⭐ 2</option>
-                    <option value="3">⭐ 3</option>
-                    <option value="4">⭐ 4</option>
-                    <option value="5">⭐ 5</option>
-                </select>
-                <button type="submit" class="btn btn-auth w-100">Submit Comment</button>
-            </form>
-            {% endif %}
+                {% for c in comments %}
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <span class="comment-author">
+                            <i class="fas fa-user-circle"></i> {{ c.3 }} 
+                            {% if forloop.counter == 1 %}👑 <span style="font-size:0.7rem;">(Top Fan)</span>{% endif %}
+                        </span>
+                        <span class="comment-rating">
+                            {% with rating=c.2|default:0 %}
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= rating %}⭐{% else %}☆{% endif %}
+                                {% endfor %}
+                                ({{ rating }}/5)
+                            {% endwith %}
+                        </span>
+                    </div>
+                    <div class="comment-text">
+                        <i class="fas fa-quote-left"></i>
+                        {{ c.1 }}
+                    </div>
+                    <div class="comment-footer">
+                        <i class="far fa-heart"></i> <span class="comment-like-count">12</span> · 
+                        <i class="far fa-clock"></i> just now
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-comments">
+                    <i class="far fa-comment-dots"></i>
+                    <p>😢 No comments yet... Be the first to share your amazing experience! 🌟✨</p>
+                    <p class="emoji-hint">💬 Drop a review and let others know how it turned out! 🎉</p>
+                </div>
+                {% endfor %}
 
+                <!-- Add Comment Form with friendly design -->
+                {% if request.session.user_id %}
+                <div class="comment-form-modern mt-4">
+                    <div class="form-header">
+                        <i class="fas fa-pen-fancy"></i> ✍️ Share Your Thoughts
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label><i class="fas fa-pen-alt"></i> 📝 Your Review</label>
+                            <textarea name="comment" placeholder="How was it? Did you add any special touches? Share your experience! 🍽️✨" 
+                                      class="form-control-custom" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-star"></i> ⭐ Rate This Recipe</label>
+                            <select name="rating" class="form-control-custom" required>
+                                <option value="" disabled selected>🤔 How many stars? 🌟</option>
+                                <option value="5">⭐⭐⭐⭐⭐ 5 – Absolutely Amazing! 🎉</option>
+                                <option value="4">⭐⭐⭐⭐ 4 – Really Good! 👍</option>
+                                <option value="3">⭐⭐⭐ 3 – Pretty Good 🤔</option>
+                                <option value="2">⭐⭐ 2 – Could be better 😕</option>
+                                <option value="1">⭐ 1 – Not for me 😢</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-paper-plane"></i> 🚀 Post My Review
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="login-prompt">
+                    <i class="fas fa-lock"></i> 
+                    <a href="/login/">🔐 Login</a> to share your rating and join the foodie community! 🎉🍕
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Encouragement footer -->
+            <div class="recipe-footer">
+                <i class="fas fa-heart"></i> Made with love · 
+                <i class="fas fa-utensils"></i> Enjoy every bite · 
+                <i class="fas fa-camera"></i> Don't forget to share your creation! 📸
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Like Button Script -->
-<script>
-document.getElementById('likeBtn').addEventListener('click', function() {
-    fetch("/recipe/{{ recipe.0 }}/like/")
-    .then(res => res.json())
-    .then(data => {
-        if(data.liked) {
-            document.getElementById('likeBtn').innerText = "💔 Unlike";
-        } else {
-            document.getElementById('likeBtn').innerText = "❤️ Like";
-        }
-    });
-});
-</script>
-
-<!-- Custom CSS for Steps -->
 <style>
-.recipe-steps {
-    padding-left: 20px;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #555;
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-.recipe-steps li {
-    margin-bottom: 8px;
-}
+    body {
+        background: linear-gradient(135deg, #fefaf5 0%, #fff5ed 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
 
-.recipe-section h4 {
-    font-weight: 600;
-    margin-top: 15px;
-}
+    .recipe-detail-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem 3rem;
+    }
 
-.btn-auth {
-    background-color: #c94c4c;
-    color: white;
-    border-radius: 20px;
-}
+    /* Main Card */
+    .recipe-card-elegant {
+        background: #ffffff;
+        border-radius: 40px;
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-textarea, select {
-    border-radius: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-}
+    .recipe-card-elegant:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 50px -18px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Image Container */
+    .recipe-image-hero {
+        position: relative;
+        width: 100%;
+        background: linear-gradient(135deg, #f7efe8 0%, #fcf5ef 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        min-height: 380px;
+        border-bottom: 2px solid rgba(201, 76, 76, 0.1);
+    }
+
+    .recipe-main-img {
+        width: 100%;
+        height: auto;
+        max-height: 520px;
+        object-fit: contain;
+        background: #faf3ec;
+        transition: transform 0.5s ease;
+        display: block;
+    }
+
+    .recipe-image-hero:hover .recipe-main-img {
+        transform: scale(1.02);
+    }
+
+    .image-emoji-overlay {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        padding: 8px 15px;
+        border-radius: 60px;
+        font-size: 1.2rem;
+        display: flex;
+        gap: 8px;
+    }
+
+    /* Content Area */
+    .recipe-content-padded {
+        padding: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .recipe-content-padded {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Title Section */
+    .recipe-title-header {
+        border-bottom: 2px solid #fae6db;
+        padding-bottom: 1.2rem;
+        margin-bottom: 1.8rem;
+    }
+
+    .recipe-title-header h2 {
+        font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #c94c4c;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin-bottom: 0.8rem;
+    }
+
+    .title-emoji {
+        font-size: 2.5rem;
+        display: inline-block;
+        animation: wave 1s ease infinite;
+    }
+
+    @keyframes wave {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(15deg); }
+    }
+
+    .author-badge-large {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #fef1e8;
+        padding: 0.5rem 1.3rem;
+        border-radius: 60px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #a3533a;
+        flex-wrap: wrap;
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #c94c4c;
+        margin-top: 2rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title i {
+        font-size: 1.6rem;
+        background: #fdf0e8;
+        padding: 10px;
+        border-radius: 50%;
+        color: #c94c4c;
+    }
+
+    /* Description */
+    .description-text {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #3d352e;
+        background: linear-gradient(120deg, #fefbf8, #fff8f2);
+        padding: 1.2rem 1.5rem;
+        border-radius: 24px;
+        border-left: 5px solid #c94c4c;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Ingredients Grid */
+    .ingredients-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        background: #fefbf8;
+        border-radius: 28px;
+        padding: 1.5rem;
+        border: 1px solid #fae6db;
+    }
+
+    .ingredient-card {
+        background: white;
+        padding: 0.8rem 1.2rem;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.25s ease;
+        border: 1px solid #fee8de;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .ingredient-card:hover {
+        transform: translateX(6px);
+        border-color: #c94c4c;
+        background: #fffaf5;
+        box-shadow: 0 4px 12px rgba(201,76,76,0.08);
+    }
+
+    .ingredient-icon {
+        width: 32px;
+        height: 32px;
+        background: #c94c4c;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .ingredient-icon i {
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .ingredient-content {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #4a3a2f;
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    .ingredient-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 2rem;
+        color: #b48b72;
+    }
+
+    /* Steps Container */
+    .steps-container {
+        background: #fefbf8;
+        border-radius: 28px;
+        padding: 1.5rem;
+        border: 1px solid #fae6db;
+    }
+
+    .step-card {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+        border-radius: 20px;
+        background: white;
+        transition: all 0.25s ease;
+        border: 1px solid #fff0e6;
+    }
+
+    .step-card:hover {
+        transform: translateX(6px);
+        border-color: #f0cfc0;
+        background: #ffffff;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+    }
+
+    .step-number {
+        width: 42px;
+        height: 42px;
+        background: #c94c4c;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(201,76,76,0.2);
+    }
+
+    .step-content {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #3d352e;
+        padding-top: 0.2rem;
+    }
+
+    .step-empty {
+        text-align: center;
+        padding: 2rem;
+        color: #b48b72;
+    }
+
+    /* Pro Tip */
+    .pro-tip {
+        background: linear-gradient(135deg, #fff8e8, #fff3e0);
+        border-radius: 20px;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-left: 5px solid #ffa500;
+    }
+
+    .pro-tip i {
+        font-size: 1.5rem;
+        color: #ffa500;
+    }
+
+    /* Action Buttons */
+    .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 2rem 0 1.5rem;
+    }
+
+    .btn-pdf {
+        background: #c94c4c;
+        border: none;
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 60px;
+        font-weight: 700;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(201,76,76,0.2);
+    }
+
+    .btn-pdf:hover {
+        background: #ad3f3f;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(201,76,76,0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-like-modern {
+        background: white;
+        border: 2px solid #e7cdbc;
+        padding: 0.8rem 2rem;
+        border-radius: 60px;
+        font-weight: 700;
+        color: #b15e43;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-like-modern:hover {
+        background: #fff5ef;
+        border-color: #c94c4c;
+        color: #c94c4c;
+        transform: scale(1.02);
+    }
+
+    .btn-share {
+        background: #4a90e2;
+        border: none;
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 60px;
+        font-weight: 700;
+        transition: all 0.25s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-share:hover {
+        background: #357abd;
+        transform: translateY(-2px);
+    }
+
+    hr {
+        margin: 1.5rem 0;
+        opacity: 0.3;
+        background: #e7cfc1;
+        height: 2px;
+        border: none;
+    }
+
+    /* Comments Section */
+    .comments-section {
+        margin-top: 2rem;
+        background: #fef9f5;
+        border-radius: 28px;
+        padding: 1.8rem;
+        border: 1px solid #f5e4d9;
+    }
+
+    .comments-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .comments-header i {
+        font-size: 2rem;
+        color: #c94c4c;
+    }
+
+    .comments-header h4 {
+        margin: 0;
+        font-weight: 700;
+        color: #4b3a2e;
+        font-size: 1.5rem;
+    }
+
+    .comments-count {
+        background: #c94c4c;
+        color: white;
+        padding: 0.2rem 0.8rem;
+        border-radius: 60px;
+        font-size: 0.8rem;
+    }
+
+    .comment-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+        border: 1px solid #ffede2;
+    }
+
+    .comment-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 0.8rem;
+    }
+
+    .comment-author {
+        font-weight: 700;
+        color: #a55337;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .comment-rating {
+        background: #fff0e6;
+        padding: 0.2rem 0.8rem;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .comment-text {
+        font-size: 0.92rem;
+        color: #46433f;
+        line-height: 1.5;
+        display: flex;
+        gap: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    .comment-footer {
+        font-size: 0.7rem;
+        color: #b48b72;
+        display: flex;
+        gap: 10px;
+    }
+
+    .empty-comments {
+        text-align: center;
+        padding: 2rem;
+        background: #fff9f4;
+        border-radius: 24px;
+        color: #b48b72;
+    }
+
+    .empty-comments i {
+        font-size: 2.5rem;
+        opacity: 0.5;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .emoji-hint {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Comment Form */
+    .comment-form-modern {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 24px;
+        margin-top: 1rem;
+        border: 1px solid #f0dfd3;
+    }
+
+    .form-header {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #c94c4c;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #5a3f32;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        border-radius: 16px;
+        border: 1.5px solid #f0daca;
+        padding: 0.8rem 1rem;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .form-control-custom:focus {
+        border-color: #c94c4c;
+        box-shadow: 0 0 0 3px rgba(201,76,76,0.1);
+        outline: none;
+    }
+
+    .btn-submit {
+        background: #c94c4c;
+        border: none;
+        padding: 0.8rem;
+        border-radius: 60px;
+        font-weight: 700;
+        color: white;
+        transition: all 0.2s;
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .btn-submit:hover {
+        background: #aa3e3e;
+        transform: translateY(-2px);
+    }
+
+    .login-prompt {
+        text-align: center;
+        padding: 1rem;
+        background: #fff2ea;
+        border-radius: 60px;
+        margin-top: 1rem;
+    }
+
+    .login-prompt a {
+        color: #c94c4c;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    /* Recipe Footer */
+    .recipe-footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        color: #b48b72;
+        font-size: 0.85rem;
+        border-top: 1px solid #f0e1d4;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .recipe-title-header h2 {
+            font-size: 2rem;
+        }
+        .section-title {
+            font-size: 1.5rem;
+        }
+        .ingredients-grid {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+        }
+        .step-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .step-number {
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .recipe-main-img {
+            max-height: 280px;
+        }
+        .action-row {
+            flex-direction: column;
+        }
+        .btn-pdf, .btn-like-modern, .btn-share {
+            justify-content: center;
+        }
+    }
+
+    /* Animation */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .recipe-card-elegant {
+        animation: fadeUp 0.6s ease-out;
+    }
 </style>
+
+<script>
+    // Image loading optimization
+    const imgElement = document.getElementById('recipeImage');
+    if (imgElement) {
+        imgElement.addEventListener('load', function() {
+            if (this.naturalWidth < 300 || this.naturalHeight < 200) {
+                this.style.objectFit = 'contain';
+                this.style.background = '#f8ede4';
+            }
+        });
+    }
+
+    // Like button handler
+    const likeBtn = document.getElementById('likeBtn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function() {
+            fetch("/recipe/{{ recipe.0 }}/like/")
+            .then(res => res.json())
+            .then(data => {
+                if(data.liked) {
+                    likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved!';
+                    likeBtn.style.background = '#ffefe7';
+                    likeBtn.style.borderColor = '#c94c4c';
+                    setTimeout(() => {
+                        likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved';
+                    }, 1500);
+                } else {
+                    likeBtn.innerHTML = '<i class="far fa-heart"></i> 💖 Save Recipe';
+                    likeBtn.style.background = 'white';
+                    likeBtn.style.borderColor = '#e7cdbc';
+                }
+            })
+            .catch(err => {
+                if(likeBtn.innerHTML.includes('far fa-heart')) {
+                    likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved!';
+                    likeBtn.style.background = '#ffefe7';
+                } else {
+                    likeBtn.innerHTML = '<i class="far fa-heart"></i> 💖 Save Recipe';
+                    likeBtn.style.background = 'white';
+                }
+            });
+        });
+    }
+
+    // Share function
+    function shareRecipe() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ recipe.1 }}',
+                text: 'Check out this amazing recipe! 🍳✨',
+                url: window.location.href
+            });
+        } else {
+            alert('📋 Copy this link to share: ' + window.location.href);
+        }
+    }
+</script>
 {% endblock %}

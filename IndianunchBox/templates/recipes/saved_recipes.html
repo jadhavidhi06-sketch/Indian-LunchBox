@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="saved-recipes-container">
+    <div class="container">
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-bookmark"></i> Saved Recipes
+                <span class="recipe-count">({{ total_saved }} saved)</span>
+            </h1>
+            <p class="text-muted">Recipes you've bookmarked for later</p>
+            <div class="divider-nostalgic"></div>
+        </div>
+
+        {% if saved_recipes %}
+            <div class="recipes-grid">
+                {% for item in saved_recipes %}
+                <div class="nostalgic-card recipe-card">
+                    <div class="recipe-image">
+                        <img src="/media/{{ item.image }}" alt="{{ item.title }}">
+                        <div class="recipe-stats">
+                            <span><i class="fas fa-heart"></i> {{ item.likes_count }}</span>
+                            <span><i class="fas fa-user"></i> {{ item.author_name }}</span>
+                        </div>
+                    </div>
+                    <div class="recipe-content">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description|truncatechars:100 }}</p>
+                        <div class="recipe-meta">
+                            <small><i class="far fa-bookmark"></i> Saved on {{ item.saved_at|date:"M d, Y" }}</small>
+                        </div>
+                        <div class="recipe-actions">
+                            <a href="/recipe/{{ item.recipe_id }}/" class="btn-cozy btn-sm">
+                                <i class="fas fa-eye"></i> View Recipe
+                            </a>
+                            <button onclick="unsaveRecipe({{ item.saved_id }})" class="btn-warning btn-sm">
+                                <i class="fas fa-bookmark"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-bookmark"></i>
+                <h3>No saved recipes yet!</h3>
+                <p>Start saving recipes you love to see them here</p>
+                <a href="/recipes/" class="btn-cozy">Explore Recipes</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .saved-recipes-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-family: 'Playfair Display', serif;
+        color: #5a3e2e;
+    }
+    
+    .recipe-count {
+        font-size: 1rem;
+        color: #c96b4a;
+    }
+    
+    .recipes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+    
+    .recipe-card {
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .recipe-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .recipe-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    
+    .recipe-card:hover .recipe-image img {
+        transform: scale(1.05);
+    }
+    
+    .recipe-stats {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.7);
+        padding: 5px 10px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.8rem;
+        gap: 10px;
+        display: flex;
+    }
+    
+    .recipe-stats i {
+        margin-right: 4px;
+    }
+    
+    .recipe-content {
+        padding: 1.5rem;
+    }
+    
+    .recipe-content h3 {
+        font-family: 'Playfair Display', serif;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+    
+    .recipe-meta {
+        margin: 1rem 0;
+    }
+    
+    .recipe-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+    
+    .btn-warning {
+        background: #e2b13b;
+        color: #5a3e2e;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-warning:hover {
+        background: #d4a32e;
+        transform: translateY(-2px);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: white;
+        border-radius: 32px;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: #e2b13b;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<script>
+function unsaveRecipe(savedId) {
+    if (confirm('Remove this recipe from your saved list?')) {
+        fetch(`/api/saved/${savedId}/remove/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              } else {
+                  alert('Error removing recipe');
+              }
+          });
+    }
+}
+
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

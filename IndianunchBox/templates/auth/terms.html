@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="legal-container">
+    <div class="legal-header">
+        <h1>Terms of Service</h1>
+        <p>Last updated: January 2024</p>
+    </div>
+    
+    <div class="legal-content">
+        <section>
+            <h2>1. Welcome to IndianLunchBox</h2>
+            <p>By accessing or using IndianLunchBox, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.</p>
+        </section>
+        
+        <section>
+            <h2>2. User Accounts</h2>
+            <p>When you create an account with us, you must provide accurate and complete information. You are solely responsible for the activity that occurs on your account.</p>
+        </section>
+        
+        <section>
+            <h2>3. Content Guidelines</h2>
+            <p>Users may share recipes, comments, and other content. You retain all rights to your content, but grant us a license to display it on our platform.</p>
+        </section>
+        
+        <section>
+            <h2>4. Community Rules</h2>
+            <p>Be respectful, kind, and supportive. We reserve the right to remove content that violates our community standards.</p>
+        </section>
+        
+        <section>
+            <h2>5. Intellectual Property</h2>
+            <p>All content on IndianLunchBox is protected by copyright. Do not copy or distribute without permission.</p>
+        </section>
+    </div>
+</div>
+
+<style>
+    .legal-container {
+        max-width: 800px;
+        margin: 3rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+    
+    .legal-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0dfbf;
+    }
+    
+    .legal-header h1 {
+        font-family: 'Playfair Display', serif;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+    
+    .legal-header p {
+        color: #7a624b;
+    }
+    
+    .legal-content section {
+        margin-bottom: 2rem;
+    }
+    
+    .legal-content h2 {
+        font-family: 'Playfair Display', serif;
+        color: #c96b4a;
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .legal-content p {
+        color: #7a624b;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
