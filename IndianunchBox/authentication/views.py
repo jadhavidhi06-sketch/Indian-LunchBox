@@ -12,7 +12,7 @@ import string
 from datetime import datetime, timedelta
 import os
 from django.conf import settings
-
+from xhtml2pdf.default import DEFAULT_CSS
 # ==============================================
 # HASH PASSWORD FUNCTION
 # ==============================================
@@ -172,39 +172,82 @@ def recipe_detail(request, id):
 # ==============================================
 # DOWNLOAD RECIPE AS PDF
 # ==============================================
+
+from django.shortcuts import render
+from django.db import connection
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import os
+from django.conf import settings
+from datetime import datetime
+import re
+
+
 def download_recipe_pdf(request, id):
-    # Fetch recipe from DB
+
+    # FETCH DATA
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT r.title, r.description, r.ingredients, r.steps, r.image, u.name
+            SELECT r.title, r.description, r.ingredients, r.steps, r.image, u.name, r.recipe_id
             FROM recipes r
             JOIN users u ON r.user_id = u.user_id
             WHERE r.recipe_id=%s
         """, [id])
-        recipe = cursor.fetchone()
+        recipe_data = cursor.fetchone()
 
-    if not recipe:
-        return HttpResponse("Recipe not found")
+    if not recipe_data:
+        return HttpResponse("Recipe not found", status=404)
 
-    # Full image path for xhtml2pdf
-    image_path = os.path.join(settings.BASE_DIR, 'media', recipe[4])
+    title, description, ingredients, steps, image, author_name, recipe_id = recipe_data
 
-    # Render template
-    template_path = 'recipes/recipe_pdf.html'
+    # IMAGE PATH (important for WeasyPrint)
+    image_url = None
+    if image:
+        image_url = request.build_absolute_uri(settings.MEDIA_URL + image)
+
+    # EXTRA DATA
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT COUNT(*) FROM likes WHERE recipe_id=%s", [id])
+        likes_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM comments WHERE recipe_id=%s", [id])
+        comments_count = cursor.fetchone()[0]
+
+        cursor.execute("SELECT AVG(rating) FROM comments WHERE recipe_id=%s AND rating > 0", [id])
+        avg_rating = cursor.fetchone()[0]
+        avg_rating = round(avg_rating, 1) if avg_rating else 0
+
+    total_words = len((description or "").split()) + len((ingredients or "").split()) + len((steps or "").split())
+    read_time = max(1, round(total_words / 200))
+
     context = {
-        'recipe': recipe,
-        'image_path': image_path
+        'recipe': {
+            'title': title,
+            'description': description,
+            'ingredients': ingredients,
+            'steps': steps,
+            'author_name': author_name,
+        },
+        'image_url': image_url,
+        'download_date': datetime.now().strftime("%B %d, %Y"),
+        'likes_count': likes_count,
+        'comments_count': comments_count,
+        'avg_rating': avg_rating,
+        'read_time': read_time,
     }
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{recipe[0]}.pdf"'
 
-    template = get_template(template_path)
-    html = template.render(context)
+    # RENDER HTML
+    html_string = render_to_string('recipes/recipe_pdf.html', context)
 
-    # Generate PDF
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    if pisa_status.err:
-        return HttpResponse('Error generating PDF')
+    # GENERATE PDF
+    pdf = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+    # RESPONSE
+    response = HttpResponse(pdf, content_type='application/pdf')
+    filename = re.sub(r'[^\w\s-]', '', title)[:50]
+    response['Content-Disposition'] = f'attachment; filename="{filename}.pdf"'
+
     return response
 
 
@@ -748,3 +791,828 @@ def remove_saved_api(request, saved_id):
         cursor.execute("DELETE FROM saved_recipes WHERE saved_id = %s", [saved_id])
     
     return JsonResponse({'success': True})
+    
+
+
+# ==============================================
+# FAVORITES (LIKED RECIPES) PAGE
+# ==============================================
+def favorites(request):
+    """
+    Display all recipes that the logged-in user has liked/favorited
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to view your favorites')
+        return redirect('login')
+    
+    user_id = request.session['user_id']
+    favorites_list = []
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                l.like_id,
+                r.recipe_id,
+                r.title,
+                r.description,
+                r.image,
+                u.name as author_name,
+                l.created_at as liked_at,
+                (SELECT COUNT(*) FROM likes WHERE recipe_id = r.recipe_id) as likes_count,
+                (SELECT COUNT(*) FROM comments WHERE recipe_id = r.recipe_id) as comments_count
+            FROM likes l
+            JOIN recipes r ON l.recipe_id = r.recipe_id
+            JOIN users u ON r.user_id = u.user_id
+            WHERE l.user_id = %s
+            ORDER BY l.created_at DESC
+        """, [user_id])
+        favorites = cursor.fetchall()
+    
+    for fav in favorites:
+        favorites_list.append({
+            'like_id': fav[0],
+            'recipe_id': fav[1],
+            'title': fav[2],
+            'description': fav[3],
+            'image': fav[4],
+            'author_name': fav[5],
+            'liked_at': fav[6],
+            'likes_count': fav[7] if len(fav) > 7 else 0,
+            'comments_count': fav[8] if len(fav) > 8 else 0
+        })
+    
+    context = {
+        'favorites': favorites_list,
+        'total_favorites': len(favorites_list),
+        'page_title': 'My Favorites'
+    }
+    
+    return render(request, 'auth/favorites.html', context)
+
+
+# ==============================================
+# REMOVE FAVORITE (UNLIKE) API
+# ==============================================
+def remove_favorite_api(request, recipe_id):
+    """API endpoint to remove a recipe from favorites"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM likes WHERE recipe_id = %s AND user_id = %s", [recipe_id, user_id])
+    
+    return JsonResponse({'success': True})
+
+
+# ==============================================
+# MY REVIEWS PAGE
+# ==============================================
+def my_reviews(request):
+    """
+    Display all reviews/comments written by the logged-in user
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to view your reviews')
+        return redirect('login')
+    
+    user_id = request.session['user_id']
+    reviews_list = []
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                c.comment_id,
+                c.comment,
+                c.rating,
+                c.created_at,
+                r.recipe_id,
+                r.title,
+                r.image,
+                u.name as recipe_author
+            FROM comments c
+            JOIN recipes r ON c.recipe_id = r.recipe_id
+            JOIN users u ON r.user_id = u.user_id
+            WHERE c.user_id = %s
+            ORDER BY c.created_at DESC
+        """, [user_id])
+        reviews = cursor.fetchall()
+    
+    for review in reviews:
+        reviews_list.append({
+            'comment_id': review[0],
+            'comment': review[1],
+            'rating': review[2],
+            'created_at': review[3],
+            'recipe_id': review[4],
+            'recipe_title': review[5],
+            'recipe_image': review[6],
+            'recipe_author': review[7]
+        })
+    
+    # Calculate average rating of user's reviews
+    avg_rating = 0
+    if reviews_list:
+        total_rating = sum(r['rating'] for r in reviews_list)
+        avg_rating = round(total_rating / len(reviews_list), 1)
+    
+    context = {
+        'reviews': reviews_list,
+        'total_reviews': len(reviews_list),
+        'avg_rating': avg_rating,
+        'page_title': 'My Reviews'
+    }
+    
+    return render(request, 'auth/my_reviews.html', context)
+
+
+# ==============================================
+# EDIT REVIEW PAGE
+# ==============================================
+def edit_review(request, comment_id):
+    """
+    Edit a specific review/comment
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to edit your review')
+        return redirect('login')
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT c.comment_id, c.comment, c.rating, c.recipe_id, r.title
+            FROM comments c
+            JOIN recipes r ON c.recipe_id = r.recipe_id
+            WHERE c.comment_id = %s AND c.user_id = %s
+        """, [comment_id, user_id])
+        review = cursor.fetchone()
+    
+    if not review:
+        messages.error(request, 'Review not found')
+        return redirect('my_reviews')
+    
+    if request.method == 'POST':
+        comment_text = request.POST.get('comment')
+        rating = int(request.POST.get('rating', 0))
+        
+        if not comment_text or rating < 1 or rating > 5:
+            messages.error(request, 'Please provide valid comment and rating')
+            return render(request, 'auth/edit_review.html', {'review': review})
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                UPDATE comments 
+                SET comment = %s, rating = %s, updated_at = NOW()
+                WHERE comment_id = %s
+            """, [comment_text, rating, comment_id])
+        
+        messages.success(request, 'Review updated successfully!')
+        return redirect('my_reviews')
+    
+    context = {
+        'review': {
+            'comment_id': review[0],
+            'comment': review[1],
+            'rating': review[2],
+            'recipe_id': review[3],
+            'recipe_title': review[4]
+        }
+    }
+    
+    return render(request, 'auth/edit_review.html', context)
+
+
+# ==============================================
+# DELETE REVIEW API
+# ==============================================
+def delete_review_api(request, comment_id):
+    """API endpoint to delete a review"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("DELETE FROM comments WHERE comment_id = %s AND user_id = %s", [comment_id, user_id])
+    
+    return JsonResponse({'success': True})
+
+
+# ==============================================
+# SETTINGS PAGE
+# ==============================================
+def settings_view(request):
+    """
+    User settings page - manage account, privacy, and preferences
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to access settings')
+        return redirect('login')
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT u.user_id, u.name, u.email, u.created_at,
+                   COALESCE(p.bio, '') as bio,
+                   COALESCE(p.location, '') as location,
+                   COALESCE(p.favorite_food, '') as favorite_food,
+                   COALESCE(p.email_notifications, 1) as email_notifications,
+                   COALESCE(p.newsletter_subscribed, 1) as newsletter_subscribed,
+                   COALESCE(p.profile_visibility, 'public') as profile_visibility
+            FROM users u
+            LEFT JOIN user_profiles p ON u.user_id = p.user_id
+            WHERE u.user_id = %s
+        """, [user_id])
+        user_data = cursor.fetchone()
+    
+    if user_data:
+        user_info = {
+            'user_id': user_data[0],
+            'name': user_data[1],
+            'email': user_data[2],
+            'joined_date': user_data[3],
+            'bio': user_data[4] or '',
+            'location': user_data[5] or '',
+            'favorite_food': user_data[6] or '',
+            'email_notifications': bool(user_data[7]),
+            'newsletter_subscribed': bool(user_data[8]),
+            'profile_visibility': user_data[9] or 'public'
+        }
+    else:
+        user_info = {
+            'user_id': user_id,
+            'name': request.session.get('user_name'),
+            'email': '',
+            'joined_date': None,
+            'bio': '',
+            'location': '',
+            'favorite_food': '',
+            'email_notifications': True,
+            'newsletter_subscribed': True,
+            'profile_visibility': 'public'
+        }
+    
+    context = {
+        'user': user_info,
+        'page_title': 'Settings'
+    }
+    
+    return render(request, 'auth/settings.html', context)
+
+
+# ==============================================
+# UPDATE ACCOUNT SETTINGS
+# ==============================================
+def update_account_settings(request):
+    """
+    Update account information (name, email, password)
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        user_id = request.session['user_id']
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT password FROM users WHERE user_id = %s", [user_id])
+            current_hash = cursor.fetchone()
+        
+        # Verify current password if changing password
+        if new_password:
+            if not current_password or hash_password(current_password) != current_hash[0]:
+                messages.error(request, 'Current password is incorrect')
+                return redirect('settings')
+            
+            if new_password != confirm_password:
+                messages.error(request, 'New passwords do not match')
+                return redirect('settings')
+            
+            if len(new_password) < 6:
+                messages.error(request, 'Password must be at least 6 characters')
+                return redirect('settings')
+            
+            # Update password
+            new_hash = hash_password(new_password)
+            with connection.cursor() as cursor:
+                cursor.execute("UPDATE users SET password = %s WHERE user_id = %s", [new_hash, user_id])
+            
+            messages.success(request, 'Password updated successfully!')
+        
+        # Update name and email
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE users SET name = %s, email = %s WHERE user_id = %s", [name, email, user_id])
+        
+        # Update session
+        request.session['user_name'] = name
+        
+        messages.success(request, 'Account settings updated successfully!')
+        return redirect('settings')
+    
+    return redirect('settings')
+
+
+# ==============================================
+# UPDATE PREFERENCES
+# ==============================================
+def update_preferences(request):
+    """
+    Update user preferences (notifications, newsletter, privacy)
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        user_id = request.session['user_id']
+        email_notifications = request.POST.get('email_notifications') == 'on'
+        newsletter_subscribed = request.POST.get('newsletter_subscribed') == 'on'
+        profile_visibility = request.POST.get('profile_visibility', 'public')
+        
+        with connection.cursor() as cursor:
+            try:
+                cursor.execute("""
+                    INSERT INTO user_profiles (user_id, email_notifications, newsletter_subscribed, profile_visibility)
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        email_notifications = VALUES(email_notifications),
+                        newsletter_subscribed = VALUES(newsletter_subscribed),
+                        profile_visibility = VALUES(profile_visibility)
+                """, [user_id, email_notifications, newsletter_subscribed, profile_visibility])
+            except:
+                # If columns don't exist, alter table
+                try:
+                    cursor.execute("ALTER TABLE user_profiles ADD COLUMN email_notifications BOOLEAN DEFAULT 1")
+                except:
+                    pass
+                try:
+                    cursor.execute("ALTER TABLE user_profiles ADD COLUMN newsletter_subscribed BOOLEAN DEFAULT 1")
+                except:
+                    pass
+                try:
+                    cursor.execute("ALTER TABLE user_profiles ADD COLUMN profile_visibility VARCHAR(20) DEFAULT 'public'")
+                except:
+                    pass
+                
+                cursor.execute("""
+                    INSERT INTO user_profiles (user_id, email_notifications, newsletter_subscribed, profile_visibility)
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        email_notifications = VALUES(email_notifications),
+                        newsletter_subscribed = VALUES(newsletter_subscribed),
+                        profile_visibility = VALUES(profile_visibility)
+                """, [user_id, email_notifications, newsletter_subscribed, profile_visibility])
+        
+        messages.success(request, 'Preferences updated successfully!')
+        return redirect('settings')
+    
+    return redirect('settings')
+
+
+# ==============================================
+# DELETE ACCOUNT
+# ==============================================
+def delete_account(request):
+    """
+    Delete user account and all associated data
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        user_id = request.session['user_id']
+        password = request.POST.get('password')
+        
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT password FROM users WHERE user_id = %s", [user_id])
+            current_hash = cursor.fetchone()
+        
+        if hash_password(password) != current_hash[0]:
+            messages.error(request, 'Incorrect password. Account not deleted.')
+            return redirect('settings')
+        
+        # Delete user (cascade will delete recipes, comments, likes, etc.)
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM users WHERE user_id = %s", [user_id])
+        
+        # Clear session
+        request.session.flush()
+        
+        messages.success(request, 'Your account has been deleted successfully. We\'re sad to see you go!')
+        return redirect('login')
+    
+    return redirect('settings')    
+
+# ==============================================
+# API: SAVE RECIPE (Bookmark)
+# ==============================================
+def api_save_recipe(request):
+    """API endpoint to save/unsave a recipe"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            recipe_id = data.get('recipe_id')
+            action = data.get('action')  # 'save' or 'unsave'
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                if action == 'save':
+                    cursor.execute("""
+                        INSERT INTO saved_recipes (user_id, recipe_id, saved_at)
+                        VALUES (%s, %s, NOW())
+                        ON DUPLICATE KEY UPDATE saved_at = NOW()
+                    """, [user_id, recipe_id])
+                else:
+                    cursor.execute("""
+                        DELETE FROM saved_recipes 
+                        WHERE user_id = %s AND recipe_id = %s
+                    """, [user_id, recipe_id])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: GET SAVED RECIPES
+# ==============================================
+def api_get_saved_recipes(request):
+    """API endpoint to get all saved recipe IDs for the current user"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'success': True, 'saved_recipes': []})
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT recipe_id FROM saved_recipes 
+            WHERE user_id = %s
+        """, [user_id])
+        saved = cursor.fetchall()
+    
+    saved_ids = [s[0] for s in saved]
+    return JsonResponse({'success': True, 'saved_recipes': saved_ids})
+
+
+# ==============================================
+# API: ADD RATING
+# ==============================================
+def api_add_rating(request):
+    """API endpoint to add/update a recipe rating"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            recipe_id = data.get('recipe_id')
+            rating = data.get('rating')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO comments (recipe_id, user_id, comment, rating, created_at)
+                    VALUES (%s, %s, %s, %s, NOW())
+                    ON DUPLICATE KEY UPDATE rating = %s, comment = %s
+                """, [recipe_id, user_id, f"Rated {rating} stars", rating, rating, f"Rated {rating} stars"])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: GET SAVED RECIPES COUNT
+# ==============================================
+def api_get_saved_count(request):
+    """API endpoint to get the count of saved recipes for the current user"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'success': True, 'count': 0})
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) FROM saved_recipes 
+            WHERE user_id = %s
+        """, [user_id])
+        count = cursor.fetchone()[0]
+    
+    return JsonResponse({'success': True, 'count': count})
+
+
+# ==============================================
+# API: SAVE/UNSAVE RECIPE
+# ==============================================
+def api_save_recipe(request):
+    """API endpoint to save/unsave a recipe"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            recipe_id = data.get('recipe_id')
+            action = data.get('action')  # 'save' or 'unsave'
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                if action == 'save':
+                    cursor.execute("""
+                        INSERT INTO saved_recipes (user_id, recipe_id, saved_at)
+                        VALUES (%s, %s, NOW())
+                        ON DUPLICATE KEY UPDATE saved_at = NOW()
+                    """, [user_id, recipe_id])
+                else:
+                    cursor.execute("""
+                        DELETE FROM saved_recipes 
+                        WHERE user_id = %s AND recipe_id = %s
+                    """, [user_id, recipe_id])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: TOGGLE LIKE/FAVORITE (No duplicates)
+# ==============================================
+def api_toggle_like(request):
+    """API endpoint to like/unlike a recipe (add to favorites) - prevents duplicates"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            recipe_id = data.get('recipe_id')
+            action = data.get('action')  # 'like' or 'unlike'
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                if action == 'like':
+                    # Check if already exists to prevent duplicate
+                    cursor.execute("SELECT * FROM likes WHERE recipe_id = %s AND user_id = %s", [recipe_id, user_id])
+                    existing = cursor.fetchone()
+                    if existing:
+                        return JsonResponse({'success': True, 'error': 'Already exists', 'message': 'Already in favorites'})
+                    
+                    cursor.execute("""
+                        INSERT INTO likes (recipe_id, user_id, created_at)
+                        VALUES (%s, %s, NOW())
+                    """, [recipe_id, user_id])
+                else:
+                    cursor.execute("""
+                        DELETE FROM likes 
+                        WHERE recipe_id = %s AND user_id = %s
+                    """, [recipe_id, user_id])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: ADD COMMENT
+# ==============================================
+def api_add_comment(request):
+    """API endpoint to add a comment/review"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            recipe_id = data.get('recipe_id')
+            comment = data.get('comment')
+            rating = data.get('rating')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO comments (recipe_id, user_id, comment, rating, created_at)
+                    VALUES (%s, %s, %s, %s, NOW())
+                """, [recipe_id, user_id, comment, rating])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: DELETE COMMENT
+# ==============================================
+def api_delete_comment(request):
+    """API endpoint to delete a comment/review"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            comment_id = data.get('comment_id')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    DELETE FROM comments 
+                    WHERE comment_id = %s AND user_id = %s
+                """, [comment_id, user_id])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+    
+
+# ==============================================
+# API: TOGGLE COMMENT LIKE
+# ==============================================
+def api_toggle_comment_like(request):
+    """API endpoint to like/unlike a comment"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            comment_id = data.get('comment_id')
+            action = data.get('action')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                if action == 'like':
+                    cursor.execute("""
+                        INSERT INTO comment_likes (comment_id, user_id, created_at)
+                        VALUES (%s, %s, NOW())
+                        ON DUPLICATE KEY UPDATE created_at = NOW()
+                    """, [comment_id, user_id])
+                else:
+                    cursor.execute("""
+                        DELETE FROM comment_likes WHERE comment_id = %s AND user_id = %s
+                    """, [comment_id, user_id])
+                
+                # Get updated like count
+                cursor.execute("SELECT COUNT(*) FROM comment_likes WHERE comment_id = %s", [comment_id])
+                likes_count = cursor.fetchone()[0]
+            
+            return JsonResponse({'success': True, 'likes_count': likes_count})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: ADD REPLY
+# ==============================================
+def api_add_reply(request):
+    """API endpoint to add a reply to a comment"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            comment_id = data.get('comment_id')
+            reply_text = data.get('reply_text')
+            recipe_id = data.get('recipe_id')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO comment_replies (comment_id, user_id, reply_text, recipe_id, created_at)
+                    VALUES (%s, %s, %s, %s, NOW())
+                """, [comment_id, user_id, reply_text, recipe_id])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: GET REPLIES
+# ==============================================
+def api_get_replies(request, comment_id):
+    """API endpoint to get all replies for a comment"""
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT cr.reply_id, cr.reply_text, cr.created_at, u.name as author_name,
+                   (SELECT COUNT(*) FROM reply_likes WHERE reply_id = cr.reply_id) as likes_count
+            FROM comment_replies cr
+            JOIN users u ON cr.user_id = u.user_id
+            WHERE cr.comment_id = %s
+            ORDER BY cr.created_at ASC
+        """, [comment_id])
+        replies = cursor.fetchall()
+    
+    reply_list = []
+    user_id = request.session.get('user_id')
+    
+    for reply in replies:
+        reply_list.append({
+            'reply_id': reply[0],
+            'reply_text': reply[1],
+            'created_at': reply[2].strftime('%Y-%m-%d %H:%M:%S') if reply[2] else None,
+            'author_name': reply[3],
+            'likes_count': reply[4],
+            'can_delete': user_id and reply[3] == request.session.get('user_name')
+        })
+    
+    return JsonResponse({'success': True, 'replies': reply_list})
+
+
+# ==============================================
+# API: TOGGLE REPLY LIKE
+# ==============================================
+def api_toggle_reply_like(request):
+    """API endpoint to like/unlike a reply"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            reply_id = data.get('reply_id')
+            action = data.get('action')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                if action == 'like':
+                    cursor.execute("""
+                        INSERT INTO reply_likes (reply_id, user_id, created_at)
+                        VALUES (%s, %s, NOW())
+                        ON DUPLICATE KEY UPDATE created_at = NOW()
+                    """, [reply_id, user_id])
+                else:
+                    cursor.execute("""
+                        DELETE FROM reply_likes WHERE reply_id = %s AND user_id = %s
+                    """, [reply_id, user_id])
+                
+                cursor.execute("SELECT COUNT(*) FROM reply_likes WHERE reply_id = %s", [reply_id])
+                likes_count = cursor.fetchone()[0]
+            
+            return JsonResponse({'success': True, 'likes_count': likes_count})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+# ==============================================
+# API: DELETE REPLY
+# ==============================================
+def api_delete_reply(request):
+    """API endpoint to delete a reply"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in', 'success': False}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            reply_id = data.get('reply_id')
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    DELETE FROM comment_replies 
+                    WHERE reply_id = %s AND user_id = %s
+                """, [reply_id, user_id])
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)    

@@ -1,46 +1,738 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Add New Recipe 🍛</h2>
+<div class="add-recipe-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header Section -->
+                <div class="text-center mb-4">
+                    <div class="header-icon">
+                        <i class="fas fa-utensil-spoon"></i>
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-mug-hot"></i>
+                    </div>
+                    <h1 class="page-title">Share Your Recipe 🍛</h1>
+                    <p class="page-subtitle">Share your culinary masterpiece with our food-loving community</p>
+                    <div class="divider-nostalgic"></div>
+                </div>
 
-    <form method="POST" enctype="multipart/form-data" class="recipe-form shadow-sm p-4 rounded bg-light">
-        {% csrf_token %}
-        <input type="text" name="title" placeholder="Recipe Title" class="form-control mb-3" required>
-        <textarea name="description" placeholder="Short Description" class="form-control mb-3" rows="2" required></textarea>
-        <textarea name="ingredients" placeholder="Ingredients (one per line)" class="form-control mb-3" rows="4" required></textarea>
-        <textarea name="steps" placeholder="Steps" class="form-control mb-3" rows="4" required></textarea>
+                <!-- Recipe Form Card -->
+                <div class="nostalgic-card p-4 p-md-5">
+                    <form method="POST" enctype="multipart/form-data" id="recipeForm" class="recipe-form">
+                        {% csrf_token %}
+                        
+                        <!-- Recipe Title -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-tag me-2" style="color: #e2b13b;"></i>Recipe Title
+                            </label>
+                            <input type="text" 
+                                   name="title" 
+                                   id="recipeTitle" 
+                                   class="form-control-custom" 
+                                   placeholder="e.g., Grandma's Special Butter Chicken" 
+                                   required>
+                            <div class="char-count" id="titleCount">0/100 characters</div>
+                        </div>
 
-        <!-- File input hidden -->
-        <input type="file" name="image" id="imageInput" class="form-control mb-3" required>
-        <p class="text-muted">Or paste an image directly (Ctrl+V / Cmd+V)</p>
+                        <!-- Short Description -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-align-left me-2" style="color: #e2b13b;"></i>Short Description
+                            </label>
+                            <textarea name="description" 
+                                      id="recipeDescription" 
+                                      class="form-control-custom" 
+                                      rows="3" 
+                                      placeholder="Describe your recipe in a few words... What makes it special? 🌟" 
+                                      required></textarea>
+                            <div class="char-count" id="descCount">0/200 characters</div>
+                        </div>
 
-        <div id="preview" class="mb-3"></div>
+                        <!-- Ingredients -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-shopping-basket me-2" style="color: #e2b13b;"></i>Ingredients
+                            </label>
+                            <textarea name="ingredients" 
+                                      id="recipeIngredients" 
+                                      class="form-control-custom" 
+                                      rows="6" 
+                                      placeholder="List your ingredients one per line:&#10;• 2 cups all-purpose flour&#10;• 1 tsp salt&#10;• 1/2 cup butter&#10;• 3 cloves garlic, minced" 
+                                      required></textarea>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> Tip: Add one ingredient per line for better formatting
+                            </small>
+                        </div>
 
-        <button type="submit" class="btn btn-auth w-100">Submit Recipe</button>
-    </form>
+                        <!-- Steps/Instructions -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-list-ol me-2" style="color: #e2b13b;"></i>Cooking Steps
+                            </label>
+                            <textarea name="steps" 
+                                      id="recipeSteps" 
+                                      class="form-control-custom" 
+                                      rows="8" 
+                                      placeholder="Write your cooking instructions step by step:&#10;1. Preheat oven to 350°F&#10;2. Mix dry ingredients...&#10;3. Bake for 20 minutes..." 
+                                      required></textarea>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> Tip: Each line will become a numbered step
+                            </small>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-image me-2" style="color: #e2b13b;"></i>Recipe Image
+                            </label>
+                            
+                            <!-- Upload Options -->
+                            <div class="upload-options">
+                                <div class="upload-tabs">
+                                    <button type="button" class="upload-tab active" onclick="switchUploadTab('file')">
+                                        <i class="fas fa-upload"></i> Upload File
+                                    </button>
+                                    <button type="button" class="upload-tab" onclick="switchUploadTab('paste')">
+                                        <i class="fas fa-paste"></i> Paste Image
+                                    </button>
+                                </div>
+                                
+                                <!-- File Upload Option -->
+                                <div id="fileUpload" class="upload-area">
+                                    <input type="file" name="image" id="imageInput" accept="image/*" class="file-input">
+                                    <label for="imageInput" class="file-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Click or drag to upload</span>
+                                        <small>PNG, JPG, JPEG up to 5MB</small>
+                                    </label>
+                                </div>
+                                
+                                <!-- Paste Image Option -->
+                                <div id="pasteUpload" class="upload-area" style="display: none;">
+                                    <div class="paste-area" id="pasteArea">
+                                        <i class="fas fa-paste"></i>
+                                        <span>Paste image here (Ctrl+V / Cmd+V)</span>
+                                        <small>Paste an image from your clipboard</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="image-preview" style="display: none;">
+                                <div class="preview-header">
+                                    <i class="fas fa-image"></i> Image Preview
+                                    <button type="button" class="remove-image" onclick="removeImage()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <img id="previewImg" src="#" alt="Recipe preview">
+                            </div>
+                        </div>
+
+                        <!-- Tips Section -->
+                        <div class="tips-box mb-4">
+                            <div class="tips-header">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Pro Tips for a Great Recipe</span>
+                            </div>
+                            <ul class="tips-list">
+                                <li><i class="fas fa-check-circle"></i> Be specific with measurements (cups, tsp, tbsp, grams)</li>
+                                <li><i class="fas fa-check-circle"></i> Include preparation time and cooking temperature</li>
+                                <li><i class="fas fa-check-circle"></i> Add personal touches or variations</li>
+                                <li><i class="fas fa-check-circle"></i> Mention any substitutions or dietary modifications</li>
+                                <li><i class="fas fa-check-circle"></i> Add a high-quality image for better engagement</li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-cozy" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Share Recipe
+                            </button>
+                            <a href="/recipes/" class="btn-outline-cozy">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Inspiration Quote -->
+                <div class="inspiration-quote text-center mt-4">
+                    <p class="handwritten-accent">
+                        <i class="fas fa-quote-left me-2"></i> 
+                        Every recipe has a story. Share yours and inspire others!
+                        <i class="fas fa-quote-right ms-2"></i>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script>
-document.addEventListener('paste', function(e) {
-    const items = e.clipboardData.items;
-    for (let i=0; i<items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-            const blob = items[i].getAsFile();
-            const dt = new DataTransfer();
-            dt.items.add(blob);
-            const fileInput = document.getElementById('imageInput');
-            fileInput.files = dt.files;
+<style>
+    .add-recipe-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
 
-            // Show preview
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(blob);
-            img.style.maxHeight = "200px";
-            img.style.borderRadius = "10px";
-            document.getElementById('preview').innerHTML = "";
-            document.getElementById('preview').appendChild(img);
+    .header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .header-icon i {
+        margin: 0 8px;
+        animation: bounce 2s ease infinite;
+    }
+
+    .header-icon i:nth-child(1) { color: #c96b4a; animation-delay: 0s; }
+    .header-icon i:nth-child(2) { color: #e25822; animation-delay: 0.2s; }
+    .header-icon i:nth-child(3) { color: #e2b13b; animation-delay: 0.4s; }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: #7a624b;
+        font-size: 1rem;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        color: #5a4a3a;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.95rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        background: white;
+        resize: vertical;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 4px rgba(226, 177, 59, 0.1);
+    }
+
+    .char-count {
+        font-size: 0.7rem;
+        color: #7a624b;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    /* Upload Options */
+    .upload-options {
+        border: 2px solid #f0dfbf;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .upload-tabs {
+        display: flex;
+        border-bottom: 2px solid #f0dfbf;
+        background: #fff5ea;
+    }
+
+    .upload-tab {
+        flex: 1;
+        padding: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: #7a624b;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .upload-tab.active {
+        background: white;
+        color: #c96b4a;
+        border-bottom: 2px solid #c96b4a;
+        margin-bottom: -2px;
+    }
+
+    .upload-tab:hover {
+        background: #fff0e0;
+    }
+
+    .upload-area {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .file-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .file-label:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .file-label i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .file-label span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .file-label small {
+        color: #7a624b;
+    }
+
+    .paste-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .paste-area:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .paste-area i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .paste-area span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .paste-area small {
+        color: #7a624b;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        margin-top: 1rem;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 15px;
+        background: #fff5ea;
+        border-bottom: 1px solid #f0dfbf;
+        font-weight: 600;
+        color: #c96b4a;
+    }
+
+    .remove-image {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 1rem;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .remove-image:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .image-preview img {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    /* Tips Box */
+    .tips-box {
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        border-radius: 20px;
+        padding: 1.2rem;
+        border: 1px solid #f0dfbf;
+    }
+
+    .tips-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: #c96b4a;
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+    }
+
+    .tips-header i {
+        font-size: 1.2rem;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0;
+        font-size: 0.85rem;
+        color: #5a3e2e;
+    }
+
+    .tips-list li i {
+        color: #28a745;
+        font-size: 0.8rem;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .form-actions .btn-cozy,
+    .form-actions .btn-outline-cozy {
+        flex: 1;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    /* Inspiration Quote */
+    .inspiration-quote {
+        padding: 1rem;
+    }
+
+    .inspiration-quote p {
+        font-size: 0.95rem;
+        opacity: 0.8;
+    }
+
+    /* Loading State */
+    .btn-cozy:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .add-recipe-container {
+            padding: 1rem 0;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .upload-tab {
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+        
+        .upload-area {
+            padding: 1rem;
+        }
+        
+        .file-label, .paste-area {
+            padding: 1rem;
         }
     }
-});
+</style>
+
+<script>
+    // Character counters
+    function updateCharCount(element, countElement, max) {
+        const length = element.value.length;
+        const countSpan = document.getElementById(countElement);
+        if (countSpan) {
+            countSpan.textContent = `${length}/${max} characters`;
+            if (length > max - 10) {
+                countSpan.style.color = '#e25822';
+            } else {
+                countSpan.style.color = '#7a624b';
+            }
+        }
+    }
+
+    const titleInput = document.getElementById('recipeTitle');
+    const descInput = document.getElementById('recipeDescription');
+
+    if (titleInput) {
+        titleInput.addEventListener('input', () => updateCharCount(titleInput, 'titleCount', 100));
+        updateCharCount(titleInput, 'titleCount', 100);
+    }
+
+    if (descInput) {
+        descInput.addEventListener('input', () => updateCharCount(descInput, 'descCount', 200));
+        updateCharCount(descInput, 'descCount', 200);
+    }
+
+    // Image upload handling
+    let currentImageFile = null;
+
+    function switchUploadTab(tab) {
+        const fileUpload = document.getElementById('fileUpload');
+        const pasteUpload = document.getElementById('pasteUpload');
+        const tabs = document.querySelectorAll('.upload-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if (tab === 'file') {
+            fileUpload.style.display = 'block';
+            pasteUpload.style.display = 'none';
+            tabs[0].classList.add('active');
+        } else {
+            fileUpload.style.display = 'none';
+            pasteUpload.style.display = 'block';
+            tabs[1].classList.add('active');
+        }
+    }
+
+    // File upload preview
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+            }
+        });
+    }
+
+    // Paste image functionality
+    const pasteArea = document.getElementById('pasteArea');
+    
+    document.addEventListener('paste', function(e) {
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                const dt = new DataTransfer();
+                dt.items.add(blob);
+                
+                if (imageInput) {
+                    imageInput.files = dt.files;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImg.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(blob);
+                    currentImageFile = blob;
+                    
+                    // Show success message
+                    showToast('📸 Image pasted successfully!', 'success');
+                }
+                break;
+            }
+        }
+    });
+
+    // Click on paste area to focus
+    if (pasteArea) {
+        pasteArea.addEventListener('click', function() {
+            // Just a visual feedback
+            this.style.background = '#fff9ef';
+            setTimeout(() => {
+                this.style.background = '';
+            }, 200);
+        });
+    }
+
+    // Remove image
+    function removeImage() {
+        if (imageInput) {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            previewImg.src = '#';
+            currentImageFile = null;
+            showToast('Image removed', 'info');
+        }
+    }
+
+    // Form validation
+    const form = document.getElementById('recipeForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const title = titleInput?.value.trim();
+            const description = descInput?.value.trim();
+            const ingredients = document.getElementById('recipeIngredients')?.value.trim();
+            const steps = document.getElementById('recipeSteps')?.value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                showToast('Please enter a recipe title', 'warning');
+                titleInput?.focus();
+                return false;
+            }
+            
+            if (title.length < 3) {
+                e.preventDefault();
+                showToast('Title must be at least 3 characters', 'warning');
+                return false;
+            }
+            
+            if (!description) {
+                e.preventDefault();
+                showToast('Please enter a description', 'warning');
+                descInput?.focus();
+                return false;
+            }
+            
+            if (!ingredients) {
+                e.preventDefault();
+                showToast('Please list your ingredients', 'warning');
+                document.getElementById('recipeIngredients')?.focus();
+                return false;
+            }
+            
+            if (!steps) {
+                e.preventDefault();
+                showToast('Please provide cooking steps', 'warning');
+                document.getElementById('recipeSteps')?.focus();
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing your recipe...';
+        });
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const bgColor = type === 'success' ? '#28a745' : (type === 'warning' ? '#ffc107' : '#dc3545');
+        const icon = type === 'success' ? 'fa-check-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle');
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white border-0';
+        toast.style.background = bgColor;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${icon} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Add helpful placeholder examples on focus
+    const ingredientsField = document.getElementById('recipeIngredients');
+    const stepsField = document.getElementById('recipeSteps');
+    
+    if (ingredientsField) {
+        ingredientsField.addEventListener('focus', function() {
+            if (this.value === '') {
+                this.placeholder = 'Example:\n• 2 cups all-purpose flour\n• 1 tsp baking powder\n• 1/2 tsp salt\n• 2 eggs\n• 1 cup milk';
+            }
+        });
+        ingredientsField.addEventListener('blur', function() {
+            this.placeholder = 'List your ingredients one per line:';
+        });
+    }
+    
+    if (stepsField) {
+        stepsField.addEventListener('focus', function() {
+            if (this.value === '') {
+                this.placeholder = 'Example:\n1. Preheat oven to 350°F (175°C)\n2. In a large bowl, mix flour, baking powder, and salt\n3. In another bowl, whisk eggs and milk\n4. Combine wet and dry ingredients\n5. Bake for 20-25 minutes';
+            }
+        });
+        stepsField.addEventListener('blur', function() {
+            this.placeholder = 'Write your cooking instructions step by step:';
+        });
+    }
 </script>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+
 {% endblock %}

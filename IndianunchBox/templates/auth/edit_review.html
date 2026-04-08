@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="edit-review-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7">
+                <div class="nostalgic-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="edit-icon mb-3">
+                            <i class="fas fa-edit fa-3x" style="color: #e2b13b;"></i>
+                        </div>
+                        <h2 style="font-family: 'Playfair Display', serif; color: #5a3e2e;">
+                            Edit Your Review
+                        </h2>
+                        <p class="text-muted">for "{{ review.recipe_title }}"</p>
+                        <div class="divider-nostalgic"></div>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-star me-2" style="color: #e2b13b;"></i>Rating
+                            </label>
+                            <div class="rating-input">
+                                <div class="stars">
+                                    <i class="far fa-star" data-rating="1"></i>
+                                    <i class="far fa-star" data-rating="2"></i>
+                                    <i class="far fa-star" data-rating="3"></i>
+                                    <i class="far fa-star" data-rating="4"></i>
+                                    <i class="far fa-star" data-rating="5"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="ratingValue" value="{{ review.rating }}">
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-comment me-2" style="color: #e2b13b;"></i>Your Review
+                            </label>
+                            <textarea name="comment" class="form-control review-textarea" rows="6" 
+                                      placeholder="Share your experience with this recipe..." required>{{ review.comment }}</textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-cozy">
+                                <i class="fas fa-save me-2"></i> Update Review
+                            </button>
+                            <a href="/my-reviews/" class="btn-outline-cozy">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .edit-review-container {
+        padding: 3rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    .edit-icon {
+        animation: bounce 2s ease infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .rating-input {
+        text-align: center;
+        padding: 1rem;
+        background: #fff5ea;
+        border-radius: 60px;
+    }
+
+    .stars {
+        display: inline-flex;
+        gap: 15px;
+    }
+
+    .stars i {
+        font-size: 2rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #ddd;
+    }
+
+    .stars i:hover,
+    .stars i.active {
+        color: #e2b13b;
+        transform: scale(1.1);
+    }
+
+    .review-textarea {
+        border: 2px solid #f0dfbf;
+        border-radius: 20px;
+        padding: 1rem;
+        font-family: 'Inter', sans-serif;
+        resize: vertical;
+    }
+
+    .review-textarea:focus {
+        outline: none;
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 4px rgba(226, 177, 59, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .stars i {
+            font-size: 1.5rem;
+            gap: 10px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .form-actions .btn-cozy,
+        .form-actions .btn-outline-cozy {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<script>
+    // Rating star functionality
+    const stars = document.querySelectorAll('.stars i');
+    const ratingInput = document.getElementById('ratingValue');
+    const currentRating = parseInt(ratingInput.value) || 0;
+
+    // Set initial stars based on current rating
+    function setStars(rating) {
+        stars.forEach(star => {
+            const starRating = parseInt(star.getAttribute('data-rating'));
+            if (starRating <= rating) {
+                star.classList.remove('far');
+                star.classList.add('fas');
+                star.classList.add('active');
+            } else {
+                star.classList.remove('fas');
+                star.classList.add('far');
+                star.classList.remove('active');
+            }
+        });
+        ratingInput.value = rating;
+    }
+
+    setStars(currentRating);
+
+    // Handle star click
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            setStars(rating);
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            stars.forEach(s => {
+                const sRating = parseInt(s.getAttribute('data-rating'));
+                if (sRating <= rating) {
+                    s.classList.remove('far');
+                    s.classList.add('fas');
+                } else {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                }
+            });
+        });
+    });
+
+    // Reset on mouse leave
+    const ratingContainer = document.querySelector('.rating-input');
+    ratingContainer.addEventListener('mouseleave', function() {
+        setStars(parseInt(ratingInput.value) || 0);
+    });
+</script>
+{% endblock %}

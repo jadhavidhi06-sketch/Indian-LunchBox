@@ -35,10 +35,52 @@ urlpatterns = [
     path('terms/', views.terms_view, name='terms'),
     path('privacy/', views.privacy_view, name='privacy'),
     
+    
+    # Add these to your existing urlpatterns
+    
+    # Favorites routes
+    path('favorites/', views.favorites, name='favorites'),
+    path('api/favorite/<int:recipe_id>/remove/', views.remove_favorite_api, name='remove_favorite_api'),
+    
+    # My Reviews routes
+    path('my-reviews/', views.my_reviews, name='my_reviews'),
+    path('edit-review/<int:comment_id>/', views.edit_review, name='edit_review'),
+    path('api/review/<int:comment_id>/delete/', views.delete_review_api, name='delete_review_api'),
+    
+    # Settings routes
+    path('settings/', views.settings_view, name='settings'),
+    path('update-account/', views.update_account_settings, name='update_account_settings'),
+    path('update-preferences/', views.update_preferences, name='update_preferences'),
+    path('delete-account/', views.delete_account, name='delete_account'),
+    
     # API Endpoints (AJAX)
     # path('api/check-email/', views.api_check_email, name='api_check_email'),
     # path('api/login/', views.api_login, name='api_login'),
     path('api/recipe/<int:recipe_id>/like/', views.toggle_like, name='toggle_like'),
     # path('api/recipe/<int:recipe_id>/rate/', views.api_add_rating, name='api_add_rating'),
     # path('api/recipe/<int:recipe_id>/save/', views.api_save_recipe, name='api_save_recipe'),
+    # Add these to your urlpatterns
+    path('api/save-recipe/', views.api_save_recipe, name='api_save_recipe'),
+    path('api/get-saved-recipes/', views.api_get_saved_recipes, name='api_get_saved_recipes'),
+    path('api/add-rating/', views.api_add_rating, name='api_add_rating'),
+   
+   
+   
+   # Add these to your urlpatterns
+   path('api/get-saved-count/', views.api_get_saved_count, name='api_get_saved_count'),
+   path('api/save-recipe/', views.api_save_recipe, name='api_save_recipe'),
+  
+  
+  # Add these to your urlpatterns
+  path('api/toggle-like/', views.api_toggle_like, name='api_toggle_like'),
+  path('api/add-comment/', views.api_add_comment, name='api_add_comment'),
+  path('api/delete-comment/', views.api_delete_comment, name='api_delete_comment'),
+ 
+ 
+ # Add these to your urlpatterns
+ path('api/toggle-comment-like/', views.api_toggle_comment_like, name='api_toggle_comment_like'),
+ path('api/add-reply/', views.api_add_reply, name='api_add_reply'),
+ path('api/get-replies/<int:comment_id>/', views.api_get_replies, name='api_get_replies'),
+ path('api/toggle-reply-like/', views.api_toggle_reply_like, name='api_toggle_reply_like'),
+ path('api/delete-reply/', views.api_delete_reply, name='api_delete_reply'), 
 ]

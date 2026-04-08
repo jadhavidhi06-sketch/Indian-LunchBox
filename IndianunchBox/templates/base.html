@@ -234,6 +234,22 @@
             padding-left: 26px;
         }
 
+        /* Saved Count Badge Animation */
+        .saved-count-badge {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .saved-count-badge.updated {
+            animation: badgePop 0.3s ease;
+        }
+
+        @keyframes badgePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); background: #28a745; color: white; }
+            100% { transform: scale(1); }
+        }
+
         /* Buttons */
         .btn-add-recipe {
             background: linear-gradient(135deg, #c96b4a, #a55233);
@@ -484,6 +500,46 @@
             }
         }
 
+        /* Toast Notification Container */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toast-notification.error {
+            background: #dc3545;
+        }
+
+        .toast-notification.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .toast-notification.info {
+            background: #17a2b8;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         /* extra warmth for any alert messages */
         .alert-cozy {
             background-color: #fff0e0;
@@ -493,7 +549,7 @@
             font-weight: 500;
         }
 
-        /* make images blend softly (optional for future content) */
+        /* make images blend softly */
         img {
             border-radius: 20px;
             max-width: 100%;
@@ -633,9 +689,9 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="/saved-recipes/">
+                                    <a class="dropdown-item" href="/saved-recipes/" id="savedRecipesLink">
                                         <i class="fas fa-bookmark"></i> Saved Recipes
-                                        <span class="badge bg-warning text-dark ms-2" id="savedCount">0</span>
+                                        <span class="badge bg-warning text-dark ms-2 saved-count-badge" id="savedCount">0</span>
                                     </a>
                                 </li>
                                 <li>
@@ -711,15 +767,15 @@
     <!-- ==================== MAIN DYNAMIC BLOCK (with cozy container) ==================== -->
     <main class="main-cozy">
         <div class="container">
-            <!-- Django message alerts (if any) with cozy style -->
-            {% if messages %}
+            <!-- Django message alerts (if any) with cozy style - REMOVED to avoid double messages -->
+            <!-- {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-cozy alert-dismissible fade show shadow-sm mb-4" role="alert">
                         <i class="fas fa-spa me-2"></i> {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
-            {% endif %}
+            {% endif %} -->
 
             <!-- CONTENT BLOCK (child templates will insert here) -->
             {% block content %}
@@ -790,17 +846,94 @@
     
     <!-- Navbar JavaScript for Interactive Features -->
     <script>
-        // Load saved recipes count from localStorage
-        function loadSavedCount() {
-            const savedRecipes = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        // ==============================================
+        // GLOBAL TOAST FUNCTION (Single instance, no duplicates)
+        // ==============================================
+        let activeToast = null;
+        let toastTimeout = null;
+        
+        window.showToast = function(message, type = 'success') {
+            // Remove existing toast if any
+            if (activeToast) {
+                activeToast.remove();
+                if (toastTimeout) clearTimeout(toastTimeout);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            activeToast = toast;
+            
+            toastTimeout = setTimeout(() => {
+                if (toast && toast.remove) {
+                    toast.remove();
+                    if (activeToast === toast) activeToast = null;
+                }
+            }, 3000);
+        };
+
+        // ==============================================
+        // SAVED RECIPES COUNT MANAGEMENT
+        // ==============================================
+        
+        // Get CSRF token from cookies
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === 'csrftoken=') {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Check if user is logged in
+        function isUserLoggedIn() {
+            return {% if request.session.user_id %}true{% else %}false{% endif %};
+        }
+
+        // Update saved count badge with animation
+        function updateSavedCountBadge(count) {
             const savedCountElement = document.getElementById('savedCount');
             if (savedCountElement) {
-                savedCountElement.textContent = savedRecipes.length;
+                const oldCount = parseInt(savedCountElement.textContent) || 0;
+                savedCountElement.textContent = count;
+                
+                if (oldCount !== count) {
+                    savedCountElement.classList.add('updated');
+                    setTimeout(() => {
+                        savedCountElement.classList.remove('updated');
+                    }, 300);
+                }
             }
         }
 
-        // Mark all notifications as read
-        function markAllNotificationsRead() {
+        // Fetch saved recipes count from backend
+        async function fetchSavedRecipesCount() {
+            if (!isUserLoggedIn()) return;
+            
+            try {
+                const response = await fetch('/api/get-saved-count/');
+                const data = await response.json();
+                if (data.success) {
+                    updateSavedCountBadge(data.count);
+                }
+            } catch (error) {
+                console.error('Error fetching saved count:', error);
+            }
+        }
+
+        // ==============================================
+        // NOTIFICATION FUNCTIONS
+        // ==============================================
+        
+        window.markAllNotificationsRead = function() {
             const unreadItems = document.querySelectorAll('.notification-item.unread');
             unreadItems.forEach(item => {
                 item.classList.remove('unread');
@@ -812,59 +945,26 @@
                 badge.style.display = 'none';
             }
             
-            // Store in localStorage that notifications are read
             localStorage.setItem('notificationsRead', 'true');
-            
-            // Show toast message
-            showNavbarToast('All notifications marked as read!', 'success');
-        }
+            showToast('All notifications marked as read!', 'success');
+        };
 
-        // Show toast message
-        function showNavbarToast(message, type = 'info') {
-            let toastContainer = document.querySelector('.navbar-toast-container');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.className = 'navbar-toast-container position-fixed top-0 end-0 p-3';
-                toastContainer.style.zIndex = '9999';
-                document.body.appendChild(toastContainer);
-            }
+        // ==============================================
+        // INITIALIZATION
+        // ==============================================
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Fetch saved recipes count from backend
+            await fetchSavedRecipesCount();
             
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} me-2"></i>
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                </div>
-            `;
-            toastContainer.appendChild(toast);
-            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
-            bsToast.show();
-            toast.addEventListener('hidden.bs.toast', () => toast.remove());
-        }
-
-        // Initialize navbar features
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSavedCount();
-            
-            // Set initial notification count from localStorage
+            // Set initial notification count
             const notificationsRead = localStorage.getItem('notificationsRead');
-            if (!notificationsRead) {
-                // Keep the notification badge as is (3 from HTML)
-                const badge = document.getElementById('notificationCount');
-                if (badge && badge.textContent === '0') {
-                    badge.style.display = 'none';
-                }
-            } else {
-                const badge = document.getElementById('notificationCount');
-                if (badge) {
-                    badge.textContent = '0';
-                    badge.style.display = 'none';
-                }
+            const badge = document.getElementById('notificationCount');
+            if (notificationsRead === 'true' && badge) {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+            } else if (badge && badge.textContent === '0') {
+                badge.style.display = 'none';
             }
             
             // Add active class to current page link
@@ -877,29 +977,14 @@
                     link.style.color = '#c96b4a';
                 }
             });
+            
+            // Listen for storage events to sync across tabs
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'savedRecipesCount') {
+                    updateSavedCountBadge(parseInt(e.newValue) || 0);
+                }
+            });
         });
-    </script>
-
-    <!-- Toast Container for Notifications -->
-    <div class="navbar-toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
-
-    <!-- Optional: tiny script for cozy interactions -->
-    <script>
-        (function() {
-            // Add a little floating tooltip for search input (warm placeholder effect)
-            const searchInput = document.querySelector('.search-input');
-            if(searchInput) {
-                searchInput.addEventListener('focus', () => {
-                    searchInput.placeholder = "e.g., aloo paratha, dal makhani...";
-                });
-                searchInput.addEventListener('blur', () => {
-                    searchInput.placeholder = "Search daal, paratha...";
-                });
-            }
-
-            // Optional: cozy console greeting (just for aesthetic fun)
-            console.log("%c✨ Welcome to IndianLunchBox — where every meal tastes like home ✨", "color: #c96b4a; font-size: 16px; font-family: monospace;");
-        })();
     </script>
 
     <!-- block for extra javascript (child pages can add) -->

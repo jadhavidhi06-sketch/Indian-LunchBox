@@ -6,7 +6,7 @@
 <div class="hero-section text-center py-5 my-3">
     <div class="container">
         <div class="nostalgic-card p-4 p-md-5 bg-white shadow-sm" style="border-radius: 48px; background: #ffffffdd; backdrop-filter: blur(2px);">
-            {% if request.session.user_name %}
+            {% if request.session.user_id %}
                 <div class="mb-3">
                     <i class="fas fa-hands-clapping fa-3x" style="color: #c96b4a;"></i>
                 </div>
@@ -167,7 +167,7 @@
     <!-- Recipe Cards Grid -->
     <div class="row g-4 mt-2" id="recipe-grid">
         {% for r in recipes %}
-        <div class="col-md-6 col-lg-4 recipe-item">
+        <div class="col-md-6 col-lg-4 recipe-item" data-recipe-id="{{ r.0 }}">
             <div class="nostalgic-card h-100 d-flex flex-column recipe-card">
                 <!-- Recipe Image with Badges -->
                 <div class="position-relative overflow-hidden" style="border-radius: 28px 28px 0 0;">
@@ -192,9 +192,9 @@
                             <i class="fas fa-chili-pepper" style="color: #c96b4a; font-size: 0.9rem;"></i>
                             <span class="ms-2 small text-uppercase text-muted" style="letter-spacing: 1px;">Authentic</span>
                         </div>
-                        <!-- Bookmark Feature -->
+                        <!-- Bookmark Feature - Now saves to backend -->
                         <i class="far fa-bookmark bookmark-icon" style="cursor: pointer; color: #d9a066;" 
-                           data-recipe-id="{{ r.0 }}" onclick="toggleBookmark(this)"></i>
+                           data-recipe-id="{{ r.0 }}" onclick="toggleBookmarkBackend(this, {{ r.0 }})"></i>
                     </div>
                     
                     <h5 class="card-title fw-bold" style="font-family: 'Playfair Display', serif; font-size: 1.35rem; color: #3a2a1e;">
@@ -261,7 +261,6 @@
             <span class="quote-badge"><i class="fas fa-chart-line me-1"></i> Based on views & saves</span>
         </div>
         <div class="row g-3" id="trending-list">
-            <!-- Trending items will be loaded dynamically -->
             <div class="col-12 text-center py-3">
                 <div class="spinner-border text-warning" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -432,50 +431,102 @@
 </style>
 
 <script>
-    // Daily Quotes Array
-    const quotes = [
-        "Food is memory, and every recipe has a story.",
-        "The secret ingredient is always love. ❤️",
-        "A full kitchen is a happy heart.",
-        "Grandma's recipes are the best kind of treasure.",
-        "Every spice tells a tale of home.",
-        "Cooking is an act of love, meant to be shared."
-    ];
-    
-    // Set random daily quote
-    function setDailyQuote() {
-        const quoteElement = document.getElementById('daily-quote');
-        if (quoteElement) {
-            const randomIndex = Math.floor(Math.random() * quotes.length);
-            quoteElement.innerHTML = `<i class="fas fa-quote-left me-2" style="color: #e2b13b;"></i>${quotes[randomIndex]}`;
+    // Get CSRF token from cookies
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Check if user is logged in
+    function isUserLoggedIn() {
+        return {{ request.session.user_id|default:'false' }} ? true : false;
+    }
+
+    // Toggle Bookmark with Backend API
+    async function toggleBookmarkBackend(element, recipeId) {
+        // Check if user is logged in
+        if (!isUserLoggedIn()) {
+            showToast('Please login to save recipes! ❤️', 'warning');
+            setTimeout(() => {
+                window.location.href = '/login/';
+            }, 1500);
+            return;
+        }
+        
+        const isSaved = element.classList.contains('fas');
+        
+        try {
+            const response = await fetch('/api/save-recipe/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    recipe_id: recipeId,
+                    action: isSaved ? 'unsave' : 'save'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (!isSaved) {
+                    element.classList.add('fas');
+                    element.classList.remove('far');
+                    element.style.color = '#e2b13b';
+                    showToast('Recipe saved to your bookmarks! ❤️', 'success');
+                } else {
+                    element.classList.remove('fas');
+                    element.classList.add('far');
+                    element.style.color = '#d9a066';
+                    showToast('Recipe removed from bookmarks', 'info');
+                }
+            } else if (data.error === 'Not logged in') {
+                showToast('Please login to save recipes!', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 1500);
+            } else {
+                showToast('Error saving recipe. Please try again.', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Network error. Please try again.', 'error');
         }
     }
     
-    // Toggle Bookmark
-    function toggleBookmark(element) {
-        element.classList.toggle('fas');
-        element.classList.toggle('far');
-        if (element.classList.contains('fas')) {
-            element.style.color = '#e2b13b';
-            showToast('Recipe saved to your bookmarks! ❤️');
-        } else {
-            element.style.color = '#d9a066';
-            showToast('Recipe removed from bookmarks');
-        }
-        // Save to localStorage
-        const recipeId = element.getAttribute('data-recipe-id');
-        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        if (element.classList.contains('fas')) {
-            if (!bookmarks.includes(recipeId)) bookmarks.push(recipeId);
-        } else {
-            bookmarks = bookmarks.filter(id => id != recipeId);
-        }
-        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+    // Load saved bookmarks from backend
+    async function loadSavedBookmarks() {
+        if (!isUserLoggedIn()) return;
         
-        // Update saved count in navbar
-        const savedCountElement = document.getElementById('savedCount');
-        if (savedCountElement) {
-            savedCountElement.textContent = bookmarks.length;
+        try {
+            const response = await fetch('/api/get-saved-recipes/');
+            const data = await response.json();
+            
+            if (data.success && data.saved_recipes) {
+                const savedIds = data.saved_recipes;
+                document.querySelectorAll('.bookmark-icon').forEach(icon => {
+                    const recipeId = parseInt(icon.getAttribute('data-recipe-id'));
+                    if (savedIds.includes(recipeId)) {
+                        icon.classList.add('fas');
+                        icon.classList.remove('far');
+                        icon.style.color = '#e2b13b';
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error loading saved recipes:', error);
         }
     }
     
@@ -490,7 +541,7 @@
             });
         } else {
             navigator.clipboard.writeText(`Check out ${recipeName} on IndianLunchBox!`);
-            showToast('Recipe link copied to clipboard! 📋');
+            showToast('Recipe link copied to clipboard! 📋', 'success');
         }
     }
     
@@ -500,24 +551,48 @@
             const stars = ratingContainer.querySelectorAll('i');
             const recipeId = ratingContainer.getAttribute('data-recipe-id');
             
-            // Load saved rating
-            const savedRating = localStorage.getItem(`rating_${recipeId}`);
-            if (savedRating) {
-                updateStars(stars, parseInt(savedRating));
-            }
-            
             stars.forEach(star => {
-                star.addEventListener('click', function() {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    updateStars(stars, rating);
-                    localStorage.setItem(`rating_${recipeId}`, rating);
-                    showToast(`Thank you for rating ${rating} stars! ⭐`);
+                star.addEventListener('click', async function() {
+                    if (!isUserLoggedIn()) {
+                        showToast('Please login to rate recipes!', 'warning');
+                        setTimeout(() => {
+                            window.location.href = '/login/';
+                        }, 1500);
+                        return;
+                    }
                     
-                    // Update rating count display
-                    const ratingCount = ratingContainer.querySelector('.rating-count');
-                    if (ratingCount) {
-                        let count = parseInt(ratingCount.textContent.match(/\d+/) || 0);
-                        ratingCount.textContent = `(${count + 1})`;
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    
+                    try {
+                        const response = await fetch('/api/add-rating/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken(),
+                            },
+                            body: JSON.stringify({
+                                recipe_id: recipeId,
+                                rating: rating
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            updateStars(stars, rating);
+                            showToast(`Thank you for rating ${rating} stars! ⭐`, 'success');
+                            
+                            const ratingCount = ratingContainer.querySelector('.rating-count');
+                            if (ratingCount) {
+                                let count = parseInt(ratingCount.textContent.match(/\d+/) || 0);
+                                ratingCount.textContent = `(${count + 1})`;
+                            }
+                        } else {
+                            showToast('Error saving rating. Please try again.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showToast('Network error. Please try again.', 'error');
                     }
                 });
             });
@@ -538,7 +613,55 @@
         });
     }
     
-    // Load Stats
+    // Toast Notification
+    function showToast(message, type = 'success') {
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const bgColor = type === 'success' ? '#28a745' : (type === 'warning' ? '#ffc107' : '#dc3545');
+        const icon = type === 'success' ? 'fa-check-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle');
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white border-0';
+        toast.style.background = bgColor;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${icon} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+    
+    // Daily Quotes Array
+    const quotes = [
+        "Food is memory, and every recipe has a story.",
+        "The secret ingredient is always love. ❤️",
+        "A full kitchen is a happy heart.",
+        "Grandma's recipes are the best kind of treasure.",
+        "Every spice tells a tale of home.",
+        "Cooking is an act of love, meant to be shared."
+    ];
+    
+    function setDailyQuote() {
+        const quoteElement = document.getElementById('daily-quote');
+        if (quoteElement) {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteElement.innerHTML = `<i class="fas fa-quote-left me-2" style="color: #e2b13b;"></i>${quotes[randomIndex]}`;
+        }
+    }
+    
     function loadStats() {
         const recipeCount = document.querySelectorAll('.recipe-item').length;
         document.getElementById('recipe-count').textContent = recipeCount;
@@ -547,7 +670,6 @@
         document.getElementById('story-count').textContent = Math.floor(Math.random() * 300) + 450;
     }
     
-    // Load Trending Items
     function loadTrending() {
         const trendingList = document.getElementById('trending-list');
         const recipes = Array.from(document.querySelectorAll('.recipe-item'));
@@ -573,7 +695,6 @@
         }
     }
     
-    // Quick View Modal
     function initQuickView() {
         document.querySelectorAll('.quick-view-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -590,7 +711,6 @@
         });
     }
     
-    // Newsletter Subscription
     function initNewsletter() {
         const subscribeBtn = document.getElementById('subscribe-btn');
         if (subscribeBtn) {
@@ -615,43 +735,6 @@
         }
     }
     
-    // Toast Notification
-    function showToast(message) {
-        let toastContainer = document.querySelector('.toast-container');
-        if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-            document.body.appendChild(toastContainer);
-        }
-        
-        const toast = document.createElement('div');
-        toast.className = 'toast align-items-center text-white bg-success border-0';
-        toast.setAttribute('role', 'alert');
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        `;
-        toastContainer.appendChild(toast);
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-        toast.addEventListener('hidden.bs.toast', () => toast.remove());
-    }
-    
-    // Load saved bookmarks on page load
-    function loadBookmarks() {
-        const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-        document.querySelectorAll('.bookmark-icon').forEach(icon => {
-            const recipeId = icon.getAttribute('data-recipe-id');
-            if (bookmarks.includes(recipeId)) {
-                icon.classList.add('fas');
-                icon.classList.remove('far');
-                icon.style.color = '#e2b13b';
-            }
-        });
-    }
-    
     // Initialize all features
     document.addEventListener('DOMContentLoaded', function() {
         setDailyQuote();
@@ -660,7 +743,7 @@
         initRatingSystem();
         initQuickView();
         initNewsletter();
-        loadBookmarks();
+        loadSavedBookmarks();
         
         // Grid/List View Toggle
         const viewToggle = document.getElementById('view-toggle');

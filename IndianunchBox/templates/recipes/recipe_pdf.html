@@ -1,43 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: 'Poppins', sans-serif; }
-        h1 { color: #c94c4c; }
-        img { max-width: 100%; margin-bottom: 15px; border-radius:10px; }
-        h3 { margin-top: 15px; }
-        p, li { margin-bottom: 8px; font-size: 14px; }
-        ol, ul { padding-left: 20px; }
-    </style>
-</head>
-<body>
-    <h1>{{ recipe.0 }}</h1>
-    <p><strong>By:</strong> {{ recipe.5 }}</p>
+<meta charset="UTF-8">
+<style>
 
-    {% if image_path %}
-    <img src="{{ image_path }}" alt="Recipe Image">
+@page {
+    size: A4;
+    margin: 1.5cm;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    color: #2c2b28;
+}
+
+.container {
+    width: 100%;
+}
+
+/* HEADER */
+.title {
+    text-align: center;
+    font-size: 28px;
+    color: #c94c4c;
+    font-weight: bold;
+}
+
+.meta {
+    text-align: center;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+/* IMAGE */
+.image-box {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.image-box img {
+    width: 300px;
+    border-radius: 10px;
+}
+
+/* BOX */
+.box {
+    border: 1px solid #ddd;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+}
+
+/* HEADINGS */
+.section-title {
+    font-size: 18px;
+    color: #c94c4c;
+    margin-bottom: 8px;
+}
+
+/* LIST */
+ul {
+    padding-left: 15px;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+/* STEPS */
+.step {
+    margin-bottom: 10px;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    font-size: 10px;
+    margin-top: 20px;
+    color: #777;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="title">{{ recipe.title }}</div>
+
+    <div class="meta">
+        👨‍🍳 {{ recipe.author_name }} |
+        ⏱ {{ read_time }} min |
+        ❤️ {{ likes_count }} |
+        ⭐ {{ avg_rating }}
+    </div>
+
+    {% if image_url %}
+    <div class="image-box">
+        <img src="{{ image_url }}">
+    </div>
     {% endif %}
 
-    <h3>Description</h3>
-    <p>{{ recipe.1 }}</p>
+    <div class="box">
+        <div class="section-title">📖 Description</div>
+        <p>{{ recipe.description }}</p>
+    </div>
 
-    <h3>Ingredients</h3>
-    <ul>
-        {% for ing in recipe.2.splitlines %}
-            {% if ing %}
-                <li>{{ ing }}</li>
-            {% endif %}
-        {% endfor %}
-    </ul>
+    <div class="box">
+        <div class="section-title">🛒 Ingredients</div>
+        <ul>
+            {% for ing in recipe.ingredients.splitlines %}
+                {% if ing %}
+                    <li>{{ ing }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
 
-    <h3>Steps</h3>
-    <ol>
-        {% for step in recipe.3.splitlines %}
+    <div class="box">
+        <div class="section-title">👩‍🍳 Steps</div>
+        {% for step in recipe.steps.splitlines %}
             {% if step %}
-                <li>{{ step }}</li>
+                <div class="step">
+                    <strong>Step {{ forloop.counter }}:</strong> {{ step }}
+                </div>
             {% endif %}
         {% endfor %}
-    </ol>
+    </div>
+
+    <div class="footer">
+        Downloaded on {{ download_date }} ❤️ IndianLunchBox
+    </div>
+
+</div>
+
 </body>
 </html>

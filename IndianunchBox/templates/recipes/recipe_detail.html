@@ -3,7 +3,7 @@
 {% block content %}
 <div class="recipe-detail-container">
     <div class="recipe-card-elegant">
-        <!-- Hero image section with emoji overlay -->
+        <!-- Hero image section -->
         <div class="recipe-image-hero">
             <img src="/media/{{ recipe.5 }}" 
                  alt="{{ recipe.1 }}" 
@@ -16,7 +16,7 @@
         </div>
         
         <div class="recipe-content-padded">
-            <!-- Title + author with emojis -->
+            <!-- Title + author -->
             <div class="recipe-title-header">
                 <h2>{{ recipe.1 }} <span class="title-emoji">🍲</span></h2>
                 <div class="author-badge-large mt-2">
@@ -26,7 +26,7 @@
                 </div>
             </div>
 
-            <!-- Description section with friendly emojis -->
+            <!-- Description -->
             <div>
                 <div class="section-title">
                     <i class="fas fa-align-left"></i> 📖 Story Time
@@ -36,7 +36,7 @@
                 </div>
             </div>
 
-            <!-- Ingredients - beautifully organized with emojis -->
+            <!-- Ingredients -->
             <div>
                 <div class="section-title">
                     <i class="fas fa-shopping-basket"></i> 🛒 What You'll Need
@@ -56,13 +56,13 @@
                     {% empty %}
                         <div class="ingredient-empty">
                             <i class="fas fa-leaf"></i>
-                            <p>✨ No ingredients listed yet! Feel free to get creative in the kitchen! 🎨🍳</p>
+                            <p>✨ No ingredients listed yet!</p>
                         </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Steps with automatic numbering and emojis -->
+            <!-- Steps -->
             <div>
                 <div class="section-title">
                     <i class="fas fa-list-ol"></i> 👩‍🍳 Let's Cook!
@@ -81,90 +81,157 @@
                     {% empty %}
                         <div class="step-empty">
                             <i class="fas fa-utensils"></i>
-                            <p>📝 No steps provided — time to unleash your inner chef! 🎉👨‍🍳</p>
+                            <p>📝 No steps provided — time to unleash your inner chef! 🎉</p>
                         </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Pro tip section with emojis -->
+            <!-- Pro tip -->
             <div class="pro-tip">
                 <i class="fas fa-lightbulb"></i>
                 <span><strong>💡 Pro Tip:</strong> Don't forget to taste as you go! 🧂👅 Every chef's secret weapon is love and a little extra seasoning! ❤️✨</span>
             </div>
 
-            <!-- Action buttons with emojis -->
+            <!-- Action buttons with Share Dropdown -->
             <div class="action-row">
-                <a href="/recipe/{{ recipe.0 }}/download/" class="btn-pdf">
+                <a href="/recipe/{{ recipe.0 }}/download/" class="btn-pdf" id="downloadPdfBtn">
                     <i class="fas fa-file-pdf"></i> 📄 Download PDF
                 </a>
-                <button class="btn-like-modern" id="likeBtn">
-                    <i class="far fa-heart"></i> 💖 Save Recipe
+                <button class="btn-like-modern" id="likeBtn" data-recipe-id="{{ recipe.0 }}" data-liked="{% if user_liked %}true{% else %}false{% endif %}">
+                    <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i> 
+                    {% if user_liked %}💖 Saved to Favorites{% else %}💖 Save to Favorites{% endif %}
                 </button>
-                <button class="btn-share" onclick="shareRecipe()">
-                    <i class="fas fa-share-alt"></i> 📢 Share
-                </button>
+                
+                <!-- Share Dropdown -->
+                <div class="share-dropdown">
+                    <button class="btn-share" onclick="toggleShareDropdown()">
+                        <i class="fas fa-share-alt"></i> 📢 Share
+                    </button>
+                    <div class="share-dropdown-content" id="shareDropdown">
+                        <div class="share-header">Share this recipe</div>
+                        <a href="#" onclick="shareOnPlatform('whatsapp'); return false;">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                        <a href="#" onclick="shareOnPlatform('facebook'); return false;">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a>
+                        <a href="#" onclick="shareOnPlatform('instagram'); return false;">
+                            <i class="fab fa-instagram"></i> Instagram
+                        </a>
+                        <a href="#" onclick="shareOnPlatform('twitter'); return false;">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                        <a href="#" onclick="shareOnPlatform('pinterest'); return false;">
+                            <i class="fab fa-pinterest"></i> Pinterest
+                        </a>
+                        <a href="#" onclick="shareOnPlatform('email'); return false;">
+                            <i class="fas fa-envelope"></i> Email
+                        </a>
+                        <div class="share-divider"></div>
+                        <a href="#" onclick="shareAsPDF(); return false;">
+                            <i class="fas fa-file-pdf"></i> Share as PDF
+                        </a>
+                        <a href="#" onclick="copyLink(); return false;">
+                            <i class="fas fa-link"></i> Copy Link
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <hr>
 
-            <!-- Comments & Ratings Section with friendly emojis -->
+            <!-- Comments & Ratings Section with Reply System -->
             <div class="comments-section">
                 <div class="comments-header">
                     <i class="fas fa-comments"></i>
                     <h4>💬 What Foodies Are Saying 🗣️</h4>
-                    <span class="comments-count">{{ comments|length }} comments 💭</span>
+                    <span class="comments-count" id="commentsCount">{{ comments|length }} comments 💭</span>
                 </div>
 
-                {% for c in comments %}
-                <div class="comment-card">
-                    <div class="comment-header">
-                        <span class="comment-author">
-                            <i class="fas fa-user-circle"></i> {{ c.3 }} 
-                            {% if forloop.counter == 1 %}👑 <span style="font-size:0.7rem;">(Top Fan)</span>{% endif %}
-                        </span>
-                        <span class="comment-rating">
-                            {% with rating=c.2|default:0 %}
-                                {% for i in "12345"|make_list %}
-                                    {% if forloop.counter <= rating %}⭐{% else %}☆{% endif %}
-                                {% endfor %}
-                                ({{ rating }}/5)
-                            {% endwith %}
-                        </span>
+                <div id="commentsContainer">
+                    {% for c in comments %}
+                    <div class="comment-card" data-comment-id="{{ c.0 }}" data-comment-level="0">
+                        <div class="comment-header">
+                            <span class="comment-author">
+                                <i class="fas fa-user-circle"></i> {{ c.3 }} 
+                                {% if forloop.counter == 1 %}👑 <span class="top-fan-badge">(Top Fan)</span>{% endif %}
+                            </span>
+                            <span class="comment-rating">
+                                {% with rating=c.2|default:0 %}
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= rating %}⭐{% else %}☆{% endif %}
+                                    {% endfor %}
+                                    ({{ rating }}/5)
+                                {% endwith %}
+                            </span>
+                        </div>
+                        <div class="comment-text">
+                            <i class="fas fa-quote-left"></i>
+                            {{ c.1 }}
+                        </div>
+                        <div class="comment-footer">
+                            <button class="comment-like-btn" onclick="toggleCommentLike({{ c.0 }})">
+                                <i class="far fa-heart"></i> <span class="like-count" id="commentLikeCount{{ c.0 }}">0</span>
+                            </button>
+                            <span class="separator">·</span>
+                            <span class="comment-time" id="commentTime{{ c.0 }}" data-timestamp="{{ c.4|default:'' }}">just now</span>
+                            <span class="separator">·</span>
+                            <button class="reply-btn" onclick="showReplyForm({{ c.0 }}, '{{ c.3|escapejs }}')">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                            {% if request.session.user_id and c.3 == request.session.user_name %}
+                            <span class="separator">·</span>
+                            <button class="delete-comment-btn" onclick="deleteComment({{ c.0 }})">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Reply Form (hidden by default) -->
+                        <div class="reply-form-container" id="replyForm{{ c.0 }}" style="display: none;">
+                            <div class="reply-form">
+                                <textarea id="replyText{{ c.0 }}" rows="2" placeholder="Write your reply... 💬" class="reply-textarea"></textarea>
+                                <div class="reply-actions">
+                                    <button class="btn-submit-reply" onclick="submitReply({{ c.0 }})">
+                                        <i class="fas fa-paper-plane"></i> Post Reply
+                                    </button>
+                                    <button class="btn-cancel-reply" onclick="hideReplyForm({{ c.0 }})">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Replies Container -->
+                        <div class="replies-container" id="repliesContainer{{ c.0 }}">
+                            <!-- Replies will be loaded here dynamically -->
+                        </div>
                     </div>
-                    <div class="comment-text">
-                        <i class="fas fa-quote-left"></i>
-                        {{ c.1 }}
+                    {% empty %}
+                    <div class="empty-comments" id="emptyComments">
+                        <i class="far fa-comment-dots"></i>
+                        <p>😢 No comments yet... Be the first to share your amazing experience! 🌟✨</p>
                     </div>
-                    <div class="comment-footer">
-                        <i class="far fa-heart"></i> <span class="comment-like-count">12</span> · 
-                        <i class="far fa-clock"></i> just now
-                    </div>
+                    {% endfor %}
                 </div>
-                {% empty %}
-                <div class="empty-comments">
-                    <i class="far fa-comment-dots"></i>
-                    <p>😢 No comments yet... Be the first to share your amazing experience! 🌟✨</p>
-                    <p class="emoji-hint">💬 Drop a review and let others know how it turned out! 🎉</p>
-                </div>
-                {% endfor %}
 
-                <!-- Add Comment Form with friendly design -->
+                <!-- Add Comment Form -->
                 {% if request.session.user_id %}
                 <div class="comment-form-modern mt-4">
                     <div class="form-header">
                         <i class="fas fa-pen-fancy"></i> ✍️ Share Your Thoughts
                     </div>
-                    <form method="POST">
+                    <form id="commentForm">
                         {% csrf_token %}
                         <div class="form-group">
                             <label><i class="fas fa-pen-alt"></i> 📝 Your Review</label>
-                            <textarea name="comment" placeholder="How was it? Did you add any special touches? Share your experience! 🍽️✨" 
+                            <textarea name="comment" id="commentText" placeholder="How was it? Did you add any special touches? Share your experience! 🍽️✨" 
                                       class="form-control-custom" rows="3" required></textarea>
                         </div>
                         <div class="form-group">
                             <label><i class="fas fa-star"></i> ⭐ Rate This Recipe</label>
-                            <select name="rating" class="form-control-custom" required>
+                            <select name="rating" id="ratingSelect" class="form-control-custom" required>
                                 <option value="" disabled selected>🤔 How many stars? 🌟</option>
                                 <option value="5">⭐⭐⭐⭐⭐ 5 – Absolutely Amazing! 🎉</option>
                                 <option value="4">⭐⭐⭐⭐ 4 – Really Good! 👍</option>
@@ -173,7 +240,7 @@
                                 <option value="1">⭐ 1 – Not for me 😢</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn-submit">
+                        <button type="submit" class="btn-submit" id="submitCommentBtn">
                             <i class="fas fa-paper-plane"></i> 🚀 Post My Review
                         </button>
                     </form>
@@ -197,623 +264,1449 @@
 </div>
 
 <style>
+    /* Previous styles remain the same, plus new styles below */
     * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        background: linear-gradient(135deg, #fefaf5 0%, #fff5ed 100%);
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-
-    .recipe-detail-container {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 0 1.5rem 3rem;
-    }
-
-    /* Main Card */
-    .recipe-card-elegant {
-        background: #ffffff;
-        border-radius: 40px;
-        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .recipe-card-elegant:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 30px 50px -18px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Image Container */
-    .recipe-image-hero {
+           margin: 0;
+           padding: 0;
+           box-sizing: border-box;
+       }
+   
+       body {
+           background: linear-gradient(135deg, #fefaf5 0%, #fff5ed 100%);
+           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+       }
+   
+       .recipe-detail-container {
+           max-width: 1200px;
+           margin: 2rem auto;
+           padding: 0 1.5rem 3rem;
+       }
+   
+       .recipe-card-elegant {
+           background: #ffffff;
+           border-radius: 40px;
+           box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
+           overflow: hidden;
+           transition: transform 0.3s ease, box-shadow 0.3s ease;
+       }
+   
+       .recipe-card-elegant:hover {
+           transform: translateY(-5px);
+           box-shadow: 0 30px 50px -18px rgba(0, 0, 0, 0.2);
+       }
+   
+       .recipe-image-hero {
+           position: relative;
+           width: 100%;
+           background: linear-gradient(135deg, #f7efe8 0%, #fcf5ef 100%);
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           overflow: hidden;
+           min-height: 380px;
+           border-bottom: 2px solid rgba(201, 76, 76, 0.1);
+       }
+   
+       .recipe-main-img {
+           width: 100%;
+           height: auto;
+           max-height: 520px;
+           object-fit: contain;
+           background: #faf3ec;
+           transition: transform 0.5s ease;
+           display: block;
+       }
+   
+       .recipe-image-hero:hover .recipe-main-img {
+           transform: scale(1.02);
+       }
+   
+       .image-emoji-overlay {
+           position: absolute;
+           bottom: 20px;
+           right: 20px;
+           background: rgba(0,0,0,0.6);
+           backdrop-filter: blur(8px);
+           padding: 8px 15px;
+           border-radius: 60px;
+           font-size: 1.2rem;
+           display: flex;
+           gap: 8px;
+       }
+   
+       .recipe-content-padded {
+           padding: 2.5rem;
+       }
+   
+       @media (max-width: 768px) {
+           .recipe-content-padded {
+               padding: 1.5rem;
+           }
+       }
+   
+       .recipe-title-header {
+           border-bottom: 2px solid #fae6db;
+           padding-bottom: 1.2rem;
+           margin-bottom: 1.8rem;
+       }
+   
+       .recipe-title-header h2 {
+           font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+           font-size: 2.8rem;
+           font-weight: 800;
+           color: #c94c4c;
+           letter-spacing: -0.02em;
+           line-height: 1.2;
+           margin-bottom: 0.8rem;
+       }
+   
+       .title-emoji {
+           font-size: 2.5rem;
+           display: inline-block;
+           animation: wave 1s ease infinite;
+       }
+   
+       @keyframes wave {
+           0%, 100% { transform: rotate(0deg); }
+           50% { transform: rotate(15deg); }
+       }
+   
+       .author-badge-large {
+           display: inline-flex;
+           align-items: center;
+           gap: 10px;
+           background: #fef1e8;
+           padding: 0.5rem 1.3rem;
+           border-radius: 60px;
+           font-size: 0.9rem;
+           font-weight: 600;
+           color: #a3533a;
+           flex-wrap: wrap;
+       }
+   
+       .section-title {
+           font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+           font-weight: 700;
+           font-size: 1.8rem;
+           color: #c94c4c;
+           margin-top: 2rem;
+           margin-bottom: 1.2rem;
+           display: flex;
+           align-items: center;
+           gap: 12px;
+       }
+   
+       .section-title i {
+           font-size: 1.6rem;
+           background: #fdf0e8;
+           padding: 10px;
+           border-radius: 50%;
+           color: #c94c4c;
+       }
+   
+       .description-text {
+           font-size: 1rem;
+           line-height: 1.7;
+           color: #3d352e;
+           background: linear-gradient(120deg, #fefbf8, #fff8f2);
+           padding: 1.2rem 1.5rem;
+           border-radius: 24px;
+           border-left: 5px solid #c94c4c;
+           margin-bottom: 0.5rem;
+       }
+   
+       .ingredients-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+           gap: 1rem;
+           background: #fefbf8;
+           border-radius: 28px;
+           padding: 1.5rem;
+           border: 1px solid #fae6db;
+       }
+   
+       .ingredient-card {
+           background: white;
+           padding: 0.8rem 1.2rem;
+           border-radius: 16px;
+           display: flex;
+           align-items: center;
+           gap: 12px;
+           transition: all 0.25s ease;
+           border: 1px solid #fee8de;
+           box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+       }
+   
+       .ingredient-card:hover {
+           transform: translateX(6px);
+           border-color: #c94c4c;
+           background: #fffaf5;
+           box-shadow: 0 4px 12px rgba(201,76,76,0.08);
+       }
+   
+       .ingredient-icon {
+           width: 32px;
+           height: 32px;
+           background: #c94c4c;
+           border-radius: 50%;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           flex-shrink: 0;
+       }
+   
+       .ingredient-icon i {
+           color: white;
+           font-size: 0.9rem;
+       }
+   
+       .ingredient-content {
+           font-size: 0.95rem;
+           font-weight: 500;
+           color: #4a3a2f;
+           line-height: 1.4;
+           flex: 1;
+       }
+   
+       .steps-container {
+           background: #fefbf8;
+           border-radius: 28px;
+           padding: 1.5rem;
+           border: 1px solid #fae6db;
+       }
+   
+       .step-card {
+           display: flex;
+           gap: 1rem;
+           margin-bottom: 1rem;
+           padding: 0.8rem;
+           border-radius: 20px;
+           background: white;
+           transition: all 0.25s ease;
+           border: 1px solid #fff0e6;
+       }
+   
+       .step-card:hover {
+           transform: translateX(6px);
+           border-color: #f0cfc0;
+           background: #ffffff;
+           box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+       }
+   
+       .step-number {
+           width: 42px;
+           height: 42px;
+           background: #c94c4c;
+           border-radius: 30px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           font-weight: 800;
+           font-size: 1.1rem;
+           color: white;
+           flex-shrink: 0;
+           box-shadow: 0 4px 10px rgba(201,76,76,0.2);
+       }
+   
+       .step-content {
+           flex: 1;
+           font-size: 0.95rem;
+           line-height: 1.6;
+           color: #3d352e;
+           padding-top: 0.2rem;
+       }
+   
+       .pro-tip {
+           background: linear-gradient(135deg, #fff8e8, #fff3e0);
+           border-radius: 20px;
+           padding: 1rem 1.5rem;
+           margin: 1.5rem 0;
+           display: flex;
+           align-items: center;
+           gap: 12px;
+           border-left: 5px solid #ffa500;
+       }
+   
+       .pro-tip i {
+           font-size: 1.5rem;
+           color: #ffa500;
+       }
+   
+       .action-row {
+           display: flex;
+           flex-wrap: wrap;
+           gap: 1rem;
+           margin: 2rem 0 1.5rem;
+       }
+   
+       .btn-pdf {
+           background: #c94c4c;
+           border: none;
+           color: white;
+           padding: 0.8rem 2rem;
+           border-radius: 60px;
+           font-weight: 700;
+           transition: all 0.25s ease;
+           text-decoration: none;
+           display: inline-flex;
+           align-items: center;
+           gap: 10px;
+           box-shadow: 0 4px 12px rgba(201,76,76,0.2);
+       }
+   
+       .btn-pdf:hover {
+           background: #ad3f3f;
+           transform: translateY(-2px);
+           box-shadow: 0 8px 20px rgba(201,76,76,0.3);
+           color: white;
+           text-decoration: none;
+       }
+   
+       .btn-like-modern {
+           background: white;
+           border: 2px solid #e7cdbc;
+           padding: 0.8rem 2rem;
+           border-radius: 60px;
+           font-weight: 700;
+           color: #b15e43;
+           transition: all 0.25s ease;
+           cursor: pointer;
+           display: inline-flex;
+           align-items: center;
+           gap: 10px;
+       }
+   
+       .btn-like-modern:hover {
+           background: #fff5ef;
+           border-color: #c94c4c;
+           color: #c94c4c;
+           transform: scale(1.02);
+       }
+   
+       .btn-like-modern.saved {
+           background: #ffefe7;
+           border-color: #c94c4c;
+           color: #c94c4c;
+       }
+   
+       .btn-share {
+           background: #4a90e2;
+           border: none;
+           color: white;
+           padding: 0.8rem 2rem;
+           border-radius: 60px;
+           font-weight: 700;
+           transition: all 0.25s ease;
+           cursor: pointer;
+           display: inline-flex;
+           align-items: center;
+           gap: 10px;
+       }
+   
+       .btn-share:hover {
+           background: #357abd;
+           transform: translateY(-2px);
+       }
+   
+       hr {
+           margin: 1.5rem 0;
+           opacity: 0.3;
+           background: #e7cfc1;
+           height: 2px;
+           border: none;
+       }
+   
+       .comments-section {
+           margin-top: 2rem;
+           background: #fef9f5;
+           border-radius: 28px;
+           padding: 1.8rem;
+           border: 1px solid #f5e4d9;
+       }
+   
+       .comments-header {
+           display: flex;
+           align-items: center;
+           gap: 12px;
+           margin-bottom: 1.5rem;
+           flex-wrap: wrap;
+       }
+   
+       .comments-header i {
+           font-size: 2rem;
+           color: #c94c4c;
+       }
+   
+       .comments-header h4 {
+           margin: 0;
+           font-weight: 700;
+           color: #4b3a2e;
+           font-size: 1.5rem;
+       }
+   
+       .comments-count {
+           background: #c94c4c;
+           color: white;
+           padding: 0.2rem 0.8rem;
+           border-radius: 60px;
+           font-size: 0.8rem;
+       }
+   
+       .comment-card {
+           background: white;
+           border-radius: 20px;
+           padding: 1.2rem;
+           margin-bottom: 1rem;
+           transition: all 0.2s;
+           border: 1px solid #ffede2;
+       }
+   
+       .comment-card:hover {
+           transform: translateX(4px);
+           box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+       }
+   
+       .comment-header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           flex-wrap: wrap;
+           margin-bottom: 0.8rem;
+       }
+   
+       .comment-author {
+           font-weight: 700;
+           color: #a55337;
+           font-size: 0.95rem;
+           display: flex;
+           align-items: center;
+           gap: 8px;
+       }
+   
+       .comment-rating {
+           background: #fff0e6;
+           padding: 0.2rem 0.8rem;
+           border-radius: 40px;
+           font-size: 0.8rem;
+           font-weight: 600;
+       }
+   
+       .comment-text {
+           font-size: 0.92rem;
+           color: #46433f;
+           line-height: 1.5;
+           display: flex;
+           gap: 8px;
+           margin-bottom: 0.5rem;
+       }
+   
+       .comment-footer {
+           font-size: 0.7rem;
+           color: #b48b72;
+           display: flex;
+           gap: 10px;
+           align-items: center;
+           flex-wrap: wrap;
+       }
+   
+       .delete-comment-btn {
+           background: none;
+           border: none;
+           color: #dc3545;
+           cursor: pointer;
+           font-size: 0.7rem;
+           padding: 0;
+           margin-left: 10px;
+           transition: color 0.2s;
+       }
+   
+       .delete-comment-btn:hover {
+           color: #a71d2a;
+           text-decoration: underline;
+       }
+   
+       .empty-comments {
+           text-align: center;
+           padding: 2rem;
+           background: #fff9f4;
+           border-radius: 24px;
+           color: #b48b72;
+       }
+   
+       .empty-comments i {
+           font-size: 2.5rem;
+           opacity: 0.5;
+           margin-bottom: 0.5rem;
+           display: block;
+       }
+   
+       .comment-form-modern {
+           background: white;
+           padding: 1.5rem;
+           border-radius: 24px;
+           margin-top: 1rem;
+           border: 1px solid #f0dfd3;
+       }
+   
+       .form-header {
+           font-size: 1.1rem;
+           font-weight: 700;
+           color: #c94c4c;
+           margin-bottom: 1rem;
+           display: flex;
+           align-items: center;
+           gap: 8px;
+       }
+   
+       .form-group {
+           margin-bottom: 1rem;
+       }
+   
+       .form-group label {
+           display: block;
+           margin-bottom: 0.5rem;
+           font-weight: 600;
+           color: #5a3f32;
+       }
+   
+       .form-control-custom {
+           width: 100%;
+           border-radius: 16px;
+           border: 1.5px solid #f0daca;
+           padding: 0.8rem 1rem;
+           transition: all 0.2s;
+           font-family: inherit;
+       }
+   
+       .form-control-custom:focus {
+           border-color: #c94c4c;
+           box-shadow: 0 0 0 3px rgba(201,76,76,0.1);
+           outline: none;
+       }
+   
+       .btn-submit {
+           background: #c94c4c;
+           border: none;
+           padding: 0.8rem;
+           border-radius: 60px;
+           font-weight: 700;
+           color: white;
+           transition: all 0.2s;
+           width: 100%;
+           cursor: pointer;
+       }
+   
+       .btn-submit:hover {
+           background: #aa3e3e;
+           transform: translateY(-2px);
+       }
+   
+       .btn-submit:disabled {
+           opacity: 0.6;
+           cursor: not-allowed;
+           transform: none;
+       }
+   
+       .login-prompt {
+           text-align: center;
+           padding: 1rem;
+           background: #fff2ea;
+           border-radius: 60px;
+           margin-top: 1rem;
+       }
+   
+       .login-prompt a {
+           color: #c94c4c;
+           font-weight: 700;
+           text-decoration: none;
+       }
+   
+       .recipe-footer {
+           text-align: center;
+           margin-top: 2rem;
+           padding-top: 1rem;
+           color: #b48b72;
+           font-size: 0.85rem;
+           border-top: 1px solid #f0e1d4;
+       }
+   
+       @media (max-width: 768px) {
+           .recipe-title-header h2 {
+               font-size: 2rem;
+           }
+           .section-title {
+               font-size: 1.5rem;
+           }
+           .ingredients-grid {
+               grid-template-columns: 1fr;
+               padding: 1rem;
+           }
+           .step-card {
+               flex-direction: column;
+               align-items: flex-start;
+           }
+           .step-number {
+               margin-bottom: 0.5rem;
+           }
+       }
+   
+       @media (max-width: 480px) {
+           .recipe-main-img {
+               max-height: 280px;
+           }
+           .action-row {
+               flex-direction: column;
+           }
+           .btn-pdf, .btn-like-modern, .btn-share {
+               justify-content: center;
+           }
+       }
+   
+       @keyframes fadeUp {
+           from {
+               opacity: 0;
+               transform: translateY(30px);
+           }
+           to {
+               opacity: 1;
+               transform: translateY(0);
+           }
+       }
+   
+       .recipe-card-elegant {
+           animation: fadeUp 0.6s ease-out;
+       }
+    .share-dropdown {
         position: relative;
-        width: 100%;
-        background: linear-gradient(135deg, #f7efe8 0%, #fcf5ef 100%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        min-height: 380px;
-        border-bottom: 2px solid rgba(201, 76, 76, 0.1);
-    }
-
-    .recipe-main-img {
-        width: 100%;
-        height: auto;
-        max-height: 520px;
-        object-fit: contain;
-        background: #faf3ec;
-        transition: transform 0.5s ease;
-        display: block;
-    }
-
-    .recipe-image-hero:hover .recipe-main-img {
-        transform: scale(1.02);
-    }
-
-    .image-emoji-overlay {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(8px);
-        padding: 8px 15px;
-        border-radius: 60px;
-        font-size: 1.2rem;
-        display: flex;
-        gap: 8px;
-    }
-
-    /* Content Area */
-    .recipe-content-padded {
-        padding: 2.5rem;
-    }
-
-    @media (max-width: 768px) {
-        .recipe-content-padded {
-            padding: 1.5rem;
-        }
-    }
-
-    /* Title Section */
-    .recipe-title-header {
-        border-bottom: 2px solid #fae6db;
-        padding-bottom: 1.2rem;
-        margin-bottom: 1.8rem;
-    }
-
-    .recipe-title-header h2 {
-        font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #c94c4c;
-        letter-spacing: -0.02em;
-        line-height: 1.2;
-        margin-bottom: 0.8rem;
-    }
-
-    .title-emoji {
-        font-size: 2.5rem;
         display: inline-block;
-        animation: wave 1s ease infinite;
     }
-
-    @keyframes wave {
-        0%, 100% { transform: rotate(0deg); }
-        50% { transform: rotate(15deg); }
-    }
-
-    .author-badge-large {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: #fef1e8;
-        padding: 0.5rem 1.3rem;
-        border-radius: 60px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #a3533a;
-        flex-wrap: wrap;
-    }
-
-    /* Section Titles */
-    .section-title {
-        font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-        font-weight: 700;
-        font-size: 1.8rem;
-        color: #c94c4c;
-        margin-top: 2rem;
-        margin-bottom: 1.2rem;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .section-title i {
-        font-size: 1.6rem;
-        background: #fdf0e8;
-        padding: 10px;
-        border-radius: 50%;
-        color: #c94c4c;
-    }
-
-    /* Description */
-    .description-text {
-        font-size: 1rem;
-        line-height: 1.7;
-        color: #3d352e;
-        background: linear-gradient(120deg, #fefbf8, #fff8f2);
-        padding: 1.2rem 1.5rem;
-        border-radius: 24px;
-        border-left: 5px solid #c94c4c;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Ingredients Grid */
-    .ingredients-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-        background: #fefbf8;
-        border-radius: 28px;
-        padding: 1.5rem;
-        border: 1px solid #fae6db;
-    }
-
-    .ingredient-card {
+    
+    .share-dropdown-content {
+        display: none;
+        position: absolute;
+        bottom: 100%;
+        left: 0;
         background: white;
-        padding: 0.8rem 1.2rem;
+        min-width: 220px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         border-radius: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        transition: all 0.25s ease;
-        border: 1px solid #fee8de;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        z-index: 1000;
+        margin-bottom: 10px;
+        overflow: hidden;
+        border: 1px solid #f0dfbf;
     }
-
-    .ingredient-card:hover {
-        transform: translateX(6px);
-        border-color: #c94c4c;
-        background: #fffaf5;
-        box-shadow: 0 4px 12px rgba(201,76,76,0.08);
-    }
-
-    .ingredient-icon {
-        width: 32px;
-        height: 32px;
-        background: #c94c4c;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .ingredient-icon i {
-        color: white;
-        font-size: 0.9rem;
-    }
-
-    .ingredient-content {
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: #4a3a2f;
-        line-height: 1.4;
-        flex: 1;
-    }
-
-    .ingredient-empty {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 2rem;
-        color: #b48b72;
-    }
-
-    /* Steps Container */
-    .steps-container {
-        background: #fefbf8;
-        border-radius: 28px;
-        padding: 1.5rem;
-        border: 1px solid #fae6db;
-    }
-
-    .step-card {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-        padding: 0.8rem;
-        border-radius: 20px;
-        background: white;
-        transition: all 0.25s ease;
-        border: 1px solid #fff0e6;
-    }
-
-    .step-card:hover {
-        transform: translateX(6px);
-        border-color: #f0cfc0;
-        background: #ffffff;
-        box-shadow: 0 6px 14px rgba(0,0,0,0.03);
-    }
-
-    .step-number {
-        width: 42px;
-        height: 42px;
-        background: #c94c4c;
-        border-radius: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 1.1rem;
-        color: white;
-        flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(201,76,76,0.2);
-    }
-
-    .step-content {
-        flex: 1;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        color: #3d352e;
-        padding-top: 0.2rem;
-    }
-
-    .step-empty {
-        text-align: center;
-        padding: 2rem;
-        color: #b48b72;
-    }
-
-    /* Pro Tip */
-    .pro-tip {
-        background: linear-gradient(135deg, #fff8e8, #fff3e0);
-        border-radius: 20px;
-        padding: 1rem 1.5rem;
-        margin: 1.5rem 0;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border-left: 5px solid #ffa500;
-    }
-
-    .pro-tip i {
-        font-size: 1.5rem;
-        color: #ffa500;
-    }
-
-    /* Action Buttons */
-    .action-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin: 2rem 0 1.5rem;
-    }
-
-    .btn-pdf {
-        background: #c94c4c;
-        border: none;
-        color: white;
-        padding: 0.8rem 2rem;
-        border-radius: 60px;
-        font-weight: 700;
-        transition: all 0.25s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0 4px 12px rgba(201,76,76,0.2);
-    }
-
-    .btn-pdf:hover {
-        background: #ad3f3f;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(201,76,76,0.3);
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-like-modern {
-        background: white;
-        border: 2px solid #e7cdbc;
-        padding: 0.8rem 2rem;
-        border-radius: 60px;
-        font-weight: 700;
-        color: #b15e43;
-        transition: all 0.25s ease;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .btn-like-modern:hover {
-        background: #fff5ef;
-        border-color: #c94c4c;
-        color: #c94c4c;
-        transform: scale(1.02);
-    }
-
-    .btn-share {
-        background: #4a90e2;
-        border: none;
-        color: white;
-        padding: 0.8rem 2rem;
-        border-radius: 60px;
-        font-weight: 700;
-        transition: all 0.25s ease;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .btn-share:hover {
-        background: #357abd;
-        transform: translateY(-2px);
-    }
-
-    hr {
-        margin: 1.5rem 0;
-        opacity: 0.3;
-        background: #e7cfc1;
-        height: 2px;
-        border: none;
-    }
-
-    /* Comments Section */
-    .comments-section {
-        margin-top: 2rem;
-        background: #fef9f5;
-        border-radius: 28px;
-        padding: 1.8rem;
-        border: 1px solid #f5e4d9;
-    }
-
-    .comments-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-    }
-
-    .comments-header i {
-        font-size: 2rem;
-        color: #c94c4c;
-    }
-
-    .comments-header h4 {
-        margin: 0;
-        font-weight: 700;
-        color: #4b3a2e;
-        font-size: 1.5rem;
-    }
-
-    .comments-count {
-        background: #c94c4c;
-        color: white;
-        padding: 0.2rem 0.8rem;
-        border-radius: 60px;
-        font-size: 0.8rem;
-    }
-
-    .comment-card {
-        background: white;
-        border-radius: 20px;
-        padding: 1.2rem;
-        margin-bottom: 1rem;
-        transition: all 0.2s;
-        border: 1px solid #ffede2;
-    }
-
-    .comment-card:hover {
-        transform: translateX(4px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-
-    .comment-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 0.8rem;
-    }
-
-    .comment-author {
-        font-weight: 700;
-        color: #a55337;
-        font-size: 0.95rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .comment-rating {
-        background: #fff0e6;
-        padding: 0.2rem 0.8rem;
-        border-radius: 40px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    .comment-text {
-        font-size: 0.92rem;
-        color: #46433f;
-        line-height: 1.5;
-        display: flex;
-        gap: 8px;
-        margin-bottom: 0.5rem;
-    }
-
-    .comment-footer {
-        font-size: 0.7rem;
-        color: #b48b72;
-        display: flex;
-        gap: 10px;
-    }
-
-    .empty-comments {
-        text-align: center;
-        padding: 2rem;
-        background: #fff9f4;
-        border-radius: 24px;
-        color: #b48b72;
-    }
-
-    .empty-comments i {
-        font-size: 2.5rem;
-        opacity: 0.5;
-        margin-bottom: 0.5rem;
+    
+    .share-dropdown-content.show {
         display: block;
+        animation: fadeInUp 0.2s ease;
     }
-
-    .emoji-hint {
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
-    }
-
-    /* Comment Form */
-    .comment-form-modern {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 24px;
-        margin-top: 1rem;
-        border: 1px solid #f0dfd3;
-    }
-
-    .form-header {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #c94c4c;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #5a3f32;
-    }
-
-    .form-control-custom {
-        width: 100%;
-        border-radius: 16px;
-        border: 1.5px solid #f0daca;
-        padding: 0.8rem 1rem;
-        transition: all 0.2s;
-        font-family: inherit;
-    }
-
-    .form-control-custom:focus {
-        border-color: #c94c4c;
-        box-shadow: 0 0 0 3px rgba(201,76,76,0.1);
-        outline: none;
-    }
-
-    .btn-submit {
-        background: #c94c4c;
-        border: none;
-        padding: 0.8rem;
-        border-radius: 60px;
-        font-weight: 700;
-        color: white;
-        transition: all 0.2s;
-        width: 100%;
-        cursor: pointer;
-    }
-
-    .btn-submit:hover {
-        background: #aa3e3e;
-        transform: translateY(-2px);
-    }
-
-    .login-prompt {
-        text-align: center;
-        padding: 1rem;
-        background: #fff2ea;
-        border-radius: 60px;
-        margin-top: 1rem;
-    }
-
-    .login-prompt a {
-        color: #c94c4c;
-        font-weight: 700;
-        text-decoration: none;
-    }
-
-    /* Recipe Footer */
-    .recipe-footer {
-        text-align: center;
-        margin-top: 2rem;
-        padding-top: 1rem;
-        color: #b48b72;
-        font-size: 0.85rem;
-        border-top: 1px solid #f0e1d4;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .recipe-title-header h2 {
-            font-size: 2rem;
-        }
-        .section-title {
-            font-size: 1.5rem;
-        }
-        .ingredients-grid {
-            grid-template-columns: 1fr;
-            padding: 1rem;
-        }
-        .step-card {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .step-number {
-            margin-bottom: 0.5rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .recipe-main-img {
-            max-height: 280px;
-        }
-        .action-row {
-            flex-direction: column;
-        }
-        .btn-pdf, .btn-like-modern, .btn-share {
-            justify-content: center;
-        }
-    }
-
-    /* Animation */
-    @keyframes fadeUp {
+    
+    @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(10px);
         }
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
-
-    .recipe-card-elegant {
-        animation: fadeUp 0.6s ease-out;
+    
+    .share-header {
+        padding: 12px 16px;
+        background: #fff9ef;
+        font-weight: 600;
+        color: #c96b4a;
+        border-bottom: 1px solid #f0dfbf;
+    }
+    
+    .share-dropdown-content a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        text-decoration: none;
+        color: #5a4a3a;
+        transition: background 0.2s;
+    }
+    
+    .share-dropdown-content a:hover {
+        background: #fff5ea;
+    }
+    
+    .share-dropdown-content a i {
+        width: 24px;
+        font-size: 1.1rem;
+    }
+    
+    .share-dropdown-content a i.fa-whatsapp { color: #25D366; }
+    .share-dropdown-content a i.fa-facebook { color: #1877f2; }
+    .share-dropdown-content a i.fa-instagram { color: #E4405F; }
+    .share-dropdown-content a i.fa-twitter { color: #1DA1F2; }
+    .share-dropdown-content a i.fa-pinterest { color: #BD081C; }
+    .share-dropdown-content a i.fa-envelope { color: #EA4335; }
+    .share-dropdown-content a i.fa-file-pdf { color: #dc3545; }
+    .share-dropdown-content a i.fa-link { color: #17a2b8; }
+    
+    .share-divider {
+        height: 1px;
+        background: #f0dfbf;
+        margin: 5px 0;
+    }
+    
+    /* Reply System Styles */
+    .reply-btn {
+        background: none;
+        border: none;
+        color: #c96b4a;
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 0;
+        transition: color 0.2s;
+    }
+    
+    .reply-btn:hover {
+        color: #a55233;
+        text-decoration: underline;
+    }
+    
+    .comment-like-btn {
+        background: none;
+        border: none;
+        color: #b48b72;
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+    }
+    
+    .comment-like-btn:hover {
+        color: #e25822;
+    }
+    
+    .comment-like-btn.liked {
+        color: #e25822;
+    }
+    
+    .comment-like-btn.liked i {
+        font-weight: 900;
+    }
+    
+    .comment-time {
+        font-size: 0.7rem;
+        color: #b48b72;
+    }
+    
+    .separator {
+        color: #e0cfc0;
+    }
+    
+    .replies-container {
+        margin-left: 40px;
+        margin-top: 10px;
+        padding-left: 15px;
+        border-left: 2px solid #f0dfbf;
+    }
+    
+    .reply-card {
+        background: #fef9f5;
+        border-radius: 16px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border: 1px solid #ffede2;
+    }
+    
+    .reply-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+        flex-wrap: wrap;
+    }
+    
+    .reply-author {
+        font-weight: 600;
+        color: #a55337;
+        font-size: 0.8rem;
+    }
+    
+    .reply-author i {
+        margin-right: 5px;
+    }
+    
+    .reply-text {
+        font-size: 0.85rem;
+        color: #46433f;
+        line-height: 1.4;
+        margin-bottom: 5px;
+    }
+    
+    .reply-footer {
+        font-size: 0.65rem;
+        color: #b48b72;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .reply-like-btn {
+        background: none;
+        border: none;
+        color: #b48b72;
+        cursor: pointer;
+        font-size: 0.65rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .reply-like-btn:hover {
+        color: #e25822;
+    }
+    
+    .reply-like-btn.liked {
+        color: #e25822;
+    }
+    
+    .reply-form-container {
+        margin-top: 10px;
+        margin-left: 40px;
+    }
+    
+    .reply-form {
+        background: white;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid #f0dfbf;
+    }
+    
+    .reply-textarea {
+        width: 100%;
+        border: 1px solid #f0dfbf;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-family: inherit;
+        resize: vertical;
+    }
+    
+    .reply-textarea:focus {
+        outline: none;
+        border-color: #e2b13b;
+    }
+    
+    .reply-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    
+    .btn-submit-reply {
+        background: #c96b4a;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-submit-reply:hover {
+        background: #a55233;
+        transform: translateY(-1px);
+    }
+    
+    .btn-cancel-reply {
+        background: #e0cfc0;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        color: #5a4a3a;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-cancel-reply:hover {
+        background: #d0bfb0;
+    }
+    
+    .top-fan-badge {
+        font-size: 0.65rem;
+        background: #e2b13b;
+        padding: 2px 8px;
+        border-radius: 20px;
+        color: white;
+        margin-left: 5px;
+    }
+    
+    @media (max-width: 768px) {
+        .replies-container {
+            margin-left: 20px;
+        }
+        
+        .reply-form-container {
+            margin-left: 20px;
+        }
+        
+        .share-dropdown-content {
+            right: 0;
+            left: auto;
+        }
     }
 </style>
 
 <script>
+    // Get CSRF token
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // ==============================================
+    // SHARE DROPDOWN FUNCTIONS
+    // ==============================================
+    let shareDropdownOpen = false;
+    
+    function toggleShareDropdown() {
+        const dropdown = document.getElementById('shareDropdown');
+        if (shareDropdownOpen) {
+            dropdown.classList.remove('show');
+            shareDropdownOpen = false;
+        } else {
+            dropdown.classList.add('show');
+            shareDropdownOpen = true;
+        }
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('shareDropdown');
+        const shareBtn = document.querySelector('.btn-share');
+        if (dropdown && shareBtn && !shareBtn.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.remove('show');
+            shareDropdownOpen = false;
+        }
+    });
+    
+    // Share on social platforms
+    const recipeTitle = "{{ recipe.1|escapejs }}";
+    const recipeUrl = window.location.href;
+    const recipeDescription = "{{ recipe.2|escapejs|truncatechars:200 }}";
+    
+    function shareOnPlatform(platform) {
+        let shareUrl = '';
+        const text = `Check out this amazing recipe: ${recipeTitle} 🍳✨\n\n${recipeDescription}\n\n`;
+        
+        switch(platform) {
+            case 'whatsapp':
+                shareUrl = `https://wa.me/?text=${encodeURIComponent(text + recipeUrl)}`;
+                break;
+            case 'facebook':
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(recipeUrl)}`;
+                break;
+            case 'instagram':
+                // Instagram doesn't have direct share URL, copy to clipboard instead
+                copyToClipboard(`${text}\n${recipeUrl}`);
+                window.showToast('📋 Link copied! Share it on Instagram 📸', 'success');
+                return;
+            case 'twitter':
+                shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(recipeUrl)}`;
+                break;
+            case 'pinterest':
+                shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(recipeUrl)}&description=${encodeURIComponent(recipeTitle)}`;
+                break;
+            case 'email':
+                shareUrl = `mailto:?subject=${encodeURIComponent(`Delicious Recipe: ${recipeTitle}`)}&body=${encodeURIComponent(text + recipeUrl)}`;
+                break;
+        }
+        
+        if (shareUrl) {
+            window.open(shareUrl, '_blank', 'width=600,height=500');
+        }
+        toggleShareDropdown();
+    }
+    
+    function copyLink() {
+        copyToClipboard(recipeUrl);
+        window.showToast('📋 Recipe link copied to clipboard!', 'success');
+        toggleShareDropdown();
+    }
+    
+    function shareAsPDF() {
+        // Trigger PDF download
+        window.location.href = `/recipe/{{ recipe.0 }}/download/`;
+        window.showToast('📄 Downloading PDF...', 'info');
+        toggleShareDropdown();
+    }
+    
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+    }
+    
+    // ==============================================
+    // COMMENT LIKE FUNCTION
+    // ==============================================
+    async function toggleCommentLike(commentId) {
+        const btn = document.querySelector(`.comment-card[data-comment-id="${commentId}"] .comment-like-btn`);
+        if (!btn) return;
+        
+        const isLiked = btn.classList.contains('liked');
+        
+        try {
+            const response = await fetch('/api/toggle-comment-like/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    comment_id: commentId,
+                    action: isLiked ? 'unlike' : 'like'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (!isLiked) {
+                    btn.classList.add('liked');
+                    btn.querySelector('i').classList.remove('far');
+                    btn.querySelector('i').classList.add('fas');
+                } else {
+                    btn.classList.remove('liked');
+                    btn.querySelector('i').classList.remove('fas');
+                    btn.querySelector('i').classList.add('far');
+                }
+                const likeCountSpan = document.getElementById(`commentLikeCount${commentId}`);
+                if (likeCountSpan) {
+                    likeCountSpan.textContent = data.likes_count;
+                }
+            } else if (data.error === 'Not logged in') {
+                window.showToast('Please login to like comments!', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 1500);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            window.showToast('Network error. Please try again.', 'error');
+        }
+    }
+    
+    // ==============================================
+    // REPLY SYSTEM
+    // ==============================================
+    function showReplyForm(commentId, authorName) {
+        const formContainer = document.getElementById(`replyForm${commentId}`);
+        if (formContainer) {
+            formContainer.style.display = 'block';
+            const textarea = document.getElementById(`replyText${commentId}`);
+            if (textarea) {
+                textarea.focus();
+                textarea.placeholder = `Reply to ${authorName}... 💬`;
+            }
+        }
+    }
+    
+    function hideReplyForm(commentId) {
+        const formContainer = document.getElementById(`replyForm${commentId}`);
+        if (formContainer) {
+            formContainer.style.display = 'none';
+            const textarea = document.getElementById(`replyText${commentId}`);
+            if (textarea) {
+                textarea.value = '';
+            }
+        }
+    }
+    
+    async function submitReply(commentId) {
+        const replyText = document.getElementById(`replyText${commentId}`).value.trim();
+        
+        if (!replyText) {
+            window.showToast('Please write a reply!', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/add-reply/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    comment_id: commentId,
+                    reply_text: replyText,
+                    recipe_id: {{ recipe.0 }}
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.showToast('💬 Reply posted!', 'success');
+                hideReplyForm(commentId);
+                loadReplies(commentId);
+            } else if (data.error === 'Not logged in') {
+                window.showToast('Please login to reply!', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 1500);
+            } else {
+                window.showToast(data.message || 'Error posting reply', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            window.showToast('Network error. Please try again.', 'error');
+        }
+    }
+    
+    async function loadReplies(commentId) {
+        try {
+            const response = await fetch(`/api/get-replies/${commentId}/`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const container = document.getElementById(`repliesContainer${commentId}`);
+                if (container && data.replies.length > 0) {
+                    container.innerHTML = data.replies.map(reply => `
+                        <div class="reply-card" data-reply-id="${reply.reply_id}">
+                            <div class="reply-header">
+                                <span class="reply-author">
+                                    <i class="fas fa-user-circle"></i> ${reply.author_name}
+                                </span>
+                                <span class="reply-time">${formatTimeAgo(reply.created_at)}</span>
+                            </div>
+                            <div class="reply-text">
+                                ${escapeHtml(reply.reply_text)}
+                            </div>
+                            <div class="reply-footer">
+                                <button class="reply-like-btn" onclick="toggleReplyLike(${reply.reply_id}, this)">
+                                    <i class="far fa-heart"></i> <span class="like-count">${reply.likes_count || 0}</span>
+                                </button>
+                                ${reply.can_delete ? `<span class="separator">·</span>
+                                <button class="delete-reply-btn" onclick="deleteReply(${reply.reply_id})">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                } else if (container && data.replies.length === 0) {
+                    container.innerHTML = '';
+                }
+            }
+        } catch (error) {
+            console.error('Error loading replies:', error);
+        }
+    }
+    
+    async function toggleReplyLike(replyId, btnElement) {
+        const isLiked = btnElement.classList.contains('liked');
+        
+        try {
+            const response = await fetch('/api/toggle-reply-like/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    reply_id: replyId,
+                    action: isLiked ? 'unlike' : 'like'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (!isLiked) {
+                    btnElement.classList.add('liked');
+                    btnElement.querySelector('i').classList.remove('far');
+                    btnElement.querySelector('i').classList.add('fas');
+                } else {
+                    btnElement.classList.remove('liked');
+                    btnElement.querySelector('i').classList.remove('fas');
+                    btnElement.querySelector('i').classList.add('far');
+                }
+                const likeCountSpan = btnElement.querySelector('.like-count');
+                if (likeCountSpan) {
+                    likeCountSpan.textContent = data.likes_count;
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    async function deleteReply(replyId) {
+        if (!confirm('Are you sure you want to delete this reply?')) return;
+        
+        try {
+            const response = await fetch('/api/delete-reply/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ reply_id: replyId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.showToast('Reply deleted', 'info');
+                const replyElement = document.querySelector(`.reply-card[data-reply-id="${replyId}"]`);
+                if (replyElement) replyElement.remove();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    // Helper functions
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return 'just now';
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+        
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+        return `${Math.floor(diff / 86400)} days ago`;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // ==============================================
+    // LIKE/FAVORITE BUTTON
+    // ==============================================
+    const likeBtn = document.getElementById('likeBtn');
+    let isLiked = likeBtn?.getAttribute('data-liked') === 'true';
+    let isProcessing = false;
+    
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async function() {
+            if (isProcessing) return;
+            isProcessing = true;
+            
+            const recipeId = this.getAttribute('data-recipe-id');
+            const action = isLiked ? 'unlike' : 'like';
+            
+            try {
+                const response = await fetch('/api/toggle-like/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        recipe_id: recipeId,
+                        action: action
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isLiked = !isLiked;
+                    
+                    if (isLiked) {
+                        likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved to Favorites';
+                        likeBtn.classList.add('saved');
+                        window.showToast('✨ Recipe added to your favorites! ✨', 'success');
+                    } else {
+                        likeBtn.innerHTML = '<i class="far fa-heart"></i> 💖 Save to Favorites';
+                        likeBtn.classList.remove('saved');
+                        window.showToast('💔 Recipe removed from favorites', 'info');
+                    }
+                    
+                    likeBtn.setAttribute('data-liked', isLiked);
+                    
+                    if (typeof fetchSavedRecipesCount !== 'undefined') {
+                        await fetchSavedRecipesCount();
+                    }
+                } else if (data.error === 'Not logged in') {
+                    window.showToast('Please login to save favorites!', 'warning');
+                    setTimeout(() => {
+                        window.location.href = '/login/';
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                window.showToast('Network error. Please try again.', 'error');
+            } finally {
+                setTimeout(() => {
+                    isProcessing = false;
+                }, 1000);
+            }
+        });
+    }
+    
+    // ==============================================
+    // COMMENT SUBMISSION
+    // ==============================================
+    const commentForm = document.getElementById('commentForm');
+    let isSubmitting = false;
+    
+    if (commentForm) {
+        commentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (isSubmitting) return;
+            isSubmitting = true;
+            
+            const commentText = document.getElementById('commentText').value;
+            const rating = document.getElementById('ratingSelect').value;
+            const submitBtn = document.getElementById('submitCommentBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            if (!commentText.trim()) {
+                window.showToast('Please write a review before posting!', 'warning');
+                isSubmitting = false;
+                return;
+            }
+            
+            if (!rating) {
+                window.showToast('Please select a rating!', 'warning');
+                isSubmitting = false;
+                return;
+            }
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/add-comment/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({
+                        recipe_id: {{ recipe.0 }},
+                        comment: commentText,
+                        rating: parseInt(rating)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.showToast('🎉 Your review has been posted! Thank you for sharing! 🎉', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else if (data.error === 'Not logged in') {
+                    window.showToast('Please login to post reviews', 'warning');
+                    setTimeout(() => {
+                        window.location.href = '/login/';
+                    }, 1500);
+                } else {
+                    window.showToast(data.message || 'Error posting comment', 'error');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                window.showToast('Network error. Please try again.', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            } finally {
+                isSubmitting = false;
+            }
+        });
+    }
+    
+    // ==============================================
+    // DELETE COMMENT
+    // ==============================================
+    window.deleteComment = async function(commentId) {
+        if (!confirm('Are you sure you want to delete your review? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/delete-comment/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ comment_id: commentId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.showToast('🗑️ Your review has been deleted', 'info');
+                const commentElement = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
+                if (commentElement) {
+                    commentElement.remove();
+                }
+                const commentsCount = document.getElementById('commentsCount');
+                if (commentsCount) {
+                    const currentCount = parseInt(commentsCount.textContent) || 0;
+                    commentsCount.textContent = `${currentCount - 1} comments 💭`;
+                }
+            } else {
+                window.showToast(data.message || 'Error deleting comment', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            window.showToast('Network error. Please try again.', 'error');
+        }
+    };
+    
+    // ==============================================
+    // UPDATE TIMESTAMPS IN REAL-TIME
+    // ==============================================
+    function updateAllTimestamps() {
+        document.querySelectorAll('.comment-time').forEach(element => {
+            const timestamp = element.getAttribute('data-timestamp');
+            if (timestamp) {
+                element.textContent = formatTimeAgo(timestamp);
+            }
+        });
+        
+        document.querySelectorAll('.reply-time').forEach(element => {
+            const timestamp = element.getAttribute('data-timestamp');
+            if (timestamp) {
+                element.textContent = formatTimeAgo(timestamp);
+            }
+        });
+    }
+    
+    // Update timestamps every minute
+    setInterval(updateAllTimestamps, 60000);
+    
+    // Load all replies on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.comment-card[data-comment-id]').forEach(comment => {
+            const commentId = comment.getAttribute('data-comment-id');
+            loadReplies(commentId);
+        });
+        updateAllTimestamps();
+    });
+    
     // Image loading optimization
     const imgElement = document.getElementById('recipeImage');
     if (imgElement) {
@@ -823,51 +1716,6 @@
                 this.style.background = '#f8ede4';
             }
         });
-    }
-
-    // Like button handler
-    const likeBtn = document.getElementById('likeBtn');
-    if (likeBtn) {
-        likeBtn.addEventListener('click', function() {
-            fetch("/recipe/{{ recipe.0 }}/like/")
-            .then(res => res.json())
-            .then(data => {
-                if(data.liked) {
-                    likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved!';
-                    likeBtn.style.background = '#ffefe7';
-                    likeBtn.style.borderColor = '#c94c4c';
-                    setTimeout(() => {
-                        likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved';
-                    }, 1500);
-                } else {
-                    likeBtn.innerHTML = '<i class="far fa-heart"></i> 💖 Save Recipe';
-                    likeBtn.style.background = 'white';
-                    likeBtn.style.borderColor = '#e7cdbc';
-                }
-            })
-            .catch(err => {
-                if(likeBtn.innerHTML.includes('far fa-heart')) {
-                    likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved!';
-                    likeBtn.style.background = '#ffefe7';
-                } else {
-                    likeBtn.innerHTML = '<i class="far fa-heart"></i> 💖 Save Recipe';
-                    likeBtn.style.background = 'white';
-                }
-            });
-        });
-    }
-
-    // Share function
-    function shareRecipe() {
-        if (navigator.share) {
-            navigator.share({
-                title: '{{ recipe.1 }}',
-                text: 'Check out this amazing recipe! 🍳✨',
-                url: window.location.href
-            });
-        } else {
-            alert('📋 Copy this link to share: ' + window.location.href);
-        }
     }
 </script>
 {% endblock %}

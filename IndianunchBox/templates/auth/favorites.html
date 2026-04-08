@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="favorites-container">
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header text-center">
+            <div class="header-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h1 class="page-title">My Favorites</h1>
+            <p class="page-subtitle">Recipes you've loved and saved</p>
+            <div class="divider-nostalgic"></div>
+        </div>
+
+        {% if favorites %}
+            <div class="stats-banner">
+                <div class="stat-item">
+                    <span class="stat-number">{{ total_favorites }}</span>
+                    <span class="stat-label">Favorite Recipes</span>
+                </div>
+            </div>
+
+            <div class="favorites-grid">
+                {% for fav in favorites %}
+                <div class="nostalgic-card favorite-card">
+                    <div class="card-image">
+                        <img src="/media/{{ fav.image }}" alt="{{ fav.title }}">
+                        <button class="favorite-btn active" onclick="removeFavorite({{ fav.recipe_id }})">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3>{{ fav.title }}</h3>
+                        <p class="recipe-meta">
+                            <i class="fas fa-user"></i> {{ fav.author_name }}
+                            <span class="separator">•</span>
+                            <i class="fas fa-heart"></i> {{ fav.likes_count }}
+                            <span class="separator">•</span>
+                            <i class="fas fa-comment"></i> {{ fav.comments_count }}
+                        </p>
+                        <p class="description">{{ fav.description|truncatechars:100 }}</p>
+                        <div class="card-actions">
+                            <a href="/recipe/{{ fav.recipe_id }}/" class="btn-cozy btn-sm">
+                                <i class="fas fa-eye"></i> View Recipe
+                            </a>
+                            <button onclick="removeFavorite({{ fav.recipe_id }})" class="btn-outline-cozy btn-sm">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                        <small class="saved-date">
+                            <i class="far fa-calendar-alt"></i> Liked on {{ fav.liked_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="far fa-heart"></i>
+                </div>
+                <h3>No favorites yet!</h3>
+                <p>Start liking recipes and they'll appear here</p>
+                <a href="/recipes/" class="btn-cozy">
+                    <i class="fas fa-search"></i> Explore Recipes
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .favorites-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .header-icon {
+        font-size: 3rem;
+        color: #e25822;
+        margin-bottom: 1rem;
+        animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: #7a624b;
+        font-size: 1rem;
+    }
+
+    .stats-banner {
+        background: white;
+        border-radius: 60px;
+        padding: 1rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .stat-item {
+        display: inline-block;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #c96b4a;
+        font-family: 'Playfair Display', serif;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #7a624b;
+    }
+
+    .favorites-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+
+    .favorite-card {
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .favorite-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .card-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .favorite-card:hover .card-image img {
+        transform: scale(1.05);
+    }
+
+    .favorite-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .favorite-btn i {
+        color: #e25822;
+        font-size: 1.2rem;
+    }
+
+    .favorite-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .card-content {
+        padding: 1.5rem;
+    }
+
+    .card-content h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .recipe-meta {
+        font-size: 0.8rem;
+        color: #7a624b;
+        margin-bottom: 1rem;
+    }
+
+    .separator {
+        margin: 0 5px;
+    }
+
+    .description {
+        color: #7a624b;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .saved-date {
+        font-size: 0.7rem;
+        color: #a8a8a8;
+        display: block;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: white;
+        border-radius: 32px;
+        margin-top: 2rem;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #e2b13b;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .favorites-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<script>
+function removeFavorite(recipeId) {
+    if (confirm('Remove this recipe from your favorites?')) {
+        fetch(`/api/favorite/${recipeId}/remove/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  location.reload();
+              } else {
+                  alert('Error removing favorite');
+              }
+          });
+    }
+}
+
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
