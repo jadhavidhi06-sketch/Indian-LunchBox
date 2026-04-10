@@ -1615,4 +1615,414 @@ def api_delete_reply(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
+    return JsonResponse({'error': 'Invalid method'}, status=405)   
+   
+   
+
+
+# ==============================================
+# LUNCHBOX STORIES VIEWS
+# ==============================================
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db import connection
+from django.contrib import messages
+from django.http import JsonResponse
+from django.core.files.storage import FileSystemStorage
+from django.views.decorators.csrf import csrf_exempt
+import json
+from datetime import datetime
+
+def lunchbox_stories(request):
+    """
+    Display all lunchbox stories
+    """
+    category = request.GET.get('category')
+    search = request.GET.get('search', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 9
+    offset = (page - 1) * per_page
+    
+    stories = []
+    total_count = 0
+    
+    with connection.cursor() as cursor:
+        # Get total count
+        if search:
+            cursor.execute("""
+                SELECT COUNT(*) FROM lunchbox_stories 
+                WHERE is_approved = TRUE 
+                AND (title LIKE %s OR content LIKE %s)
+            """, [f'%{search}%', f'%{search}%'])
+        else:
+            cursor.execute("""
+                SELECT COUNT(*) FROM lunchbox_stories 
+                WHERE is_approved = TRUE
+                AND (category = %s OR %s IS NULL)
+            """, [category, None])
+        total_count = cursor.fetchone()[0]
+        
+        # Get stories
+        if search:
+            cursor.execute("""
+                SELECT 
+                    s.story_id, s.title, LEFT(s.content, 200) as content_preview,
+                    s.image, s.category, s.likes_count, s.views_count,
+                    s.created_at, u.name as author_name,
+                    (SELECT COUNT(*) FROM story_comments WHERE story_id = s.story_id) as comments_count
+                FROM lunchbox_stories s
+                JOIN users u ON s.user_id = u.user_id
+                WHERE s.is_approved = TRUE 
+                AND (s.title LIKE %s OR s.content LIKE %s)
+                ORDER BY s.created_at DESC
+                LIMIT %s OFFSET %s
+            """, [f'%{search}%', f'%{search}%', per_page, offset])
+        else:
+            cursor.execute("""
+                SELECT 
+                    s.story_id, s.title, LEFT(s.content, 200) as content_preview,
+                    s.image, s.category, s.likes_count, s.views_count,
+                    s.created_at, u.name as author_name,
+                    (SELECT COUNT(*) FROM story_comments WHERE story_id = s.story_id) as comments_count
+                FROM lunchbox_stories s
+                JOIN users u ON s.user_id = u.user_id
+                WHERE s.is_approved = TRUE
+                ORDER BY s.is_featured DESC, s.created_at DESC
+                LIMIT %s OFFSET %s
+            """, [per_page, offset])
+        stories = cursor.fetchall()
+    
+    # Get categories for filter
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT category_name, category_icon FROM story_categories ORDER BY display_order")
+        categories = cursor.fetchall()
+    
+    # Calculate pagination
+    total_pages = (total_count + per_page - 1) // per_page
+    
+    context = {
+        'stories': stories,
+        'categories': categories,
+        'current_category': category,
+        'search_query': search,
+        'current_page': page,
+        'total_pages': total_pages,
+        'total_count': total_count,
+        'page_title': 'Lunchbox Stories - Nostalgic Tales'
+    }
+    
+    return render(request, 'stories/lunchbox_stories.html', context)
+
+
+def story_detail(request, id):
+    """
+    Display single story detail
+    """
+    # Increment view count
+    with connection.cursor() as cursor:
+        cursor.execute("UPDATE lunchbox_stories SET views_count = views_count + 1 WHERE story_id = %s", [id])
+    
+    # Get story details
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                s.story_id, s.title, s.content, s.image, s.category,
+                s.tags, s.likes_count, s.views_count, s.created_at,
+                u.name as author_name, u.user_id as author_id,
+                (SELECT COUNT(*) FROM story_comments WHERE story_id = s.story_id) as comments_count
+            FROM lunchbox_stories s
+            JOIN users u ON s.user_id = u.user_id
+            WHERE s.story_id = %s AND s.is_approved = TRUE
+        """, [id])
+        story = cursor.fetchone()
+    
+    if not story:
+        messages.error(request, 'Story not found')
+        return redirect('lunchbox_stories')
+    
+    # Get comments
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT sc.comment_id, sc.comment, sc.created_at, u.name as author_name, u.user_id as author_id
+            FROM story_comments sc
+            JOIN users u ON sc.user_id = u.user_id
+            WHERE sc.story_id = %s
+            ORDER BY sc.created_at DESC
+        """, [id])
+        comments = cursor.fetchall()
+    
+    # Get related stories (same category)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT story_id, title, image
+            FROM lunchbox_stories
+            WHERE category = %s AND story_id != %s AND is_approved = TRUE
+            ORDER BY created_at DESC
+            LIMIT 3
+        """, [story[4], id])
+        related_stories = cursor.fetchall()
+    
+    # Check if user liked the story
+    user_liked = False
+    if request.session.get('user_id'):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM story_likes WHERE story_id = %s AND user_id = %s", 
+                          [id, request.session['user_id']])
+            user_liked = cursor.fetchone() is not None
+    
+    context = {
+        'story': story,
+        'comments': comments,
+        'related_stories': related_stories,
+        'user_liked': user_liked,
+        'page_title': story[1] + ' - Lunchbox Stories'
+    }
+    
+    return render(request, 'stories/story_detail.html', context)
+
+
+def add_story(request):
+    """
+    Add a new lunchbox story
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to share your story')
+        return redirect('login')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        tags = request.POST.get('tags', '')
+        
+        # Handle image upload
+        image = request.FILES.get('image')
+        filename = None
+        if image:
+            fs = FileSystemStorage()
+            filename = fs.save(image.name, image)
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO lunchbox_stories (user_id, title, content, image, category, tags, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            """, [request.session['user_id'], title, content, filename, category, tags])
+        
+        messages.success(request, 'Your story has been shared! ❤️')
+        return redirect('lunchbox_stories')
+    
+    # Get categories for dropdown
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT category_name FROM story_categories ORDER BY display_order")
+        categories = cursor.fetchall()
+    
+    context = {
+        'categories': categories,
+        'page_title': 'Share Your Lunchbox Story'
+    }
+    
+    return render(request, 'stories/add_story.html', context)
+
+
+def edit_story(request, id):
+    """
+    Edit a story
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to edit your story')
+        return redirect('login')
+    
+    # Fetch story
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT story_id, title, content, image, category, tags, user_id
+            FROM lunchbox_stories
+            WHERE story_id = %s
+        """, [id])
+        story = cursor.fetchone()
+    
+    if not story:
+        messages.error(request, 'Story not found')
+        return redirect('lunchbox_stories')
+    
+    if story[6] != request.session['user_id']:
+        messages.error(request, 'You can only edit your own stories')
+        return redirect('lunchbox_stories')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        tags = request.POST.get('tags', '')
+        remove_image = request.POST.get('remove_image') == 'on'
+        
+        filename = story[3]  # Keep existing image
+        
+        if remove_image:
+            filename = None
+        elif request.FILES.get('image'):
+            fs = FileSystemStorage()
+            filename = fs.save(request.FILES['image'].name, request.FILES['image'])
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                UPDATE lunchbox_stories 
+                SET title = %s, content = %s, image = %s, category = %s, tags = %s, updated_at = NOW()
+                WHERE story_id = %s AND user_id = %s
+            """, [title, content, filename, category, tags, id, request.session['user_id']])
+        
+        messages.success(request, 'Story updated successfully!')
+        return redirect('story_detail', id=id)
+    
+    context = {
+        'story': story,
+        'page_title': 'Edit Story'
+    }
+    
+    return render(request, 'stories/edit_story.html', context)
+
+
+def delete_story(request, id):
+    """
+    Delete a story
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to delete your story')
+        return redirect('login')
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            DELETE FROM lunchbox_stories 
+            WHERE story_id = %s AND user_id = %s
+        """, [id, request.session['user_id']])
+    
+    messages.success(request, 'Story deleted successfully')
+    return redirect('my_stories')
+
+
+def my_stories(request):
+    """
+    Display user's own stories
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to view your stories')
+        return redirect('login')
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                s.story_id, s.title, LEFT(s.content, 150) as content_preview,
+                s.image, s.category, s.likes_count, s.views_count,
+                s.created_at,
+                (SELECT COUNT(*) FROM story_comments WHERE story_id = s.story_id) as comments_count
+            FROM lunchbox_stories s
+            WHERE s.user_id = %s
+            ORDER BY s.created_at DESC
+        """, [request.session['user_id']])
+        stories = cursor.fetchall()
+    
+    context = {
+        'stories': stories,
+        'total_count': len(stories),
+        'page_title': 'My Stories'
+    }
+    
+    return render(request, '/stories/my_stories.html', context)
+
+
+# ==============================================
+# API ENDPOINTS FOR STORIES
+# ==============================================
+
+@csrf_exempt
+def toggle_story_like(request, id):
+    """
+    API to like/unlike a story
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        user_id = request.session['user_id']
+        
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM story_likes WHERE story_id = %s AND user_id = %s", [id, user_id])
+            existing = cursor.fetchone()
+            
+            if existing:
+                cursor.execute("DELETE FROM story_likes WHERE story_id = %s AND user_id = %s", [id, user_id])
+                cursor.execute("UPDATE lunchbox_stories SET likes_count = likes_count - 1 WHERE story_id = %s", [id])
+                liked = False
+            else:
+                cursor.execute("INSERT INTO story_likes (story_id, user_id, created_at) VALUES (%s, %s, NOW())", [id, user_id])
+                cursor.execute("UPDATE lunchbox_stories SET likes_count = likes_count + 1 WHERE story_id = %s", [id])
+                liked = True
+            
+            cursor.execute("SELECT likes_count FROM lunchbox_stories WHERE story_id = %s", [id])
+            likes_count = cursor.fetchone()[0]
+        
+        return JsonResponse({'liked': liked, 'likes_count': likes_count})
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@csrf_exempt
+def add_story_comment(request, id):
+    """
+    API to add a comment to a story
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            comment = data.get('comment')
+            
+            if not comment:
+                return JsonResponse({'error': 'Comment is required'}, status=400)
+            
+            user_id = request.session['user_id']
+            
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO story_comments (story_id, user_id, comment, created_at)
+                    VALUES (%s, %s, %s, NOW())
+                """, [id, user_id, comment])
+                comment_id = cursor.lastrowid
+                
+                # Get user name
+                cursor.execute("SELECT name FROM users WHERE user_id = %s", [user_id])
+                user_name = cursor.fetchone()[0]
+            
+            return JsonResponse({
+                'success': True,
+                'comment_id': comment_id,
+                'comment': comment,
+                'author_name': user_name,
+                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@csrf_exempt
+def delete_story_comment(request, comment_id):
+    """
+    API to delete a comment
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    if request.method == 'POST':
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                DELETE FROM story_comments 
+                WHERE comment_id = %s AND user_id = %s
+            """, [comment_id, request.session['user_id']])
+        
+        return JsonResponse({'success': True})
+    
     return JsonResponse({'error': 'Invalid method'}, status=405)    

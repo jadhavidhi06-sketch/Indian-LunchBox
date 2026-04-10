@@ -1,0 +1,823 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="edit-story-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-4">
+                    <div class="header-icon">
+                        <i class="fas fa-edit"></i>
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-tiffin-carrier"></i>
+                    </div>
+                    <h1 class="page-title">Edit Your Story ✏️</h1>
+                    <p class="page-subtitle">Update your cherished lunchbox memory</p>
+                    <div class="divider-nostalgic"></div>
+                </div>
+
+                <div class="nostalgic-card p-4 p-md-5">
+                    <form method="POST" enctype="multipart/form-data" id="editStoryForm">
+                        {% csrf_token %}
+                        
+                        <!-- Story Title -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Story Title
+                            </label>
+                            <input type="text" name="title" id="storyTitle" class="form-control-custom" 
+                                   value="{{ story.1 }}" placeholder="e.g., My Grandmother's Magical Tiffin" required>
+                            <div class="char-count" id="titleCount">0/100 characters</div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-category"></i> Category
+                            </label>
+                            <select name="category" id="storyCategory" class="form-control-custom" required>
+                                <option value="">Select a category</option>
+                                <option value="Childhood Memories" {% if story.4 == 'Childhood Memories' %}selected{% endif %}>🍱 Childhood Memories</option>
+                                <option value="Grandma's Kitchen" {% if story.4 == "Grandma's Kitchen" %}selected{% endif %}>👵 Grandma's Kitchen</option>
+                                <option value="Festival Specials" {% if story.4 == 'Festival Specials' %}selected{% endif %}>🎉 Festival Specials</option>
+                                <option value="Travel & Food" {% if story.4 == 'Travel & Food' %}selected{% endif %}>✈️ Travel & Food</option>
+                                <option value="Family Traditions" {% if story.4 == 'Family Traditions' %}selected{% endif %}>👨‍👩‍👧‍👦 Family Traditions</option>
+                                <option value="First Cooking Experience" {% if story.4 == 'First Cooking Experience' %}selected{% endif %}>👩‍🍳 First Cooking Experience</option>
+                                <option value="Comfort Food Stories" {% if story.4 == 'Comfort Food Stories' %}selected{% endif %}>❤️ Comfort Food Stories</option>
+                                <option value="Funny Kitchen Mishaps" {% if story.4 == 'Funny Kitchen Mishaps' %}selected{% endif %}>😂 Funny Kitchen Mishaps</option>
+                            </select>
+                        </div>
+
+                        <!-- Current Image Display -->
+                        {% if story.3 %}
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-image"></i> Current Image
+                            </label>
+                            <div class="current-image-container">
+                                <img src="/media/{{ story.3 }}" alt="{{ story.1 }}" class="current-image">
+                                <div class="image-actions">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="remove_image" id="removeImageCheckbox">
+                                        <span class="checkmark"></span>
+                                        Remove current image
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- New Image Upload -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-image"></i> Change Image (Optional)
+                            </label>
+                            
+                            <div class="upload-options">
+                                <div class="upload-tabs">
+                                    <button type="button" class="upload-tab active" onclick="switchUploadTab('file')">
+                                        <i class="fas fa-upload"></i> Upload New Image
+                                    </button>
+                                    <button type="button" class="upload-tab" onclick="switchUploadTab('paste')">
+                                        <i class="fas fa-paste"></i> Paste Image
+                                    </button>
+                                </div>
+                                
+                                <!-- File Upload Option -->
+                                <div id="fileUpload" class="upload-area">
+                                    <input type="file" name="image" id="imageInput" accept="image/*" class="file-input">
+                                    <label for="imageInput" class="file-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Click or drag to upload new image</span>
+                                        <small>PNG, JPG, JPEG up to 5MB</small>
+                                    </label>
+                                </div>
+                                
+                                <!-- Paste Image Option -->
+                                <div id="pasteUpload" class="upload-area" style="display: none;">
+                                    <div class="paste-area" id="pasteArea">
+                                        <i class="fas fa-paste"></i>
+                                        <span>Paste image here (Ctrl+V / Cmd+V)</span>
+                                        <small>Paste an image from your clipboard</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="image-preview" style="display: none;">
+                                <div class="preview-header">
+                                    <i class="fas fa-image"></i> New Image Preview
+                                    <button type="button" class="remove-image" onclick="removeNewImage()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <img id="previewImg" src="#" alt="New story preview">
+                            </div>
+                        </div>
+
+                        <!-- Story Content -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-align-left"></i> Your Story
+                            </label>
+                            <textarea name="content" id="storyContent" class="form-control-custom" rows="12" 
+                                      placeholder="Share your heartwarming lunchbox memory... What made it special? Who was it from? How did it make you feel? Every detail matters! 💕" required>{{ story.2 }}</textarea>
+                            <div class="char-count" id="contentCount">0/5000 characters</div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tags"></i> Tags (Optional)
+                            </label>
+                            <input type="text" name="tags" id="storyTags" class="form-control-custom" 
+                                   value="{{ story.5|default:'' }}" placeholder="e.g., childhood, grandmother, festival">
+                            <small class="text-muted">Separate tags with spaces</small>
+                        </div>
+
+                        <!-- Tips Box -->
+                        <div class="tips-box mb-4">
+                            <div class="tips-header">
+                                <i class="fas fa-lightbulb"></i> Tips for a Great Story
+                            </div>
+                            <ul class="tips-list">
+                                <li><i class="fas fa-check-circle"></i> Be descriptive - paint a picture with words</li>
+                                <li><i class="fas fa-check-circle"></i> Include emotions and personal connections</li>
+                                <li><i class="fas fa-check-circle"></i> Add a photo to make it more engaging</li>
+                                <li><i class="fas fa-check-circle"></i> Keep it authentic and from the heart</li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-cozy" id="submitBtn">
+                                <i class="fas fa-save"></i> Update Story
+                            </button>
+                            <a href="/story/{{ story.0 }}/" class="btn-outline-cozy">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="button" class="btn-danger" onclick="confirmDelete()">
+                                <i class="fas fa-trash-alt"></i> Delete Story
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Delete Confirmation Modal -->
+                <div id="deleteModal" class="modal" style="display: none;">
+                    <div class="modal-content nostalgia-card">
+                        <div class="modal-header">
+                            <h3><i class="fas fa-exclamation-triangle"></i> Delete Story</h3>
+                            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete "<strong>{{ story.1 }}</strong>"?</p>
+                            <p class="warning-text">This action cannot be undone. All likes and comments will also be deleted.</p>
+                            <div class="modal-actions">
+                                <a href="/delete-story/{{ story.0 }}/" class="btn-danger">Yes, Delete Story</a>
+                                <button type="button" class="btn-outline-cozy" onclick="closeDeleteModal()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inspiration Quote -->
+                <div class="inspiration-quote text-center mt-4">
+                    <p class="handwritten-accent">
+                        <i class="fas fa-quote-left me-2"></i> 
+                        Every story deserves to be told and retold. Update yours to inspire others!
+                        <i class="fas fa-quote-right ms-2"></i>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .edit-story-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    .header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .header-icon i {
+        margin: 0 8px;
+        animation: bounce 2s ease infinite;
+    }
+
+    .header-icon i:nth-child(1) { color: #c96b4a; animation-delay: 0s; }
+    .header-icon i:nth-child(2) { color: #e25822; animation-delay: 0.2s; }
+    .header-icon i:nth-child(3) { color: #e2b13b; animation-delay: 0.4s; }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #5a3e2e;
+    }
+
+    .page-subtitle {
+        color: #7a624b;
+    }
+
+    .form-label {
+        color: #5a4a3a;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 3px rgba(226, 177, 59, 0.1);
+    }
+
+    .char-count {
+        font-size: 0.7rem;
+        color: #7a624b;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    /* Current Image */
+    .current-image-container {
+        background: #fefbf8;
+        border-radius: 16px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #fae6db;
+    }
+
+    .current-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .image-actions {
+        text-align: center;
+    }
+
+    .checkbox-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 0.85rem;
+    }
+
+    .checkbox-label input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    /* Upload Options */
+    .upload-options {
+        border: 2px solid #f0dfbf;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .upload-tabs {
+        display: flex;
+        border-bottom: 2px solid #f0dfbf;
+        background: #fff5ea;
+    }
+
+    .upload-tab {
+        flex: 1;
+        padding: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: #7a624b;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .upload-tab.active {
+        background: white;
+        color: #c96b4a;
+        border-bottom: 2px solid #c96b4a;
+        margin-bottom: -2px;
+    }
+
+    .upload-tab:hover {
+        background: #fff0e0;
+    }
+
+    .upload-area {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .file-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .file-label:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .file-label i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .file-label span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .file-label small {
+        color: #7a624b;
+    }
+
+    .paste-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .paste-area:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .paste-area i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .paste-area span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .paste-area small {
+        color: #7a624b;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        margin-top: 1rem;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 15px;
+        background: #fff5ea;
+        border-bottom: 1px solid #f0dfbf;
+        font-weight: 600;
+        color: #c96b4a;
+    }
+
+    .remove-image {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 1rem;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .remove-image:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .image-preview img {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    /* Tips Box */
+    .tips-box {
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        border-radius: 20px;
+        padding: 1.2rem;
+    }
+
+    .tips-header {
+        font-weight: 700;
+        color: #c96b4a;
+        margin-bottom: 0.8rem;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 5px 0;
+        font-size: 0.85rem;
+        color: #5a3e2e;
+    }
+
+    .tips-list li i {
+        color: #28a745;
+        margin-right: 8px;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .form-actions .btn-cozy,
+    .form-actions .btn-outline-cozy,
+    .form-actions .btn-danger {
+        flex: 1;
+        text-align: center;
+        min-width: 120px;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+
+    /* Modal */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        max-width: 450px;
+        width: 90%;
+        background: white;
+        border-radius: 32px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .warning-text {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .inspiration-quote {
+        padding: 1rem;
+    }
+
+    .inspiration-quote p {
+        font-size: 0.95rem;
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .upload-tab {
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+        
+        .upload-area {
+            padding: 1rem;
+        }
+        
+        .modal-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<script>
+    // Character counters
+    function updateCharCount(element, countElement, max) {
+        const length = element.value.length;
+        const countSpan = document.getElementById(countElement);
+        if (countSpan) {
+            countSpan.textContent = `${length}/${max} characters`;
+            if (length > max - 50) {
+                countSpan.style.color = '#e25822';
+            } else {
+                countSpan.style.color = '#7a624b';
+            }
+        }
+    }
+
+    const titleInput = document.getElementById('storyTitle');
+    const contentInput = document.getElementById('storyContent');
+
+    if (titleInput) {
+        titleInput.addEventListener('input', () => updateCharCount(titleInput, 'titleCount', 100));
+        updateCharCount(titleInput, 'titleCount', 100);
+    }
+
+    if (contentInput) {
+        contentInput.addEventListener('input', () => updateCharCount(contentInput, 'contentCount', 5000));
+        updateCharCount(contentInput, 'contentCount', 5000);
+    }
+
+    // Image upload handling
+    let currentImageFile = null;
+
+    function switchUploadTab(tab) {
+        const fileUpload = document.getElementById('fileUpload');
+        const pasteUpload = document.getElementById('pasteUpload');
+        const tabs = document.querySelectorAll('.upload-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if (tab === 'file') {
+            fileUpload.style.display = 'block';
+            pasteUpload.style.display = 'none';
+            tabs[0].classList.add('active');
+        } else {
+            fileUpload.style.display = 'none';
+            pasteUpload.style.display = 'block';
+            tabs[1].classList.add('active');
+        }
+    }
+
+    // File upload preview
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+                
+                // Uncheck remove image if checked
+                const removeCheckbox = document.getElementById('removeImageCheckbox');
+                if (removeCheckbox) removeCheckbox.checked = false;
+            }
+        });
+    }
+
+    // Paste image functionality
+    const pasteArea = document.getElementById('pasteArea');
+    
+    document.addEventListener('paste', function(e) {
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                const dt = new DataTransfer();
+                dt.items.add(blob);
+                
+                if (imageInput) {
+                    imageInput.files = dt.files;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImg.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(blob);
+                    currentImageFile = blob;
+                    
+                    // Uncheck remove image if checked
+                    const removeCheckbox = document.getElementById('removeImageCheckbox');
+                    if (removeCheckbox) removeCheckbox.checked = false;
+                    
+                    showToast('📸 Image pasted successfully!', 'success');
+                }
+                break;
+            }
+        }
+    });
+
+    if (pasteArea) {
+        pasteArea.addEventListener('click', function() {
+            this.style.background = '#fff9ef';
+            setTimeout(() => {
+                this.style.background = '';
+            }, 200);
+        });
+    }
+
+    // Remove new image preview
+    function removeNewImage() {
+        if (imageInput) {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            previewImg.src = '#';
+            currentImageFile = null;
+            showToast('New image removed', 'info');
+        }
+    }
+
+    // Delete modal
+    function confirmDelete() {
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // Form validation
+    const form = document.getElementById('editStoryForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const title = titleInput?.value.trim();
+            const content = contentInput?.value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                showToast('Please enter a story title', 'warning');
+                titleInput?.focus();
+                return false;
+            }
+            
+            if (title.length < 3) {
+                e.preventDefault();
+                showToast('Title must be at least 3 characters', 'warning');
+                return false;
+            }
+            
+            if (!content) {
+                e.preventDefault();
+                showToast('Please write your story', 'warning');
+                contentInput?.focus();
+                return false;
+            }
+            
+            if (content.length < 20) {
+                e.preventDefault();
+                showToast('Please write a bit more detail (at least 20 characters)', 'warning');
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating story...';
+        });
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const bgColor = type === 'success' ? '#28a745' : (type === 'warning' ? '#ffc107' : '#dc3545');
+        const icon = type === 'success' ? 'fa-check-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle');
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white border-0';
+        toast.style.background = bgColor;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${icon} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+
+{% endblock %}

@@ -1,0 +1,716 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="story-detail-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Story Card -->
+                <div class="nostalgic-card story-card-full">
+                    <!-- Story Header -->
+                    <div class="story-header">
+                        <div class="story-category">
+                            <i class="fas fa-tag"></i> {{ story.4 }}
+                        </div>
+                        <h1 class="story-title">{{ story.1 }}</h1>
+                        <div class="story-meta">
+                            <div class="author-info">
+                                <i class="fas fa-user-circle"></i> 
+                                <span>{{ story.9 }}</span>
+                            </div>
+                            <div class="date-info">
+                                <i class="far fa-calendar-alt"></i> 
+                                <span>{{ story.8|date:"F d, Y" }}</span>
+                            </div>
+                            <div class="stats-info">
+                                <span><i class="fas fa-heart"></i> {{ story.6 }}</span>
+                                <span><i class="fas fa-comment"></i> {{ story.11 }}</span>
+                                <span><i class="fas fa-eye"></i> {{ story.7 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story Image -->
+                    {% if story.3 %}
+                    <div class="story-image-full">
+                        <img src="/media/{{ story.3 }}" alt="{{ story.1 }}">
+                    </div>
+                    {% endif %}
+
+                    <!-- Story Content -->
+                    <div class="story-content-full">
+                        <div class="story-text">
+                            {{ story.2|linebreaks }}
+                        </div>
+
+                        <!-- Tags -->
+                        {% if story.5 %}
+                        <div class="story-tags">
+                            <i class="fas fa-tags"></i>
+                            {% for tag in story.5.split %}
+                            <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="story-actions">
+                            <button class="btn-like" id="likeBtn" data-story-id="{{ story.0 }}" data-liked="{{ user_liked|lower }}">
+                                <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                                <span id="likeCount">{{ story.6 }}</span> Likes
+                            </button>
+                            <button class="btn-share" onclick="shareStory()">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                            {% if request.session.user_id and request.session.user_name == story.9 %}
+                            <a href="/edit-story/{{ story.0 }}/" class="btn-edit">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <button class="btn-delete" onclick="confirmDelete()">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <h3 class="comments-title">
+                            <i class="fas fa-comments"></i> Comments 
+                            <span class="comment-count">({{ comments|length }})</span>
+                        </h3>
+
+                        <div id="commentsContainer">
+                            {% for comment in comments %}
+                            <div class="comment-card" data-comment-id="{{ comment.0 }}">
+                                <div class="comment-header">
+                                    <span class="comment-author">
+                                        <i class="fas fa-user-circle"></i> {{ comment.3 }}
+                                    </span>
+                                    <span class="comment-date">{{ comment.2|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="comment-text">{{ comment.1 }}</div>
+                                {% if request.session.user_id and request.session.user_name == comment.3 %}
+                                <div class="comment-footer">
+                                    <button class="delete-comment" onclick="deleteComment({{ comment.0 }})">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% empty %}
+                            <div class="empty-comments">
+                                <i class="far fa-comment-dots"></i>
+                                <p>No comments yet. Be the first to share your thoughts!</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Add Comment Form -->
+                        {% if request.session.user_id %}
+                        <div class="comment-form">
+                            <h4><i class="fas fa-pen-fancy"></i> Share Your Thoughts</h4>
+                            <textarea id="commentText" rows="3" placeholder="Write your comment here... 💬" class="form-control-custom"></textarea>
+                            <button onclick="submitComment()" class="btn-cozy mt-2">
+                                <i class="fas fa-paper-plane"></i> Post Comment
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="login-prompt">
+                            <i class="fas fa-lock"></i>
+                            <a href="/login/">Login</a> to share your thoughts and join the conversation!
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Related Stories -->
+                {% if related_stories %}
+                <div class="related-stories">
+                    <h3 class="related-title">
+                        <i class="fas fa-book-open"></i> More Stories You Might Like
+                    </h3>
+                    <div class="related-grid">
+                        {% for story in related_stories %}
+                        <a href="/story/{{ story.0 }}/" class="related-card">
+                            {% if story.2 %}
+                            <img src="/media/{{ story.2 }}" alt="{{ story.1 }}">
+                            {% else %}
+                            <div class="related-no-image">
+                                <i class="fas fa-tiffin-carrier"></i>
+                            </div>
+                            {% endif %}
+                            <h4>{{ story.1 }}</h4>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content nostalgia-card">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Delete Story</h3>
+            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete "<strong>{{ story.1 }}</strong>"?</p>
+            <p class="warning-text">This action cannot be undone. All likes and comments will also be deleted.</p>
+            <div class="modal-actions">
+                <a href="/delete-story/{{ story.0 }}/" class="btn-danger">Yes, Delete Story</a>
+                <button type="button" class="btn-outline-cozy" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .story-detail-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    .story-card-full {
+        background: white;
+        border-radius: 32px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .story-header {
+        padding: 2rem 2rem 1rem;
+        border-bottom: 1px solid #f0dfbf;
+    }
+
+    .story-category {
+        display: inline-block;
+        background: #fff5ea;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+    }
+
+    .story-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        color: #5a3e2e;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+    }
+
+    .story-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        font-size: 0.85rem;
+        color: #7a624b;
+    }
+
+    .story-meta i {
+        margin-right: 5px;
+        color: #c96b4a;
+    }
+
+    .stats-info {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .story-image-full {
+        padding: 1.5rem 2rem;
+        background: #fef9f5;
+    }
+
+    .story-image-full img {
+        width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 16px;
+    }
+
+    .story-content-full {
+        padding: 2rem;
+    }
+
+    .story-text {
+        font-size: 1rem;
+        line-height: 1.8;
+        color: #3d352e;
+        margin-bottom: 1.5rem;
+    }
+
+    .story-text p {
+        margin-bottom: 1rem;
+    }
+
+    .story-tags {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+        padding: 1rem 0;
+        border-top: 1px solid #f0dfbf;
+        border-bottom: 1px solid #f0dfbf;
+    }
+
+    .tag {
+        background: #fff5ea;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #c96b4a;
+    }
+
+    .story-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-like, .btn-share, .btn-edit, .btn-delete {
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-like {
+        background: #fff5ea;
+        color: #c96b4a;
+        border: 1px solid #f0dfbf;
+    }
+
+    .btn-like:hover {
+        background: #ffefe7;
+        transform: scale(1.02);
+    }
+
+    .btn-like.liked {
+        background: #c96b4a;
+        color: white;
+        border-color: #c96b4a;
+    }
+
+    .btn-share {
+        background: #4a90e2;
+        color: white;
+    }
+
+    .btn-share:hover {
+        background: #357abd;
+        transform: translateY(-2px);
+    }
+
+    .btn-edit {
+        background: #e2b13b;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit:hover {
+        background: #d4a32e;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+
+    .comments-section {
+        padding: 2rem;
+        background: #fefbf8;
+        border-top: 1px solid #f0dfbf;
+    }
+
+    .comments-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: #5a3e2e;
+        margin-bottom: 1.5rem;
+    }
+
+    .comment-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        border: 1px solid #f0dfbf;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: #c96b4a;
+    }
+
+    .comment-date {
+        color: #a8a8a8;
+    }
+
+    .comment-text {
+        color: #5a4a3a;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+
+    .delete-comment {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 0.7rem;
+        padding: 0;
+    }
+
+    .empty-comments {
+        text-align: center;
+        padding: 2rem;
+        color: #b48b72;
+    }
+
+    .comment-form {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0dfbf;
+    }
+
+    .comment-form h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        color: #5a3e2e;
+        margin-bottom: 1rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #e2b13b;
+    }
+
+    .login-prompt {
+        text-align: center;
+        padding: 1rem;
+        background: #fff2ea;
+        border-radius: 60px;
+        margin-top: 1rem;
+    }
+
+    .login-prompt a {
+        color: #c96b4a;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .related-stories {
+        margin-top: 2rem;
+    }
+
+    .related-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin-bottom: 1rem;
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .related-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .related-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .related-card img, .related-no-image {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .related-no-image {
+        background: linear-gradient(135deg, #fff5ea, #ffe8d6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .related-card h4 {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        color: #5a3e2e;
+        margin: 0;
+    }
+
+    /* Modal */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        max-width: 450px;
+        width: 90%;
+        background: white;
+        border-radius: 32px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .warning-text {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .story-title {
+            font-size: 1.5rem;
+        }
+        
+        .story-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .story-actions {
+            flex-wrap: wrap;
+        }
+        
+        .related-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Like functionality
+    const likeBtn = document.getElementById('likeBtn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', async function() {
+            const storyId = this.getAttribute('data-story-id');
+            const isLiked = this.getAttribute('data-liked') === 'true';
+            
+            try {
+                const response = await fetch(`/api/story/${storyId}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.liked !== undefined) {
+                    const icon = this.querySelector('i');
+                    const likeSpan = this.querySelector('#likeCount');
+                    
+                    if (data.liked) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.setAttribute('data-liked', 'true');
+                        this.classList.add('liked');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.setAttribute('data-liked', 'false');
+                        this.classList.remove('liked');
+                    }
+                    likeSpan.textContent = data.likes_count;
+                    
+                    window.showToast(data.liked ? '❤️ Story liked!' : '💔 Story unliked', 'success');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+    // Submit comment
+    async function submitComment() {
+        const commentText = document.getElementById('commentText').value.trim();
+        if (!commentText) {
+            window.showToast('Please write a comment', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/story/{{ story.0 }}/comment/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ comment: commentText })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.showToast('💬 Comment posted!', 'success');
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            window.showToast('Error posting comment', 'error');
+        }
+    }
+
+    // Delete comment
+    async function deleteComment(commentId) {
+        if (!confirm('Delete this comment?')) return;
+        
+        try {
+            const response = await fetch(`/api/story/delete-comment/${commentId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                const commentElement = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
+                if (commentElement) commentElement.remove();
+                window.showToast('Comment deleted', 'info');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Share story
+    function shareStory() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ story.1 }}',
+                text: 'Check out this heartwarming story on IndianLunchBox!',
+                url: window.location.href
+            });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            window.showToast('📋 Link copied to clipboard!', 'success');
+        }
+    }
+
+    // Delete modal
+    function confirmDelete() {
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

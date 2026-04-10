@@ -1,0 +1,784 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="add-story-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-4">
+                    <div class="header-icon">
+                        <i class="fas fa-pen-fancy"></i>
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-tiffin-carrier"></i>
+                    </div>
+                    <h1 class="page-title">Share Your Lunchbox Story 📖</h1>
+                    <p class="page-subtitle">Every memory has a flavor. Share yours with our community!</p>
+                    <div class="divider-nostalgic"></div>
+                </div>
+
+                <div class="nostalgic-card p-4 p-md-5">
+                    <form method="POST" enctype="multipart/form-data" id="storyForm">
+                        {% csrf_token %}
+                        
+                        <!-- Story Title -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Story Title
+                            </label>
+                            <input type="text" name="title" id="storyTitle" class="form-control-custom" 
+                                   placeholder="e.g., My Grandmother's Magical Tiffin" required>
+                            <div class="char-count" id="titleCount">0/100 characters</div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-category"></i> Category
+                            </label>
+                            <select name="category" id="storyCategory" class="form-control-custom" required>
+                                <option value="">Select a category</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.0 }}">{{ cat.0 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Your Story -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-align-left"></i> Your Story
+                            </label>
+                            <textarea name="content" id="storyContent" class="form-control-custom" rows="12" 
+                                      placeholder="Share your heartwarming lunchbox memory... What made it special? Who was it from? How did it make you feel? Every detail matters! 💕" required></textarea>
+                            <div class="char-count" id="contentCount">0/5000 characters</div>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-image"></i> Story Image (Optional)
+                            </label>
+                            
+                            <!-- Upload Options Tabs -->
+                            <div class="upload-options">
+                                <div class="upload-tabs">
+                                    <button type="button" class="upload-tab active" onclick="switchUploadTab('file')">
+                                        <i class="fas fa-upload"></i> Upload File
+                                    </button>
+                                    <button type="button" class="upload-tab" onclick="switchUploadTab('paste')">
+                                        <i class="fas fa-paste"></i> Paste Image
+                                    </button>
+                                </div>
+                                
+                                <!-- File Upload Option -->
+                                <div id="fileUpload" class="upload-area">
+                                    <input type="file" name="image" id="imageInput" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="file-input">
+                                    <label for="imageInput" class="file-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Click or drag to upload</span>
+                                        <small>PNG, JPG, JPEG, GIF, WEBP up to 5MB</small>
+                                    </label>
+                                </div>
+                                
+                                <!-- Paste Image Option -->
+                                <div id="pasteUpload" class="upload-area" style="display: none;">
+                                    <div class="paste-area" id="pasteArea">
+                                        <i class="fas fa-paste"></i>
+                                        <span>Paste image here (Ctrl+V / Cmd+V)</span>
+                                        <small>Paste an image from your clipboard</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" class="image-preview" style="display: none;">
+                                <div class="preview-header">
+                                    <i class="fas fa-image"></i> Image Preview
+                                    <button type="button" class="remove-image" onclick="removeImage()">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </div>
+                                <img id="previewImg" src="#" alt="Story preview">
+                                <div class="preview-info">
+                                    <span id="imageSize"></span>
+                                    <span id="imageDimensions"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tags"></i> Tags (Optional)
+                            </label>
+                            <input type="text" name="tags" id="storyTags" class="form-control-custom" 
+                                   placeholder="e.g., childhood, grandmother, festival">
+                            <small class="text-muted">Separate tags with spaces</small>
+                        </div>
+
+                        <!-- Tips Box -->
+                        <div class="tips-box mb-4">
+                            <div class="tips-header">
+                                <i class="fas fa-lightbulb"></i> Tips for a Great Story
+                            </div>
+                            <ul class="tips-list">
+                                <li><i class="fas fa-check-circle"></i> Be descriptive - paint a picture with words</li>
+                                <li><i class="fas fa-check-circle"></i> Include emotions and personal connections</li>
+                                <li><i class="fas fa-check-circle"></i> Add a photo to make it more engaging</li>
+                                <li><i class="fas fa-check-circle"></i> Keep it authentic and from the heart</li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-cozy" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Share Story
+                            </button>
+                            <a href="/lunchbox-stories/" class="btn-outline-cozy">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .add-story-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    .header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .header-icon i {
+        margin: 0 8px;
+        animation: bounce 2s ease infinite;
+    }
+
+    .header-icon i:nth-child(1) { color: #c96b4a; animation-delay: 0s; }
+    .header-icon i:nth-child(2) { color: #e25822; animation-delay: 0.2s; }
+    .header-icon i:nth-child(3) { color: #e2b13b; animation-delay: 0.4s; }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #5a3e2e;
+    }
+
+    .page-subtitle {
+        color: #7a624b;
+    }
+
+    .form-label {
+        color: #5a4a3a;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 3px rgba(226, 177, 59, 0.1);
+    }
+
+    .char-count {
+        font-size: 0.7rem;
+        color: #7a624b;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    /* Upload Options */
+    .upload-options {
+        border: 2px solid #f0dfbf;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .upload-tabs {
+        display: flex;
+        border-bottom: 2px solid #f0dfbf;
+        background: #fff5ea;
+    }
+
+    .upload-tab {
+        flex: 1;
+        padding: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: #7a624b;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .upload-tab.active {
+        background: white;
+        color: #c96b4a;
+        border-bottom: 2px solid #c96b4a;
+        margin-bottom: -2px;
+    }
+
+    .upload-tab:hover {
+        background: #fff0e0;
+    }
+
+    .upload-area {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .file-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .file-label:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .file-label i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .file-label span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .file-label small {
+        color: #7a624b;
+    }
+
+    .paste-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .paste-area:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .paste-area i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .paste-area span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .paste-area small {
+        color: #7a624b;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        margin-top: 1rem;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 15px;
+        background: #fff5ea;
+        border-bottom: 1px solid #f0dfbf;
+        font-weight: 600;
+        color: #c96b4a;
+    }
+
+    .remove-image {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 0.85rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+        transition: all 0.2s;
+    }
+
+    .remove-image:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .image-preview img {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    .preview-info {
+        padding: 8px 15px;
+        background: #fefbf8;
+        border-top: 1px solid #f0dfbf;
+        font-size: 0.7rem;
+        color: #7a624b;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Tips Box */
+    .tips-box {
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        border-radius: 20px;
+        padding: 1.2rem;
+    }
+
+    .tips-header {
+        font-weight: 700;
+        color: #c96b4a;
+        margin-bottom: 0.8rem;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 5px 0;
+        font-size: 0.85rem;
+        color: #5a3e2e;
+    }
+
+    .tips-list li i {
+        color: #28a745;
+        margin-right: 8px;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Loading State */
+    .btn-cozy:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .add-story-container {
+            padding: 1rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .upload-tab {
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+        
+        .upload-area {
+            padding: 1rem;
+        }
+        
+        .file-label, .paste-area {
+            padding: 1rem;
+        }
+        
+        .preview-info {
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header-icon i {
+            font-size: 1.5rem;
+        }
+        
+        .nostalgic-card {
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+<script>
+    // Character counters
+    function updateCharCount(element, countElement, max) {
+        const length = element.value.length;
+        const countSpan = document.getElementById(countElement);
+        if (countSpan) {
+            countSpan.textContent = `${length}/${max} characters`;
+            if (length > max - 50) {
+                countSpan.style.color = '#e25822';
+            } else {
+                countSpan.style.color = '#7a624b';
+            }
+        }
+    }
+
+    const titleInput = document.getElementById('storyTitle');
+    const contentInput = document.getElementById('storyContent');
+
+    if (titleInput) {
+        titleInput.addEventListener('input', () => updateCharCount(titleInput, 'titleCount', 100));
+        updateCharCount(titleInput, 'titleCount', 100);
+    }
+
+    if (contentInput) {
+        contentInput.addEventListener('input', () => updateCharCount(contentInput, 'contentCount', 5000));
+        updateCharCount(contentInput, 'contentCount', 5000);
+    }
+
+    // Image upload handling
+    let currentImageFile = null;
+
+    function switchUploadTab(tab) {
+        const fileUpload = document.getElementById('fileUpload');
+        const pasteUpload = document.getElementById('pasteUpload');
+        const tabs = document.querySelectorAll('.upload-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if (tab === 'file') {
+            fileUpload.style.display = 'block';
+            pasteUpload.style.display = 'none';
+            tabs[0].classList.add('active');
+        } else {
+            fileUpload.style.display = 'none';
+            pasteUpload.style.display = 'block';
+            tabs[1].classList.add('active');
+        }
+    }
+
+    // File upload preview with validation
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const imageSizeSpan = document.getElementById('imageSize');
+    const imageDimensionsSpan = document.getElementById('imageDimensions');
+
+    function validateImage(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        
+        if (!validTypes.includes(file.type)) {
+            showToast('Please upload a valid image file (PNG, JPG, JPEG, GIF, WEBP)', 'error');
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            showToast('Image size should be less than 5MB', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && validateImage(file)) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                    
+                    // Display file size
+                    imageSizeSpan.textContent = formatFileSize(file.size);
+                    
+                    // Get image dimensions
+                    const img = new Image();
+                    img.onload = function() {
+                        imageDimensionsSpan.textContent = `${img.width} x ${img.height} px`;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+            } else if (file) {
+                imageInput.value = '';
+            }
+        });
+    }
+
+    // Paste image functionality
+    const pasteArea = document.getElementById('pasteArea');
+    
+    document.addEventListener('paste', function(e) {
+        const items = e.clipboardData.items;
+        let hasImage = false;
+        
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                
+                if (validateImage(blob)) {
+                    const dt = new DataTransfer();
+                    dt.items.add(blob);
+                    
+                    if (imageInput) {
+                        imageInput.files = dt.files;
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            previewImg.src = event.target.result;
+                            imagePreview.style.display = 'block';
+                            imageSizeSpan.textContent = formatFileSize(blob.size);
+                            
+                            const img = new Image();
+                            img.onload = function() {
+                                imageDimensionsSpan.textContent = `${img.width} x ${img.height} px`;
+                            };
+                            img.src = event.target.result;
+                        };
+                        reader.readAsDataURL(blob);
+                        currentImageFile = blob;
+                        
+                        showToast('📸 Image pasted successfully!', 'success');
+                    }
+                } else {
+                    imageInput.value = '';
+                }
+                hasImage = true;
+                break;
+            }
+        }
+        
+        if (!hasImage && pasteArea && pasteArea.style.display !== 'none') {
+            showToast('No image found in clipboard. Copy an image first!', 'warning');
+        }
+    });
+
+    if (pasteArea) {
+        pasteArea.addEventListener('click', function() {
+            this.style.background = '#fff9ef';
+            setTimeout(() => {
+                this.style.background = '';
+            }, 200);
+            showToast('Press Ctrl+V (Cmd+V on Mac) to paste an image', 'info');
+        });
+    }
+
+    // Drag and drop functionality
+    const fileLabel = document.querySelector('.file-label');
+    if (fileLabel) {
+        fileLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#c96b4a';
+            this.style.background = '#fff9ef';
+        });
+        
+        fileLabel.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#f0dfbf';
+            this.style.background = '';
+        });
+        
+        fileLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#f0dfbf';
+            this.style.background = '';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && validateImage(file)) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                imageInput.files = dt.files;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                    imageSizeSpan.textContent = formatFileSize(file.size);
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        imageDimensionsSpan.textContent = `${img.width} x ${img.height} px`;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+            }
+        });
+    }
+
+    // Remove image
+    function removeImage() {
+        if (imageInput) {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            previewImg.src = '#';
+            currentImageFile = null;
+            showToast('Image removed', 'info');
+        }
+    }
+
+    // Form validation
+    const form = document.getElementById('storyForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const title = titleInput?.value.trim();
+            const content = contentInput?.value.trim();
+            const category = document.getElementById('storyCategory')?.value;
+            
+            if (!title) {
+                e.preventDefault();
+                showToast('Please enter a story title', 'warning');
+                titleInput?.focus();
+                return false;
+            }
+            
+            if (title.length < 3) {
+                e.preventDefault();
+                showToast('Title must be at least 3 characters', 'warning');
+                return false;
+            }
+            
+            if (!category) {
+                e.preventDefault();
+                showToast('Please select a category', 'warning');
+                document.getElementById('storyCategory')?.focus();
+                return false;
+            }
+            
+            if (!content) {
+                e.preventDefault();
+                showToast('Please write your story', 'warning');
+                contentInput?.focus();
+                return false;
+            }
+            
+            if (content.length < 20) {
+                e.preventDefault();
+                showToast('Please write a bit more detail (at least 20 characters)', 'warning');
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing your story...';
+        });
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const bgColor = type === 'success' ? '#28a745' : (type === 'warning' ? '#ffc107' : '#dc3545');
+        const icon = type === 'success' ? 'fa-check-circle' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle');
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white border-0';
+        toast.style.background = bgColor;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${icon} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Auto-resize textarea
+    if (contentInput) {
+        contentInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 400) + 'px';
+        });
+    }
+
+    // Remove any existing toasts on page unload
+    window.addEventListener('beforeunload', function() {
+        const toasts = document.querySelectorAll('.toast');
+        toasts.forEach(toast => toast.remove());
+    });
+</script>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+
+{% endblock %}

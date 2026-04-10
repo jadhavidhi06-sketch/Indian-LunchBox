@@ -83,4 +83,20 @@ urlpatterns = [
  path('api/get-replies/<int:comment_id>/', views.api_get_replies, name='api_get_replies'),
  path('api/toggle-reply-like/', views.api_toggle_reply_like, name='api_toggle_reply_like'),
  path('api/delete-reply/', views.api_delete_reply, name='api_delete_reply'), 
+ 
+ 
+ # Add these to your urlpatterns
+ 
+ # Lunchbox Stories URLs
+ path('lunchbox-stories/', views.lunchbox_stories, name='lunchbox_stories'),
+ path('story/<int:id>/', views.story_detail, name='story_detail'),
+ path('add-story/', views.add_story, name='add_story'),
+ path('edit-story/<int:id>/', views.edit_story, name='edit_story'),
+ path('delete-story/<int:id>/', views.delete_story, name='delete_story'),
+ path('my-stories/', views.my_stories, name='my_stories'),
+ 
+ # API Endpoints for Stories
+ path('api/story/<int:id>/like/', views.toggle_story_like, name='toggle_story_like'),
+ path('api/story/<int:id>/comment/', views.add_story_comment, name='add_story_comment'),
+ path('api/story/delete-comment/<int:comment_id>/', views.delete_story_comment, name='delete_story_comment'),
 ]

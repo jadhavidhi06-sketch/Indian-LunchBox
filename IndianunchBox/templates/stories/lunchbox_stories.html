@@ -1,0 +1,1017 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="stories-container">
+    <div class="container">
+        <!-- Hero Section with Animation -->
+        <div class="stories-hero text-center fade-in">
+            <div class="hero-badge bounce">
+                <i class="fas fa-tiffin-carrier"></i> Nostalgic Tales
+            </div>
+            <h1 class="stories-title">
+                Lunchbox Stories
+                <span class="title-underline">Memories that warm the heart</span>
+            </h1>
+            <p class="stories-subtitle">
+                Every lunchbox has a story. Share your cherished food memories and relive the taste of home.
+            </p>
+            {% if request.session.user_id %}
+            <a href="/add-story/" class="btn-cozy pulse-hover">
+                <i class="fas fa-pen-fancy"></i> Share Your Story
+            </a>
+            {% else %}
+            <a href="/login/" class="btn-cozy pulse-hover">
+                <i class="fas fa-sign-in-alt"></i> Login to Share
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter slide-up">
+            <div class="category-scroll">
+                <a href="/lunchbox-stories/" class="category-chip {% if not current_category %}active{% endif %}">
+                    <i class="fas fa-heart"></i> All Stories
+                </a>
+                {% for cat in categories %}
+                <a href="/lunchbox-stories/?category={{ cat.0 }}" 
+                   class="category-chip {% if current_category == cat.0 %}active{% endif %}">
+                    <span>{{ cat.1 }}</span> {{ cat.0 }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-section slide-up">
+            <form method="GET" action="/lunchbox-stories/" class="search-form">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Search stories by title or content..." 
+                           value="{{ search_query }}" class="search-input">
+                    <button type="submit" class="search-btn">Search</button>
+                    {% if search_query %}
+                    <a href="/lunchbox-stories/" class="clear-search">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Stories Grid - Vintage Photo Album Layout -->
+        {% if stories %}
+        <div class="stories-grid">
+            {% for story in stories %}
+            <div class="story-card-wrapper fade-in-up" style="animation-delay: {{ forloop.counter0|add:1|stringformat:"i" }}00ms">
+                <div class="story-card">
+                    <!-- Polaroid-style Frame -->
+                    <div class="polaroid-frame">
+                        <!-- Large Image Section (Prominently Visible) -->
+                        <div class="story-image-container">
+                            {% if story.4 %}
+                            <div class="story-image-wrapper">
+                                <img src="/media/{{ story.4 }}" alt="{{ story.1 }}" class="story-image-large" loading="lazy">
+                                <div class="image-shine"></div>
+                            </div>
+                            {% else %}
+                            <div class="story-image-placeholder">
+                                <div class="placeholder-content">
+                                    <i class="fas fa-tiffin-carrier"></i>
+                                    <span>Share a memory</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Category Stamp -->
+                            <div class="category-stamp">
+                                <span>{{ story.5 }}</span>
+                            </div>
+                            
+                            <!-- Like Button Overlay -->
+                            <button class="quick-like-btn" onclick="quickLike({{ story.0 }}, this)">
+                                <i class="far fa-heart"></i>
+                                <span class="like-count">{{ story.6 }}</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Content Area (Like a photo caption) -->
+                        <div class="story-caption">
+                            <div class="caption-header">
+                                <h3 class="story-title">{{ story.1 }}</h3>
+                                <div class="story-emoji">{{ story.5|slice:":2"|default:"📖" }}</div>
+                            </div>
+                            
+                            <div class="story-excerpt">
+                                {{ story.2|safe|truncatechars:110 }}
+                            </div>
+                            
+                            <!-- Author & Date Row -->
+                            <div class="story-meta-row">
+                                <div class="author-info">
+                                    <div class="author-avatar-small">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="author-details">
+                                        <span class="author-name">{{ story.8 }}</span>
+                                        <span class="story-date">{{ story.7|date:"M d, Y" }}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Stats Row -->
+                                <div class="stats-row">
+                                    <div class="stat" title="Likes">
+                                        <i class="fas fa-heart"></i>
+                                        <span>{{ story.6 }}</span>
+                                    </div>
+                                    <div class="stat" title="Comments">
+                                        <i class="fas fa-comment"></i>
+                                        <span>{{ story.10|default:0 }}</span>
+                                    </div>
+                                    <div class="stat" title="Views">
+                                        <i class="fas fa-eye"></i>
+                                        <span>{{ story.9 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Read More Button -->
+                            <a href="/story/{{ story.0 }}/" class="read-more-btn">
+                                <span>Continue Reading</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="pagination slide-up">
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page|add:-1 }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+               class="page-btn">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+            {% endif %}
+            
+            <div class="page-numbers">
+                {% for i in "12345"|make_list %}
+                    {% with page_num=forloop.counter %}
+                        {% if page_num <= total_pages %}
+                            <a href="?page={{ page_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+                               class="page-number {% if current_page == page_num %}active{% endif %}">
+                                {{ page_num }}
+                            </a>
+                        {% endif %}
+                    {% endwith %}
+                {% endfor %}
+                {% if total_pages > 5 %}
+                    <span class="page-dots">...</span>
+                    <a href="?page={{ total_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+                       class="page-number">
+                        {{ total_pages }}
+                    </a>
+                {% endif %}
+            </div>
+            
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page|add:1 }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+               class="page-btn">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state fade-in">
+            <div class="empty-state-icon">
+                <i class="fas fa-tiffin-carrier"></i>
+            </div>
+            <h3>No stories found</h3>
+            <p>{% if search_query %}No stories match your search. Try different keywords!{% else %}Be the first to share a heartwarming lunchbox memory!{% endif %}</p>
+            {% if search_query %}
+            <a href="/lunchbox-stories/" class="btn-cozy">Clear Search</a>
+            {% else %}
+            <a href="/add-story/" class="btn-cozy">Share Your Story</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Memory Lane Quote -->
+        <div class="memory-quote fade-in">
+            <div class="quote-content">
+                <i class="fas fa-quote-left"></i>
+                <p>The most delicious meals are the ones seasoned with memories and served with love.</p>
+                <i class="fas fa-quote-right"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stories-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    @keyframes shine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out forwards;
+        opacity: 0;
+    }
+    
+    .slide-up {
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    .bounce {
+        animation: bounce 2s ease infinite;
+    }
+    
+    .pulse-hover:hover {
+        animation: pulse 0.3s ease;
+    }
+
+    /* Hero Section */
+    .stories-hero {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 1rem;
+        position: relative;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: white;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .stories-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .title-underline {
+        display: block;
+        font-size: 1.2rem;
+        color: #c96b4a;
+        margin-top: 0.5rem;
+        font-family: 'Kalam', cursive;
+    }
+
+    .stories-subtitle {
+        font-size: 1rem;
+        color: #7a624b;
+        max-width: 600px;
+        margin: 1rem auto;
+    }
+
+    /* Category Filter */
+    .category-filter {
+        margin-bottom: 2rem;
+        overflow-x: auto;
+    }
+
+    .category-scroll {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .category-chip {
+        padding: 8px 18px;
+        background: white;
+        border-radius: 50px;
+        text-decoration: none;
+        color: #5a3e2e;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        border: 1px solid #f0dfbf;
+        white-space: nowrap;
+    }
+
+    .category-chip:hover, .category-chip.active {
+        background: #c96b4a;
+        color: white;
+        border-color: #c96b4a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(201, 107, 74, 0.3);
+    }
+
+    /* Search Section */
+    .search-section {
+        margin-bottom: 2rem;
+    }
+
+    .search-wrapper {
+        position: relative;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .search-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #c96b4a;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 15px 12px 40px;
+        border: 2px solid #f0dfbf;
+        border-radius: 50px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 3px rgba(226, 177, 59, 0.1);
+    }
+
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #c96b4a;
+        color: white;
+        border: none;
+        padding: 6px 18px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .search-btn:hover {
+        background: #a55233;
+    }
+
+    .clear-search {
+        position: absolute;
+        right: 85px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #dc3545;
+        text-decoration: none;
+        font-size: 0.8rem;
+    }
+
+    /* Stories Grid - Vintage Photo Album Layout */
+    .stories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .story-card-wrapper {
+        perspective: 1000px;
+    }
+
+    .story-card {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .story-card:hover {
+        transform: translateY(-5px);
+    }
+
+    /* Polaroid Frame */
+    .polaroid-frame {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 5px 10px -5px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .story-card:hover .polaroid-frame {
+        box-shadow: 0 25px 40px -12px rgba(201, 107, 74, 0.3);
+    }
+
+    /* Large Image Container - PROMINENTLY VISIBLE */
+    .story-image-container {
+        position: relative;
+        height: 320px;
+        overflow: hidden;
+        background: #f8ede4;
+    }
+
+    .story-image-wrapper {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .story-image-large {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .story-card:hover .story-image-large {
+        transform: scale(1.05);
+    }
+
+    .image-shine {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .story-card:hover .image-shine {
+        left: 200%;
+    }
+
+    /* Image Placeholder */
+    .story-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #fef5ea, #fae8d8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .placeholder-content {
+        text-align: center;
+        color: #c96b4a;
+    }
+
+    .placeholder-content i {
+        font-size: 4rem;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .placeholder-content span {
+        font-size: 0.9rem;
+    }
+
+    /* Category Stamp */
+    .category-stamp {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(201, 107, 74, 0.95);
+        color: white;
+        padding: 5px 14px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(2px);
+        z-index: 2;
+    }
+
+    /* Quick Like Button */
+    .quick-like-btn {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        padding: 8px 14px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #c96b4a;
+        backdrop-filter: blur(2px);
+        z-index: 2;
+    }
+
+    .quick-like-btn:hover {
+        transform: scale(1.05);
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .quick-like-btn.liked {
+        background: #c96b4a;
+        color: white;
+    }
+
+    .quick-like-btn.liked i {
+        font-weight: 900;
+    }
+
+    /* Caption Area */
+    .story-caption {
+        padding: 1.5rem;
+    }
+
+    .caption-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+    }
+
+    .story-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin: 0;
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    .story-emoji {
+        font-size: 1.8rem;
+        margin-left: 10px;
+    }
+
+    .story-excerpt {
+        color: #7a624b;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    /* Author & Meta Row */
+    .story-meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 0;
+        border-top: 1px solid #f0dfbf;
+        border-bottom: 1px solid #f0dfbf;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .author-avatar-small {
+        font-size: 1.8rem;
+        color: #c96b4a;
+    }
+
+    .author-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-name {
+        font-weight: 700;
+        color: #5a3e2e;
+        font-size: 0.85rem;
+    }
+
+    .story-date {
+        font-size: 0.7rem;
+        color: #a8a8a8;
+    }
+
+    /* Stats Row */
+    .stats-row {
+        display: flex;
+        gap: 12px;
+    }
+
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        color: #c96b4a;
+    }
+
+    .stat i {
+        font-size: 0.85rem;
+    }
+
+    .stat span {
+        font-weight: 600;
+    }
+
+    /* Read More Button */
+    .read-more-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        color: #c96b4a;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        gap: 8px;
+    }
+
+    .read-more-btn:hover {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .read-more-btn:hover i {
+        transform: translateX(5px);
+    }
+
+    .read-more-btn i {
+        transition: transform 0.3s ease;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .page-btn {
+        background: white;
+        padding: 8px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        color: #c96b4a;
+        border: 1px solid #f0dfbf;
+        transition: all 0.2s;
+    }
+
+    .page-btn:hover {
+        background: #c96b4a;
+        color: white;
+        border-color: #c96b4a;
+    }
+
+    .page-numbers {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .page-number {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #7a624b;
+        border-radius: 50%;
+        transition: all 0.2s;
+        background: white;
+        border: 1px solid #f0dfbf;
+    }
+
+    .page-number:hover, .page-number.active {
+        background: #c96b4a;
+        color: white;
+        border-color: #c96b4a;
+    }
+
+    .page-dots {
+        color: #7a624b;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: white;
+        border-radius: 32px;
+        margin-top: 2rem;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #e2b13b;
+        margin-bottom: 1rem;
+    }
+
+    /* Memory Quote */
+    .memory-quote {
+        margin-top: 4rem;
+        padding: 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        border-radius: 60px;
+        position: relative;
+    }
+
+    .quote-content {
+        position: relative;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .quote-content i:first-child {
+        position: absolute;
+        left: -20px;
+        top: -10px;
+        color: #e2b13b;
+        font-size: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .quote-content i:last-child {
+        position: absolute;
+        right: -20px;
+        bottom: -10px;
+        color: #e2b13b;
+        font-size: 1.5rem;
+        opacity: 0.5;
+    }
+
+    .quote-content p {
+        font-family: 'Kalam', cursive;
+        font-size: 1rem;
+        color: #5a3e2e;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stories-title {
+            font-size: 1.8rem;
+        }
+        
+        .stories-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .story-image-container {
+            height: 260px;
+        }
+        
+        .category-scroll {
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            padding-bottom: 8px;
+        }
+        
+        .search-wrapper {
+            margin: 0 1rem;
+        }
+        
+        .story-meta-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .stats-row {
+            width: 100%;
+            justify-content: space-around;
+        }
+        
+        .memory-quote {
+            margin-top: 2rem;
+            padding: 1.5rem;
+        }
+        
+        .quote-content p {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stories-hero {
+            padding: 1rem;
+        }
+        
+        .story-image-container {
+            height: 220px;
+        }
+        
+        .story-caption {
+            padding: 1rem;
+        }
+        
+        .story-title {
+            font-size: 1.1rem;
+        }
+        
+        .story-emoji {
+            font-size: 1.4rem;
+        }
+        
+        .caption-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+    }
+</style>
+
+<script>
+    // Get CSRF token
+    function getCSRFToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, 10) === 'csrftoken=') {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Quick Like functionality
+    async function quickLike(storyId, element) {
+        const isLiked = element.classList.contains('liked');
+        
+        try {
+            const response = await fetch(`/api/story/${storyId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.liked !== undefined) {
+                const icon = element.querySelector('i');
+                const likeSpan = element.querySelector('.like-count');
+                
+                if (data.liked) {
+                    element.classList.add('liked');
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    likeSpan.textContent = data.likes_count;
+                    
+                    // Show toast
+                    showQuickToast('❤️ Story liked!');
+                } else {
+                    element.classList.remove('liked');
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    likeSpan.textContent = data.likes_count;
+                    
+                    showQuickToast('💔 Story unliked');
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            if (!isLiked) {
+                showQuickToast('Please login to like stories', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 1500);
+            }
+        }
+    }
+
+    // Quick Toast
+    function showQuickToast(message, type = 'success') {
+        let toastContainer = document.querySelector('.quick-toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'quick-toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const bgColor = type === 'success' ? '#28a745' : '#ffc107';
+        const toast = document.createElement('div');
+        toast.className = 'toast align-items-center text-white border-0';
+        toast.style.background = bgColor;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        toastContainer.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 2000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Lazy loading images with Intersection Observer
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = document.querySelectorAll('.story-image-large');
+        const imageOptions = {
+            threshold: 0.1,
+            rootMargin: '100px'
+        };
+        
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.getAttribute('src');
+                    if (src && !img.getAttribute('data-loaded')) {
+                        img.setAttribute('data-loaded', 'true');
+                        img.style.opacity = '0';
+                        img.onload = () => {
+                            img.style.transition = 'opacity 0.3s';
+                            img.style.opacity = '1';
+                        };
+                    }
+                    imageObserver.unobserve(img);
+                }
+            });
+        }, imageOptions);
+        
+        images.forEach(img => imageObserver.observe(img));
+        
+        // Add fade-in-up animation to story cards
+        const cards = document.querySelectorAll('.story-card-wrapper');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${(index % 6) * 0.1}s`;
+        });
+    });
+</script>
+
+<!-- Quick Toast Container -->
+<div class="quick-toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+
+{% endblock %}
