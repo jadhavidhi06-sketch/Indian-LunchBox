@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anniversary Love Box</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --bg:#0f1220; --card:#171a2b; --txt:#f5f7ff; --muted:#b6bfdc; --accent:#ff6ea8; --accent2:#8b7bff; }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(120deg,#0f1220,#1c2440);color:var(--txt)}
+    .container{max-width:1200px;margin:auto;padding:20px}
+    .row{display:grid;gap:16px}.row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:repeat(3,1fr)}
+    .card{background:rgba(23,26,43,.85);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;backdrop-filter:blur(6px)}
+    h1,h2,h3{margin:.2rem 0 1rem} .muted{color:var(--muted)} .btn{background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+    .btn.secondary{background:#2a3156}.btn.danger{background:#9d2d52} input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #3b4570;background:#11162c;color:#fff}
+    .hero{position:relative;overflow:hidden;border-radius:16px;min-height:260px}
+    .hero img,.hero video{width:100%;height:260px;object-fit:cover;border-radius:16px}
+    .lang-toggle{display:flex;gap:10px;justify-content:flex-end;margin-bottom:12px}
+    .grid-gallery{columns:3 260px;column-gap:12px}.media-item{break-inside:avoid;margin:0 0 12px;position:relative}
+    .media-item img,.media-item video{width:100%;border-radius:12px;display:block}
+    .badge{display:inline-block;font-size:12px;padding:2px 8px;background:#2b345c;border-radius:999px}
+    .hidden{display:none}
+    .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:999}
+    .lightbox img,.lightbox video{max-width:92vw;max-height:88vh;border-radius:12px}
+    .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .couple-card{cursor:pointer;transition:.2s}.couple-card:hover{transform:translateY(-2px)}
+    .particle{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;opacity:.4;pointer-events:none;animation:float 8s linear infinite}
+    @keyframes float{from{transform:translateY(100vh)}to{transform:translateY(-10vh)}}
+    @media (max-width:800px){.row.cols-2,.row.cols-3{grid-template-columns:1fr}.hero img,.hero video{height:200px}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="lang-toggle">
+    <button class="btn secondary" onclick="setLang('en')">English</button>
+    <button class="btn secondary" onclick="setLang('mr')">मराठी</button>
+  </div>
+
+  <div class="nav card">
+    <h1 data-i18n="title">Anniversary Love Box</h1>
+    <div>
+      <button class="btn secondary" onclick="showSection('authSection')" data-i18n="login_register">Login / Register</button>
+      <button class="btn" onclick="showSection('adminSection')">Admin</button>
+    </div>
+  </div>
+
+  <section id="introSection" class="card">
+    <h2 data-i18n="cinematic_intro">Cinematic Intro</h2>
+    <p class="muted" data-i18n="intro_desc">Particles, smooth fade-up animations, and a surprise-ready family gallery experience.</p>
+  </section>
+
+  <section id="coupleSection" class="card">
+    <h2 data-i18n="select_couple">Select Couple</h2>
+    <div id="coupleCards" class="row cols-3"></div>
+  </section>
+
+  <section id="heroSection" class="card hidden">
+    <div class="nav">
+      <h2 id="heroTitle">Hero Slideshow</h2>
+      <span id="heroBadge" class="badge">Auto 5s</span>
+    </div>
+    <div class="hero" id="heroContainer"></div>
+  </section>
+
+  <section id="gallerySection" class="card hidden">
+    <h2 data-i18n="gallery">Photo / Video Gallery</h2>
+    <div id="galleryGrid" class="grid-gallery"></div>
+  </section>
+
+  <section id="musicSection" class="card hidden">
+    <h2 data-i18n="music">Background Music</h2>
+    <audio id="bgMusic" controls></audio>
+  </section>
+
+  <section id="wishSection" class="card hidden">
+    <h2 data-i18n="wishes">Wishing Box</h2>
+    <div class="row cols-2">
+      <div>
+        <input id="wishAuthor" placeholder="Your name" />
+        <textarea id="wishText" rows="4" placeholder="Write your wish..."></textarea>
+        <button class="btn" onclick="addWish()" data-i18n="submit_wish">Submit Wish</button>
+      </div>
+      <div>
+        <div id="wishList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="authSection" class="card hidden">
+    <h2 data-i18n="login_register">Login / Register</h2>
+    <div class="row cols-2">
+      <div>
+        <h3>Login</h3>
+        <input id="loginEmail" type="email" placeholder="Email" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button class="btn" onclick="loginUser()">Login</button>
+      </div>
+      <div>
+        <h3>Register</h3>
+        <input id="regEmail" type="email" placeholder="Email" />
+        <input id="regPassword" type="password" placeholder="Password" />
+        <button class="btn" onclick="registerUser()">Register</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="adminSection" class="card hidden">
+    <h2>Admin Panel</h2>
+    <div class="row cols-2">
+      <div>
+        <h3>Admin Login</h3>
+        <input id="adminEmail" type="email" value="admin@anniversary.love" />
+        <input id="adminPassword" type="password" value="vidhi2816" />
+        <button class="btn" onclick="adminLogin()">Login as Admin</button>
+      </div>
+      <div>
+        <h3>Upload Photos / Videos</h3>
+        <select id="adminMediaCouple"></select>
+        <input id="mediaFile" type="file" accept="image/*,video/*" />
+        <button class="btn" onclick="handleMediaUpload()">Upload Media</button>
+
+        <h3 style="margin-top:16px">Upload Music</h3>
+        <input id="musicFile" type="file" accept="audio/*" />
+        <button class="btn" onclick="handleMusicUpload()">Upload Music</button>
+      </div>
+    </div>
+    <h3>Moderation</h3>
+    <div id="adminWishList"></div>
+  </section>
+</div>
+
+<div id="lightbox" class="lightbox" onclick="closeLightbox()"></div>
+
+<script>
+  // -------------------- Supabase Setup --------------------
+  const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // -------------------- Seed Data --------------------
+  const ADMIN_EMAIL = 'admin@anniversary.love';
+  const ADMIN_PASSWORD = 'vidhi2816';
+  const couples = [
+    { id: 1, name: 'Aai & Baba' },
+    { id: 2, name: 'Kaka & Kaku' },
+    { id: 3, name: 'Dada & Vahini' }
+  ];
+
+  let selectedCoupleId = null;
+  let heroIndex = 0;
+  let heroTimer = null;
+  const mediaByCouple = { 1: [], 2: [], 3: [] };
+  const musicByCouple = { 1: '', 2: '', 3: '' };
+  let wishes = [];
+
+  const i18n = {
+    en: {
+      title: 'Anniversary Love Box', cinematic_intro: 'Cinematic Intro', intro_desc: 'Particles, smooth fade-up animations, and a surprise-ready family gallery experience.',
+      select_couple: 'Select Couple', gallery: 'Photo / Video Gallery', music: 'Background Music', wishes: 'Wishing Box', submit_wish: 'Submit Wish', login_register: 'Login / Register'
+    },
+    mr: {
+      title: 'अॅनिव्हर्सरी लव्ह बॉक्स', cinematic_intro: 'सिनेमॅटिक परिचय', intro_desc: 'पार्टिकल्स, सुंदर अॅनिमेशन आणि कुटुंबासाठी खास गॅलरी अनुभव.',
+      select_couple: 'कपल निवडा', gallery: 'फोटो / व्हिडिओ गॅलरी', music: 'बॅकग्राउंड म्युझिक', wishes: 'शुभेच्छा पेटी', submit_wish: 'शुभेच्छा पाठवा', login_register: 'लॉगिन / नोंदणी'
+    }
+  };
+
+  function setLang(lang) {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (i18n[lang]?.[key]) el.textContent = i18n[lang][key];
+    });
+  }
+
+  function showSection(id) {
+    ['authSection','adminSection'].forEach(sec => document.getElementById(sec).classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function createParticles() {
+    for (let i = 0; i < 24; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDelay = (Math.random() * 8) + 's';
+      p.style.opacity = Math.random() * .5;
+      document.body.appendChild(p);
+    }
+  }
+
+  function renderCouples() {
+    const wrap = document.getElementById('coupleCards');
+    const select = document.getElementById('adminMediaCouple');
+    wrap.innerHTML = '';
+    select.innerHTML = '';
+    couples.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'card couple-card';
+      card.innerHTML = `<h3>${c.name}</h3><p class="muted">Open memories</p>`;
+      card.onclick = () => selectCouple(c.id);
+      wrap.appendChild(card);
+
+      const opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name;
+      select.appendChild(opt);
+    });
+  }
+
+  function selectCouple(id) {
+    selectedCoupleId = Number(id);
+    document.getElementById('heroSection').classList.remove('hidden');
+    document.getElementById('gallerySection').classList.remove('hidden');
+    document.getElementById('musicSection').classList.remove('hidden');
+    document.getElementById('wishSection').classList.remove('hidden');
+    renderHero();
+    renderGallery();
+    renderMusic();
+    renderWishes();
+  }
+
+  function renderHero() {
+    const list = mediaByCouple[selectedCoupleId] || [];
+    const hero = document.getElementById('heroContainer');
+    clearInterval(heroTimer);
+    if (!list.length) { hero.innerHTML = '<p class="muted">No media yet.</p>'; return; }
+    heroIndex = 0;
+    const draw = () => {
+      const item = list[heroIndex % list.length];
+      hero.innerHTML = item.type === 'video'
+        ? `<video src="${item.url}" autoplay muted loop></video>`
+        : `<img src="${item.url}" alt="hero" />`;
+      heroIndex++;
+    };
+    draw();
+    heroTimer = setInterval(draw, 5000);
+  }
+
+  function renderGallery() {
+    const grid = document.getElementById('galleryGrid');
+    const list = mediaByCouple[selectedCoupleId] || [];
+    grid.innerHTML = list.map((item, idx) => `
+      <div class="media-item" onclick="openLightbox(${idx})">
+        ${item.type === 'video' ? `<video src="${item.url}" muted></video>` : `<img src="${item.url}" alt="media" />`}
+      </div>
+    `).join('') || '<p class="muted">No uploads yet.</p>';
+  }
+
+  function renderMusic() {
+    const audio = document.getElementById('bgMusic');
+    audio.src = musicByCouple[selectedCoupleId] || '';
+  }
+
+  function renderWishes() {
+    const items = wishes.filter(w => w.couple_id === selectedCoupleId);
+    document.getElementById('wishList').innerHTML = items.map(w => `<div class="card"><b>${w.author}</b><p>${w.message}</p></div>`).join('');
+    document.getElementById('adminWishList').innerHTML = items.map(w => `<div class="card"><b>${w.author}</b><p>${w.message}</p><button class="btn danger" onclick="deleteWish('${w.id}')">Delete</button></div>`).join('');
+  }
+
+  async function loginUser() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    alert(error ? error.message : 'Login successful');
+  }
+
+  async function registerUser() {
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const { error } = await supabase.auth.signUp({ email, password });
+    alert(error ? error.message : 'Registration successful');
+  }
+
+  async function adminLogin() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) return alert('Invalid admin credentials');
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    alert(error ? `Supabase login failed: ${error.message}` : 'Admin logged in successfully');
+  }
+
+  // Upgrading to Supabase Storage (for full file upload persistence)
+  // Currently, uploaded files are stored as local browser object URLs (they work during your session).
+  // For permanent file storage after deployment, use this in upload handlers:
+  async function uploadToSupabase(file, bucket, coupleId) {
+    const path = `couple_${coupleId}/${Date.now()}_${file.name}`;
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, { upsert: true });
+    if (error) throw error;
+    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+    return { url: publicUrl, path };
+  }
+
+  async function handleMediaUpload() {
+    const file = document.getElementById('mediaFile').files[0];
+    const coupleId = Number(document.getElementById('adminMediaCouple').value);
+    if (!file) return alert('Select a media file first');
+
+    const isVideo = file.type.startsWith('video/');
+
+    // OLD local object URL approach (commented out):
+    // const localUrl = URL.createObjectURL(file);
+    // mediaByCouple[coupleId].push({ name: file.name, url: localUrl, type: isVideo ? 'video' : 'image' });
+
+    // Supabase storage approach:
+    const { url, path } = await uploadToSupabase(file, 'media', coupleId);
+    await supabase.from('media').insert([
+      {
+        couple_id: coupleId,
+        name: file.name,
+        url,
+        storage_path: path,
+        type: isVideo ? 'video' : 'image'
+      }
+    ]);
+
+    mediaByCouple[coupleId].push({ name: file.name, url, type: isVideo ? 'video' : 'image' });
+    if (selectedCoupleId === coupleId) { renderHero(); renderGallery(); }
+    alert('Media uploaded successfully');
+  }
+
+  async function handleMusicUpload() {
+    const file = document.getElementById('musicFile').files[0];
+    const coupleId = Number(document.getElementById('adminMediaCouple').value);
+    if (!file) return alert('Select an audio file first');
+
+    // OLD local object URL approach (commented out):
+    // musicByCouple[coupleId] = URL.createObjectURL(file);
+
+    const { url, path } = await uploadToSupabase(file, 'music', coupleId);
+    await supabase.from('music').insert([{ couple_id: coupleId, name: file.name, url, storage_path: path }]);
+
+    musicByCouple[coupleId] = url;
+    if (selectedCoupleId === coupleId) renderMusic();
+    alert('Music uploaded successfully');
+  }
+
+  async function addWish() {
+    if (!selectedCoupleId) return alert('Select a couple first');
+    const author = document.getElementById('wishAuthor').value.trim() || 'Anonymous';
+    const message = document.getElementById('wishText').value.trim();
+    if (!message) return;
+
+    const payload = { couple_id: selectedCoupleId, author, message };
+
+    // OLD localStorage persistence (commented out):
+    // wishes.push({ id: crypto.randomUUID(), ...payload });
+    // localStorage.setItem('wishes', JSON.stringify(wishes));
+
+    const { data, error } = await supabase.from('wishes').insert([payload]).select();
+    if (error) return alert(error.message);
+    wishes.unshift({ id: data[0].id, ...payload });
+
+    document.getElementById('wishText').value = '';
+    renderWishes();
+  }
+
+  async function deleteWish(id) {
+    const { error } = await supabase.from('wishes').delete().eq('id', id);
+    if (error) return alert(error.message);
+    wishes = wishes.filter(w => String(w.id) !== String(id));
+    renderWishes();
+  }
+
+  function openLightbox(idx) {
+    const item = (mediaByCouple[selectedCoupleId] || [])[idx];
+    if (!item) return;
+    const lb = document.getElementById('lightbox');
+    lb.style.display = 'flex';
+    lb.innerHTML = item.type === 'video' ? `<video src="${item.url}" controls autoplay></video>` : `<img src="${item.url}" alt="preview" />`;
+  }
+  function closeLightbox(){ const lb = document.getElementById('lightbox'); lb.style.display = 'none'; lb.innerHTML = ''; }
+
+  async function bootstrapData() {
+    const [{ data: media }, { data: music }, { data: wishData }] = await Promise.all([
+      supabase.from('media').select('*').order('id', { ascending: false }),
+      supabase.from('music').select('*').order('id', { ascending: false }),
+      supabase.from('wishes').select('*').order('id', { ascending: false })
+    ]);
+
+    (media || []).forEach(m => {
+      if (!mediaByCouple[m.couple_id]) mediaByCouple[m.couple_id] = [];
+      mediaByCouple[m.couple_id].push({ name: m.name, url: m.url, type: m.type });
+    });
+
+    (music || []).forEach(m => {
+      if (!musicByCouple[m.couple_id]) musicByCouple[m.couple_id] = '';
+      if (!musicByCouple[m.couple_id]) musicByCouple[m.couple_id] = m.url;
+    });
+
+    wishes = wishData || [];
+  }
+
+  (async function init() {
+    createParticles();
+    setLang('en');
+    renderCouples();
+    await bootstrapData();
+  })();
+</script>
+</body>
+</html>
