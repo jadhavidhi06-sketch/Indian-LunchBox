@@ -2026,3 +2026,345 @@ def delete_story_comment(request, comment_id):
         return JsonResponse({'success': True})
     
     return JsonResponse({'error': 'Invalid method'}, status=405)    
+    
+
+from django.shortcuts import render, redirect
+from django.db import connection
+from django.contrib import messages
+from django.http import JsonResponse
+from django.core.files.storage import FileSystemStorage
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
+from datetime import datetime
+import os
+from django.conf import settings
+
+# ==============================================
+# GRANDMA'S TIPS VIEWS
+# ==============================================
+
+def grandma_tips(request):
+    """
+    Display all grandma's tips with pagination and filters
+    """
+    category = request.GET.get('category')
+    search = request.GET.get('search', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 9
+    offset = (page - 1) * per_page
+    
+    tips = []
+    total_count = 0
+    
+    with connection.cursor() as cursor:
+        # Get total count
+        cursor.callproc('GetTotalTipsCount', [category, search if search else None])
+        result = cursor.fetchone()
+        if result:
+            total_count = result[0]
+        
+        # Get tips
+        cursor.callproc('GetTipsWithStats', [per_page, offset, category, search if search else None])
+        tips = cursor.fetchall()
+    
+    # Get categories
+    with connection.cursor() as cursor:
+        cursor.callproc('GetAllTipCategories')
+        categories = cursor.fetchall()
+    
+    total_pages = (total_count + per_page - 1) // per_page
+    
+    context = {
+        'tips': tips,
+        'categories': categories,
+        'current_category': category,
+        'search_query': search,
+        'current_page': page,
+        'total_pages': total_pages,
+        'total_count': total_count,
+        'page_title': "Grandma's Kitchen Wisdom"
+    }
+    
+    return render(request, 'grandma_tips.html', context)
+
+
+def tip_detail(request, id):
+    """
+    Display single tip detail
+    """
+    # Increment view count
+    with connection.cursor() as cursor:
+        cursor.callproc('IncrementTipViews', [id])
+    
+    # Get tip details
+    with connection.cursor() as cursor:
+        cursor.callproc('GetTipDetails', [id])
+        tip = cursor.fetchone()
+    
+    if not tip:
+        messages.error(request, 'Tip not found')
+        return redirect('grandma_tips')
+    
+    # Get related tips
+    with connection.cursor() as cursor:
+        cursor.callproc('GetRelatedTips', [id, tip[4], 3])
+        related_tips = cursor.fetchall()
+    
+    # Check if user liked the tip
+    user_liked = False
+    user_saved = False
+    if request.session.get('user_id'):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM tip_likes WHERE tip_id = %s AND user_id = %s", 
+                          [id, request.session['user_id']])
+            user_liked = cursor.fetchone() is not None
+            
+            cursor.execute("SELECT * FROM tip_saves WHERE tip_id = %s AND user_id = %s", 
+                          [id, request.session['user_id']])
+            user_saved = cursor.fetchone() is not None
+    
+    context = {
+        'tip': tip,
+        'related_tips': related_tips,
+        'user_liked': user_liked,
+        'user_saved': user_saved,
+        'page_title': tip[1] + ' - Grandma\'s Tips'
+    }
+    
+    return render(request, 'tip_detail.html', context)
+
+
+def add_tip(request):
+    """
+    Add a new grandma's tip
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to share your tip')
+        return redirect('login')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        tags = request.POST.get('tags', '')
+        
+        # Handle image upload
+        image = request.FILES.get('image')
+        filename = None
+        if image:
+            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'tips'))
+            filename = fs.save(image.name, image)
+            filename = f'tips/{filename}'
+        
+        with connection.cursor() as cursor:
+            cursor.callproc('AddTip', [
+                request.session['user_id'], title, content, 
+                filename, category, tags
+            ])
+        
+        messages.success(request, 'Your kitchen wisdom has been shared! 👵✨')
+        return redirect('grandma_tips')
+    
+    # Get categories
+    with connection.cursor() as cursor:
+        cursor.callproc('GetAllTipCategories')
+        categories = cursor.fetchall()
+    
+    context = {
+        'categories': categories,
+        'page_title': 'Share a Kitchen Tip'
+    }
+    
+    return render(request, 'add_tip.html', context)
+
+
+def edit_tip(request, id):
+    """
+    Edit a tip
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to edit your tip')
+        return redirect('login')
+    
+    # Fetch tip
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT tip_id, title, content, image, category, tags, user_id
+            FROM grandma_tips
+            WHERE tip_id = %s
+        """, [id])
+        tip = cursor.fetchone()
+    
+    if not tip:
+        messages.error(request, 'Tip not found')
+        return redirect('grandma_tips')
+    
+    if tip[6] != request.session['user_id']:
+        messages.error(request, 'You can only edit your own tips')
+        return redirect('grandma_tips')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        content = request.POST.get('content')
+        category = request.POST.get('category')
+        tags = request.POST.get('tags', '')
+        remove_image = request.POST.get('remove_image') == 'on'
+        
+        filename = tip[3]  # Keep existing image
+        
+        if remove_image:
+            filename = None
+        elif request.FILES.get('image'):
+            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'tips'))
+            filename = fs.save(request.FILES['image'].name, request.FILES['image'])
+            filename = f'tips/{filename}'
+        
+        with connection.cursor() as cursor:
+            cursor.callproc('UpdateTip', [
+                id, request.session['user_id'], title, content, 
+                filename, category, tags
+            ])
+        
+        messages.success(request, 'Tip updated successfully!')
+        return redirect('tip_detail', id=id)
+    
+    context = {
+        'tip': tip,
+        'page_title': 'Edit Tip'
+    }
+    
+    return render(request, 'edit_tip.html', context)
+
+
+def delete_tip(request, id):
+    """
+    Delete a tip
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to delete your tip')
+        return redirect('login')
+    
+    with connection.cursor() as cursor:
+        cursor.callproc('DeleteTip', [id, request.session['user_id']])
+    
+    messages.success(request, 'Tip deleted successfully')
+    return redirect('my_tips')
+
+
+def my_tips(request):
+    """
+    Display user's own tips
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to view your tips')
+        return redirect('login')
+    
+    with connection.cursor() as cursor:
+        cursor.callproc('GetUserTips', [request.session['user_id']])
+        tips = cursor.fetchall()
+    
+    context = {
+        'tips': tips,
+        'total_count': len(tips),
+        'page_title': 'My Tips'
+    }
+    
+    return render(request, 'my_tips.html', context)
+
+
+def saved_tips(request):
+    """
+    Display user's saved tips
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to view your saved tips')
+        return redirect('login')
+    
+    with connection.cursor() as cursor:
+        cursor.callproc('GetUserSavedTips', [request.session['user_id']])
+        tips = cursor.fetchall()
+    
+    context = {
+        'tips': tips,
+        'total_count': len(tips),
+        'page_title': 'Saved Tips'
+    }
+    
+    return render(request, 'saved_tips.html', context)
+
+
+# ==============================================
+# API ENDPOINTS
+# ==============================================
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_tip_like(request, id):
+    """
+    API to like/unlike a tip
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.callproc('ToggleTipLike', [id, user_id])
+        result = cursor.fetchone()
+    
+    if result:
+        return JsonResponse({
+            'liked': result[0],
+            'likes_count': result[1]
+        })
+    
+    return JsonResponse({'error': 'Something went wrong'}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def toggle_tip_save(request, id):
+    """
+    API to save/unsave a tip
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.callproc('ToggleTipSave', [id, user_id])
+        result = cursor.fetchone()
+    
+    if result:
+        return JsonResponse({
+            'saved': result[0],
+            'saves_count': result[1]
+        })
+    
+    return JsonResponse({'error': 'Something went wrong'}, status=500)
+
+
+def get_featured_tips(request):
+    """
+    API to get featured tips for homepage
+    """
+    limit = request.GET.get('limit', 3)
+    
+    with connection.cursor() as cursor:
+        cursor.callproc('GetFeaturedTips', [limit])
+        tips = cursor.fetchall()
+    
+    tips_list = []
+    for tip in tips:
+        tips_list.append({
+            'id': tip[0],
+            'title': tip[1],
+            'excerpt': tip[2],
+            'image': tip[3],
+            'category': tip[4],
+            'likes': tip[5]
+        })
+    
+    return JsonResponse({'tips': tips_list})    

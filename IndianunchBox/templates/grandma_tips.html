@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="tips-container">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="tips-hero text-center fade-in">
+            <div class="hero-badge bounce">
+                <i class="fas fa-graduation-cap"></i> Grandma's Kitchen
+            </div>
+            <h1 class="tips-title">
+                Grandma's Tips & Wisdom
+                <span class="title-underline">Timeless secrets from the heart of the kitchen</span>
+            </h1>
+            <p class="tips-subtitle">
+                Discover cherished kitchen secrets, cooking hacks, and traditional wisdom passed down through generations.
+            </p>
+            {% if request.session.user_id %}
+            <a href="/add-tip/" class="btn-cozy pulse-hover">
+                <i class="fas fa-plus-circle"></i> Share Your Tip
+            </a>
+            {% else %}
+            <a href="/login/" class="btn-cozy pulse-hover">
+                <i class="fas fa-sign-in-alt"></i> Login to Share
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter slide-up">
+            <div class="category-scroll">
+                <a href="/grandma-tips/" class="category-chip {% if not current_category %}active{% endif %}">
+                    <i class="fas fa-star"></i> All Tips
+                </a>
+                {% for cat in categories %}
+                <a href="/grandma-tips/?category={{ cat.0 }}" 
+                   class="category-chip {% if current_category == cat.0 %}active{% endif %}">
+                    <span>{{ cat.1 }}</span> {{ cat.0 }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-section slide-up">
+            <form method="GET" action="/grandma-tips/" class="search-form">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Search tips by title or content..." 
+                           value="{{ search_query }}" class="search-input">
+                    <button type="submit" class="search-btn">Search</button>
+                    {% if search_query %}
+                    <a href="/grandma-tips/" class="clear-search">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Tips Grid -->
+        {% if tips %}
+        <div class="tips-grid">
+            {% for tip in tips %}
+            <div class="tip-card-wrapper fade-in-up" style="animation-delay: {{ forloop.counter0|add:1|stringformat:"i" }}00ms">
+                <div class="tip-card">
+                    <div class="tip-card-inner">
+                        <!-- Vintage Corner -->
+                        <div class="vintage-corner"></div>
+                        
+                        <!-- Tip Image -->
+                        <div class="tip-image-container">
+                            {% if tip.3 and tip.3 != '' %}
+                            <img src="/media/{{ tip.3 }}" alt="{{ tip.1 }}" class="tip-image" loading="lazy">
+                            {% else %}
+                            <div class="tip-image-placeholder">
+                                <i class="fas fa-mortar-pestle"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Category Badge -->
+                            <div class="tip-category-badge">
+                                <span>{{ tip.4 }}</span>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="tip-actions-overlay">
+                                <button class="tip-action-btn like-btn" onclick="toggleLike({{ tip.0 }}, this)">
+                                    <i class="far fa-heart"></i>
+                                    <span class="like-count">{{ tip.6 }}</span>
+                                </button>
+                                <button class="tip-action-btn save-btn" onclick="toggleSave({{ tip.0 }}, this)">
+                                    <i class="far fa-bookmark"></i>
+                                    <span class="save-count">{{ tip.7 }}</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tip Content -->
+                        <div class="tip-content">
+                            <div class="tip-header">
+                                <h3 class="tip-title">{{ tip.1 }}</h3>
+                                <div class="tip-emoji">
+                                    {% if tip.4 == 'Kitchen Secrets' %}🔪
+                                    {% elif tip.4 == 'Ingredient Tips' %}🥕
+                                    {% elif tip.4 == 'Cooking Hacks' %}⚡
+                                    {% elif tip.4 == 'Traditional Wisdom' %}📿
+                                    {% elif tip.4 == 'Preservation' %}🏺
+                                    {% elif tip.4 == 'Health & Wellness' %}🌿
+                                    {% elif tip.4 == 'Festive Specials' %}🎊
+                                    {% elif tip.4 == 'Kitchen Organization' %}📦
+                                    {% else %}👵
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="tip-excerpt">
+                                {{ tip.2|safe|truncatechars:100 }}
+                            </div>
+                            
+                            <div class="tip-meta">
+                                <div class="tip-author">
+                                    <i class="fas fa-user-circle"></i> {{ tip.11 }}
+                                </div>
+                                <div class="tip-date">
+                                    <i class="far fa-calendar-alt"></i> {{ tip.10|date:"M d, Y" }}
+                                </div>
+                            </div>
+                            
+                            <div class="tip-stats">
+                                <span><i class="fas fa-heart"></i> {{ tip.6 }}</span>
+                                <span><i class="fas fa-bookmark"></i> {{ tip.7 }}</span>
+                                <span><i class="fas fa-eye"></i> {{ tip.8 }}</span>
+                            </div>
+                            
+                            <a href="/tip/{{ tip.0 }}/" class="read-more-btn">
+                                Read Full Tip <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="pagination slide-up">
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page|add:-1 }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+               class="page-btn">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+            {% endif %}
+            
+            <div class="page-numbers">
+                {% for i in "12345"|make_list %}
+                    {% with page_num=forloop.counter %}
+                        {% if page_num <= total_pages %}
+                            <a href="?page={{ page_num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+                               class="page-number {% if current_page == page_num %}active{% endif %}">
+                                {{ page_num }}
+                            </a>
+                        {% endif %}
+                    {% endwith %}
+                {% endfor %}
+                {% if total_pages > 5 %}
+                    <span class="page-dots">...</span>
+                    <a href="?page={{ total_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+                       class="page-number">
+                        {{ total_pages }}
+                    </a>
+                {% endif %}
+            </div>
+            
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page|add:1 }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}" 
+               class="page-btn">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state fade-in">
+            <div class="empty-state-icon">
+                <i class="fas fa-mortar-pestle"></i>
+            </div>
+            <h3>No tips found</h3>
+            <p>{% if search_query %}No tips match your search. Try different keywords!{% else %}Be the first to share a kitchen tip!{% endif %}</p>
+            {% if search_query %}
+            <a href="/grandma-tips/" class="btn-cozy">Clear Search</a>
+            {% else %}
+            <a href="/add-tip/" class="btn-cozy">Share Your Tip</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Wisdom Quote -->
+        <div class="wisdom-quote fade-in">
+            <div class="quote-content">
+                <i class="fas fa-quote-left"></i>
+                <p>A grandmother's kitchen is where memories are made and wisdom is shared, one recipe at a time.</p>
+                <i class="fas fa-quote-right"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tips-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    .fade-in { animation: fadeIn 0.6s ease-out; }
+    .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+    .slide-up { animation: slideUp 0.5s ease-out; }
+    .bounce { animation: bounce 2s ease infinite; }
+    .pulse-hover:hover { transform: scale(1.02); transition: transform 0.2s; }
+
+    .tips-hero {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 1rem;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: white;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .tips-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .title-underline {
+        display: block;
+        font-size: 1.2rem;
+        color: #c96b4a;
+        margin-top: 0.5rem;
+        font-family: 'Kalam', cursive;
+    }
+
+    .tips-subtitle {
+        font-size: 1rem;
+        color: #7a624b;
+        max-width: 600px;
+        margin: 1rem auto;
+    }
+
+    /* Category Filter */
+    .category-filter {
+        margin-bottom: 2rem;
+        overflow-x: auto;
+    }
+
+    .category-scroll {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .category-chip {
+        padding: 8px 18px;
+        background: white;
+        border-radius: 50px;
+        text-decoration: none;
+        color: #5a3e2e;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        border: 1px solid #f0dfbf;
+        white-space: nowrap;
+    }
+
+    .category-chip:hover, .category-chip.active {
+        background: #c96b4a;
+        color: white;
+        border-color: #c96b4a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(201, 107, 74, 0.3);
+    }
+
+    /* Search */
+    .search-section { margin-bottom: 2rem; }
+    .search-wrapper { position: relative; max-width: 500px; margin: 0 auto; }
+    .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #c96b4a; }
+    .search-input { width: 100%; padding: 12px 15px 12px 40px; border: 2px solid #f0dfbf; border-radius: 50px; font-size: 0.95rem; background: white; }
+    .search-input:focus { outline: none; border-color: #e2b13b; box-shadow: 0 0 0 3px rgba(226, 177, 59, 0.1); }
+    .search-btn { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: #c96b4a; color: white; border: none; padding: 6px 18px; border-radius: 50px; cursor: pointer; }
+    .search-btn:hover { background: #a55233; }
+    .clear-search { position: absolute; right: 85px; top: 50%; transform: translateY(-50%); color: #dc3545; text-decoration: none; font-size: 0.8rem; }
+
+    /* Tips Grid */
+    .tips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+    .tip-card { background: white; border-radius: 20px; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; }
+    .tip-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(201, 107, 74, 0.15); }
+    .vintage-corner { position: absolute; top: 0; right: 0; width: 50px; height: 50px; background: linear-gradient(135deg, transparent 50%, #f0dfbf 50%); z-index: 1; }
+
+    .tip-image-container { position: relative; height: 220px; overflow: hidden; background: #fef5ea; }
+    .tip-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+    .tip-card:hover .tip-image { transform: scale(1.05); }
+    .tip-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fef5ea, #fae8d8); font-size: 3rem; color: #c96b4a; }
+    .tip-category-badge { position: absolute; top: 15px; left: 15px; background: rgba(201, 107, 74, 0.95); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; z-index: 2; }
+    
+    .tip-actions-overlay { position: absolute; bottom: 15px; right: 15px; display: flex; gap: 8px; z-index: 2; }
+    .tip-action-btn { background: rgba(255,255,255,0.95); border: none; padding: 6px 12px; border-radius: 30px; display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: #c96b4a; transition: all 0.2s; }
+    .tip-action-btn:hover { transform: scale(1.05); background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .tip-action-btn.liked { background: #c96b4a; color: white; }
+    .tip-action-btn.saved { background: #e2b13b; color: white; }
+
+    .tip-content { padding: 1.5rem; }
+    .tip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+    .tip-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #5a3e2e; margin: 0; flex: 1; }
+    .tip-emoji { font-size: 1.6rem; margin-left: 10px; }
+    .tip-excerpt { color: #7a624b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem; }
+    .tip-meta { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-size: 0.75rem; color: #a8a8a8; }
+    .tip-meta i { margin-right: 4px; }
+    .tip-stats { display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.75rem; color: #c96b4a; }
+    .tip-stats i { margin-right: 3px; }
+    .read-more-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 8px; background: linear-gradient(135deg, #fff5ea, #fff0e0); color: #c96b4a; text-decoration: none; font-weight: 600; font-size: 0.85rem; border-radius: 50px; gap: 8px; transition: all 0.3s; }
+    .read-more-btn:hover { background: linear-gradient(135deg, #c96b4a, #a55233); color: white; }
+
+    /* Pagination */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+    .page-btn { background: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; color: #c96b4a; border: 1px solid #f0dfbf; transition: all 0.2s; }
+    .page-btn:hover { background: #c96b4a; color: white; }
+    .page-numbers { display: flex; gap: 0.5rem; align-items: center; }
+    .page-number { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #7a624b; border-radius: 50%; background: white; border: 1px solid #f0dfbf; transition: all 0.2s; }
+    .page-number:hover, .page-number.active { background: #c96b4a; color: white; }
+
+    .empty-state { text-align: center; padding: 4rem; background: white; border-radius: 32px; margin-top: 2rem; }
+    .empty-state-icon { font-size: 4rem; color: #e2b13b; margin-bottom: 1rem; }
+    .wisdom-quote { margin-top: 4rem; padding: 2rem; text-align: center; background: linear-gradient(135deg, #fff5ea, #fff0e0); border-radius: 60px; }
+    .quote-content { position: relative; max-width: 500px; margin: 0 auto; }
+    .quote-content i:first-child { position: absolute; left: -20px; top: -10px; color: #e2b13b; font-size: 1.5rem; opacity: 0.5; }
+    .quote-content i:last-child { position: absolute; right: -20px; bottom: -10px; color: #e2b13b; font-size: 1.5rem; opacity: 0.5; }
+    .quote-content p { font-family: 'Kalam', cursive; font-size: 1rem; color: #5a3e2e; margin: 0; }
+
+    @media (max-width: 768px) {
+        .tips-title { font-size: 1.8rem; }
+        .tips-grid { grid-template-columns: 1fr; }
+        .tip-image-container { height: 200px; }
+        .category-scroll { flex-wrap: nowrap; justify-content: flex-start; }
+        .wisdom-quote { margin-top: 2rem; padding: 1.5rem; }
+    }
+</style>
+
+<script>
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showToast(message, type = 'success') {
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const bgColor = type === 'success' ? '#28a745' : (type === 'warning' ? '#ffc107' : '#dc3545');
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-white border-0';
+    toast.style.background = bgColor;
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast, { delay: 2000 });
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
+async function toggleLike(tipId, element) {
+    try {
+        const response = await fetch(`/api/tip/${tipId}/like/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        });
+        const data = await response.json();
+        
+        if (data.liked !== undefined) {
+            if (data.liked) {
+                element.classList.add('liked');
+                element.querySelector('i').classList.remove('far');
+                element.querySelector('i').classList.add('fas');
+                showToast('❤️ Tip liked!');
+            } else {
+                element.classList.remove('liked');
+                element.querySelector('i').classList.remove('fas');
+                element.querySelector('i').classList.add('far');
+                showToast('💔 Tip unliked');
+            }
+            element.querySelector('.like-count').textContent = data.likes_count;
+        }
+    } catch (error) {
+        showToast('Please login to like tips', 'warning');
+    }
+}
+
+async function toggleSave(tipId, element) {
+    try {
+        const response = await fetch(`/api/tip/${tipId}/save/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        });
+        const data = await response.json();
+        
+        if (data.saved !== undefined) {
+            if (data.saved) {
+                element.classList.add('saved');
+                element.querySelector('i').classList.remove('far');
+                element.querySelector('i').classList.add('fas');
+                showToast('📌 Tip saved to your collection!');
+            } else {
+                element.classList.remove('saved');
+                element.querySelector('i').classList.remove('fas');
+                element.querySelector('i').classList.add('far');
+                showToast('Tip removed from saved');
+            }
+            element.querySelector('.save-count').textContent = data.saves_count;
+        }
+    } catch (error) {
+        showToast('Please login to save tips', 'warning');
+    }
+}
+</script>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
+{% endblock %}

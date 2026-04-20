@@ -99,4 +99,20 @@ urlpatterns = [
  path('api/story/<int:id>/like/', views.toggle_story_like, name='toggle_story_like'),
  path('api/story/<int:id>/comment/', views.add_story_comment, name='add_story_comment'),
  path('api/story/delete-comment/<int:comment_id>/', views.delete_story_comment, name='delete_story_comment'),
+ 
+ # Add these to your urlpatterns
+ 
+ # Grandma's Tips URLs
+ path('grandma-tips/', views.grandma_tips, name='grandma_tips'),
+ path('tip/<int:id>/', views.tip_detail, name='tip_detail'),
+ path('add-tip/', views.add_tip, name='add_tip'),
+ path('edit-tip/<int:id>/', views.edit_tip, name='edit_tip'),
+ path('delete-tip/<int:id>/', views.delete_tip, name='delete_tip'),
+ path('my-tips/', views.my_tips, name='my_tips'),
+ path('saved-tips/', views.saved_tips, name='saved_tips'),
+ 
+ # API Endpoints
+ path('api/tip/<int:id>/like/', views.toggle_tip_like, name='toggle_tip_like'),
+ path('api/tip/<int:id>/save/', views.toggle_tip_save, name='toggle_tip_save'),
+ path('api/featured-tips/', views.get_featured_tips, name='get_featured_tips'),
 ]
