@@ -199,43 +199,57 @@
                 padding: 10px 16px;
             }
 
-            /* User Profile */
+            /* User Profile - FIXED FOR BETTER VISIBILITY */
             .user-profile {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                padding: 5px 12px !important;
+                gap: 10px;
+                padding: 6px 16px 6px 12px !important;
                 background: #fff5ea;
                 border-radius: 50px;
                 transition: all 0.3s ease;
+                text-decoration: none;
+                border: 1px solid #f0dfbf;
             }
 
             .user-profile:hover {
                 background: #ffefdd;
                 transform: translateY(-2px);
+                border-color: #e2b13b;
             }
 
             .user-avatar {
                 font-size: 1.8rem;
                 color: #c96b4a;
+                line-height: 1;
+                display: flex;
+                align-items: center;
             }
 
             .user-name {
                 font-weight: 600;
                 color: #5a4a3a;
-                max-width: 120px;
+                font-size: 0.95rem;
+                max-width: 150px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                display: inline-block;
+            }
+
+            .dropdown-toggle::after {
+                margin-left: 8px;
+                vertical-align: middle;
             }
 
             /* User Dropdown */
             .user-dropdown {
-                min-width: 260px;
+                min-width: 280px;
                 border-radius: 16px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
                 border: none;
                 padding: 8px 0;
+                margin-top: 8px;
             }
 
             .user-avatar-large {
@@ -245,12 +259,14 @@
             .user-dropdown .dropdown-item {
                 padding: 10px 20px;
                 transition: all 0.2s;
+                font-size: 0.9rem;
             }
 
             .user-dropdown .dropdown-item i {
                 width: 24px;
                 margin-right: 8px;
                 color: #e2b13b;
+                font-size: 1rem;
             }
 
             .user-dropdown .dropdown-item:hover {
@@ -262,6 +278,7 @@
             .saved-count-badge {
                 display: inline-block;
                 transition: all 0.3s ease;
+                margin-left: 8px;
             }
 
             .saved-count-badge.updated {
@@ -384,7 +401,12 @@
                 }
 
                 .user-name {
-                    display: inline;
+                    display: inline-block;
+                    max-width: 120px;
+                }
+                
+                .user-profile {
+                    justify-content: center;
                 }
             }
 
@@ -395,6 +417,10 @@
 
                 .brand-logo i {
                     font-size: 1.2rem;
+                }
+                
+                .user-profile {
+                    padding: 8px 12px !important;
                 }
             }
 
@@ -745,7 +771,7 @@
                             </ul>
                         </li>
 
-                        <!-- User Profile Dropdown with Avatar -->
+                        <!-- User Profile Dropdown with Avatar - FIXED FOR PROPER DISPLAY -->
                         <li class="nav-item dropdown">
                             <a
                                 class="nav-link dropdown-toggle user-profile"
@@ -770,9 +796,7 @@
                                         >{{ request.session.user_name }}</strong
                                     >
                                     <small class="d-block text-muted"
-                                        >{{
-                                        request.session.user_email|default:"foodie@indianlunchbox.com"
-                                        }}</small
+                                        >{% if request.session.user_email %}{{ request.session.user_email }}{% else %}foodie@indianlunchbox.com{% endif %}</small
                                     >
                                 </li>
                                 <li><hr class="dropdown-divider" /></li>
@@ -899,17 +923,6 @@
         <!-- ==================== MAIN DYNAMIC BLOCK (with cozy container) ==================== -->
         <main class="main-cozy">
             <div class="container">
-                <!-- Django message alerts (if any) with cozy style - REMOVED to avoid double messages -->
-                <!-- {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-cozy alert-dismissible fade show shadow-sm mb-4" role="alert">
-                        <i class="fas fa-spa me-2"></i> {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %} -->
-
-                <!-- CONTENT BLOCK (child templates will insert here) -->
                 {% block content %}
                 <!-- default cozy placeholder (can be overridden) -->
                 <div class="text-center py-5">
@@ -1092,7 +1105,6 @@
             let toastTimeout = null;
 
             window.showToast = function(message, type = 'success') {
-                // Remove existing toast if any
                 if (activeToast) {
                     activeToast.remove();
                     if (toastTimeout) clearTimeout(toastTimeout);
@@ -1116,7 +1128,6 @@
             // SAVED RECIPES COUNT MANAGEMENT
             // ==============================================
 
-            // Get CSRF token from cookies
             function getCSRFToken() {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {
@@ -1132,12 +1143,10 @@
                 return cookieValue;
             }
 
-            // Check if user is logged in
             function isUserLoggedIn() {
                 return {% if request.session.user_id %}true{% else %}false{% endif %};
             }
 
-            // Update saved count badge with animation
             function updateSavedCountBadge(count) {
                 const savedCountElement = document.getElementById('savedCount');
                 if (savedCountElement) {
@@ -1153,7 +1162,6 @@
                 }
             }
 
-            // Fetch saved recipes count from backend
             async function fetchSavedRecipesCount() {
                 if (!isUserLoggedIn()) return;
 
@@ -1193,10 +1201,8 @@
             // ==============================================
 
             document.addEventListener('DOMContentLoaded', async function() {
-                // Fetch saved recipes count from backend
                 await fetchSavedRecipesCount();
 
-                // Set initial notification count
                 const notificationsRead = localStorage.getItem('notificationsRead');
                 const badge = document.getElementById('notificationCount');
                 if (notificationsRead === 'true' && badge) {
@@ -1206,7 +1212,6 @@
                     badge.style.display = 'none';
                 }
 
-                // Add active class to current page link
                 const currentPath = window.location.pathname;
                 document.querySelectorAll('.nav-link-custom').forEach(link => {
                     const href = link.getAttribute('href');
@@ -1217,7 +1222,6 @@
                     }
                 });
 
-                // Listen for storage events to sync across tabs
                 window.addEventListener('storage', function(e) {
                     if (e.key === 'savedRecipesCount') {
                         updateSavedCountBadge(parseInt(e.newValue) || 0);

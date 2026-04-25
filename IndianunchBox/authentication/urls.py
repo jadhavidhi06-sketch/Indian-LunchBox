@@ -7,6 +7,7 @@ urlpatterns = [
     path('about/', views.about_view, name='about'),  # About page route
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
+    path('api/check-registration/', views.api_check_registration, name='api_check_registration'),
     path('logout/', views.logout_view, name='logout'),
     path('contact/', views.contact_view, name='contact'),
     # Add these to your existing urls.py
@@ -14,6 +15,9 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
     path('api/forgot-password/', views.api_forgot_password, name='api_forgot_password'),
+    
+    
+    
     
     # Recipe CRUD
     path('add-recipe/', views.add_recipe, name='add_recipe'),

@@ -4,6 +4,8 @@ from django.db import connection
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt  # ADD THIS LINE
+from django.views.decorators.http import require_http_methods  # ADD THIS LINE (optional)
 from xhtml2pdf import pisa
 import hashlib
 import json
@@ -36,44 +38,166 @@ def home(request):
 
 
 # ==============================================
-# REGISTER VIEW
+# REGISTER VIEW (Matches your exact database schema)
 # ==============================================
 def register_view(request):
     if request.method == "POST":
-        name = request.POST['name']
-        email = request.POST['email']
-        password = hash_password(request.POST['password'])
-
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        
+        # Basic validation
+        if not name or not email or not password:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'missing_fields', 'message': 'All fields are required.'})
+            messages.error(request, 'All fields are required.')
+            return render(request, 'auth/register.html')
+        
+        if len(password) < 6:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'password_weak', 'message': 'Password must be at least 6 characters.'})
+            messages.error(request, 'Password must be at least 6 characters.')
+            return render(request, 'auth/register.html')
+        
+        hashed_password = hash_password(password)
+        
         with connection.cursor() as cursor:
-            cursor.callproc('RegisterUser', [name, email, password])
-
-        return redirect('login')
-
+            # Check if email exists
+            cursor.execute("SELECT user_id, name FROM users WHERE email = %s", [email])
+            email_exists = cursor.fetchone()
+            if email_exists:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False, 
+                        'error': 'email_exists', 
+                        'message': 'This email address is already registered. Please login or use a different email.'
+                    })
+                messages.error(request, 'This email address is already registered.')
+                return render(request, 'auth/register.html')
+            
+            # Check if username exists
+            cursor.execute("SELECT user_id FROM users WHERE name = %s", [name])
+            username_exists = cursor.fetchone()
+            if username_exists:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False, 
+                        'error': 'username_exists', 
+                        'message': 'This username is already taken. Please choose a different name.'
+                    })
+                messages.error(request, 'This username is already taken.')
+                return render(request, 'auth/register.html')
+            
+            # Insert new user - Using your exact stored procedure
+            try:
+                # Use your existing RegisterUser stored procedure
+                cursor.callproc('RegisterUser', [name, email, hashed_password])
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': True, 'message': 'Account created successfully! Redirecting to login...'})
+                
+                messages.success(request, 'Account created successfully! Please login.')
+                return redirect('login')
+                
+            except Exception as e:
+                error_msg = str(e)
+                if 'Duplicate entry' in error_msg:
+                    if 'email' in error_msg.lower():
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return JsonResponse({'success': False, 'error': 'email_exists', 'message': 'Email already registered.'})
+                        messages.error(request, 'Email already registered.')
+                    elif 'name' in error_msg.lower():
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return JsonResponse({'success': False, 'error': 'username_exists', 'message': 'Username already taken.'})
+                        messages.error(request, 'Username already taken.')
+                    else:
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return JsonResponse({'success': False, 'error': 'database_error', 'message': error_msg})
+                        messages.error(request, f'Registration failed: {error_msg}')
+                else:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'success': False, 'error': 'database_error', 'message': error_msg})
+                    messages.error(request, f'Registration failed: {error_msg}')
+                return render(request, 'auth/register.html')
+    
     return render(request, 'auth/register.html')
 
 
 # ==============================================
-# LOGIN VIEW
+# API: CHECK REGISTRATION
+# ==============================================
+@csrf_exempt
+def api_check_registration(request):
+    """
+    API endpoint to check if email or username already exists
+    """
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        
+        with connection.cursor() as cursor:
+            # Check if email exists
+            cursor.execute("SELECT user_id, name FROM users WHERE email = %s", [email])
+            email_result = cursor.fetchone()
+            if email_result:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'email_exists',
+                    'message': '❌ This email address is already registered!'
+                })
+            
+            # Check if username exists
+            cursor.execute("SELECT user_id FROM users WHERE name = %s", [name])
+            username_result = cursor.fetchone()
+            if username_result:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'username_exists',
+                    'message': '❌ This username is already taken!'
+                })
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+    
+    
+# ==============================================
+# LOGIN VIEW (Using your stored procedure)
 # ==============================================
 def login_view(request):
     if request.method == "POST":
-        email = request.POST['email']
-        password = hash_password(request.POST['password'])
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        remember_me = request.POST.get('remember_me') == 'on'
+
+        if not email or not password:
+            messages.error(request, 'Please enter both email and password.')
+            return render(request, 'auth/login.html')
+
+        hashed_password = hash_password(password)
 
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE email=%s", [email])
+            # Use your LoginUser stored procedure
+            cursor.callproc('LoginUser', [email])
             user = cursor.fetchone()
 
-        if user and user[3] == password:
-            request.session['user_id'] = user[0]
-            request.session['user_name'] = user[1]
+        if user and user[3] == hashed_password:  # user[3] is password column
+            request.session['user_id'] = user[0]  # user_id
+            request.session['user_name'] = user[1]  # name
+            request.session['user_email'] = user[2]  # email
+            
+            if not remember_me:
+                request.session.set_expiry(0)
+            else:
+                request.session.set_expiry(1209600)
+            
+            messages.success(request, f'Welcome back, {user[1]}!')
             return redirect('home')
         else:
-            return HttpResponse("Invalid credentials")
+            messages.error(request, 'Invalid email or password.')
+            return render(request, 'auth/login.html')
 
     return render(request, 'auth/login.html')
-
-
 # ==============================================
 # LOGOUT VIEW
 # ==============================================

@@ -2,1165 +2,1135 @@
 
 {% block content %}
 <div class="recipe-detail-container">
-    <div class="recipe-card-elegant">
-        <!-- Hero image section -->
-        <div class="recipe-image-hero">
+    <!-- Modern Hero Section -->
+    <div class="recipe-hero-modern">
+        <div class="hero-background">
             <img src="/media/{{ recipe.5 }}" 
                  alt="{{ recipe.1 }}" 
-                 class="recipe-main-img"
-                 id="recipeImage"
-                 onerror="this.onerror=null; this.src='https://placehold.co/800x500/fef1e6/c94c4c?text=🍳+Yummy+Recipe'; this.style.objectFit='contain';">
-            <div class="image-emoji-overlay">
-                <span>👨‍🍳</span> <span>❤️</span> <span>⭐</span>
-            </div>
+                 class="hero-bg-img"
+                 onerror="this.onerror=null; this.src='https://placehold.co/1200x600/fef1e6/c94c4c?text=🍳+Delicious+Recipe'">
+            <div class="hero-overlay"></div>
         </div>
         
-        <div class="recipe-content-padded">
-            <!-- Title + author -->
-            <div class="recipe-title-header">
-                <h2>{{ recipe.1 }} <span class="title-emoji">🍲</span></h2>
-                <div class="author-badge-large mt-2">
-                    <i class="fas fa-user-chef"></i> 👨‍🍳 by {{ recipe.6 }}
-                    <span class="ms-2"><i class="fas fa-clock"></i> ⏱️ 15 min read</span>
-                    <span class="ms-2"><i class="fas fa-fire"></i> 🔥 Popular</span>
-                </div>
+        <div class="hero-content">
+            <div class="recipe-badge">
+                <span class="badge-category">🔥 Trending</span>
+                <span class="badge-time"><i class="far fa-clock"></i> 15 min</span>
             </div>
-
-            <!-- Description -->
-            <div>
-                <div class="section-title">
-                    <i class="fas fa-align-left"></i> 📖 Story Time
+            <h1 class="recipe-title-modern">{{ recipe.1 }}</h1>
+            <div class="author-section">
+                <div class="author-avatar-modern">
+                    <div class="avatar-circle">
+                        <i class="fas fa-user-chef"></i>
+                    </div>
+                    <div class="author-info-modern">
+                        <span class="author-name">by {{ recipe.6 }}</span>
+                        <span class="author-stats">✨ 2.5k recipes • 📍 Food Creator</span>
+                    </div>
                 </div>
-                <div class="description-text">
-                    {{ recipe.2|default:"No description provided, but trust us — it's mouthwatering! 🍽️✨" }}
-                </div>
-            </div>
-
-            <!-- Ingredients -->
-            <div>
-                <div class="section-title">
-                    <i class="fas fa-shopping-basket"></i> 🛒 What You'll Need
-                </div>
-                <div class="ingredients-grid">
-                    {% for ing in recipe.3.splitlines %}
-                        {% if ing and ing.strip %}
-                            <div class="ingredient-card">
-                                <div class="ingredient-icon">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="ingredient-content">
-                                    🥄 {{ ing|truncatechars:100 }}
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% empty %}
-                        <div class="ingredient-empty">
-                            <i class="fas fa-leaf"></i>
-                            <p>✨ No ingredients listed yet!</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Steps -->
-            <div>
-                <div class="section-title">
-                    <i class="fas fa-list-ol"></i> 👩‍🍳 Let's Cook!
-                </div>
-                <div class="steps-container">
-                    {% for step in recipe.4.splitlines %}
-                        {% if step and step.strip %}
-                            <div class="step-card">
-                                <div class="step-number">{{ forloop.counter }}</div>
-                                <div class="step-content">
-                                    {% if forloop.counter == 1 %}🔪 {% elif forloop.counter == 2 %}🍳 {% elif forloop.counter == 3 %}🥣 {% elif forloop.counter == 4 %}🔥 {% elif forloop.counter == 5 %}✨ {% else %}👉 {% endif %}
-                                    {{ step }}
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% empty %}
-                        <div class="step-empty">
-                            <i class="fas fa-utensils"></i>
-                            <p>📝 No steps provided — time to unleash your inner chef! 🎉</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Pro tip -->
-            <div class="pro-tip">
-                <i class="fas fa-lightbulb"></i>
-                <span><strong>💡 Pro Tip:</strong> Don't forget to taste as you go! 🧂👅 Every chef's secret weapon is love and a little extra seasoning! ❤️✨</span>
-            </div>
-
-            <!-- Action buttons with Share Dropdown -->
-            <div class="action-row">
-                <a href="/recipe/{{ recipe.0 }}/download/" class="btn-pdf" id="downloadPdfBtn">
-                    <i class="fas fa-file-pdf"></i> 📄 Download PDF
-                </a>
-                <button class="btn-like-modern" id="likeBtn" data-recipe-id="{{ recipe.0 }}" data-liked="{% if user_liked %}true{% else %}false{% endif %}">
-                    <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i> 
-                    {% if user_liked %}💖 Saved to Favorites{% else %}💖 Save to Favorites{% endif %}
-                </button>
-                
-                <!-- Share Dropdown -->
-                <div class="share-dropdown">
-                    <button class="btn-share" onclick="toggleShareDropdown()">
-                        <i class="fas fa-share-alt"></i> 📢 Share
+                <div class="action-buttons">
+                    <button class="action-icon-btn" id="likeBtn" data-recipe-id="{{ recipe.0 }}" data-liked="{% if user_liked %}true{% else %}false{% endif %}">
+                        <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                        <span class="action-text">Save</span>
                     </button>
-                    <div class="share-dropdown-content" id="shareDropdown">
-                        <div class="share-header">Share this recipe</div>
-                        <a href="#" onclick="shareOnPlatform('whatsapp'); return false;">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
-                        </a>
-                        <a href="#" onclick="shareOnPlatform('facebook'); return false;">
-                            <i class="fab fa-facebook"></i> Facebook
-                        </a>
-                        <a href="#" onclick="shareOnPlatform('instagram'); return false;">
-                            <i class="fab fa-instagram"></i> Instagram
-                        </a>
-                        <a href="#" onclick="shareOnPlatform('twitter'); return false;">
-                            <i class="fab fa-twitter"></i> Twitter
-                        </a>
-                        <a href="#" onclick="shareOnPlatform('pinterest'); return false;">
-                            <i class="fab fa-pinterest"></i> Pinterest
-                        </a>
-                        <a href="#" onclick="shareOnPlatform('email'); return false;">
-                            <i class="fas fa-envelope"></i> Email
-                        </a>
-                        <div class="share-divider"></div>
-                        <a href="#" onclick="shareAsPDF(); return false;">
-                            <i class="fas fa-file-pdf"></i> Share as PDF
-                        </a>
-                        <a href="#" onclick="copyLink(); return false;">
-                            <i class="fas fa-link"></i> Copy Link
-                        </a>
+                    <div class="share-dropdown">
+                        <button class="action-icon-btn" onclick="toggleShareDropdown()">
+                            <i class="fas fa-share-alt"></i>
+                            <span class="action-text">Share</span>
+                        </button>
+                        <div class="share-dropdown-content" id="shareDropdown">
+                            <div class="share-header">Share this recipe</div>
+                            <a href="#" onclick="shareOnPlatform('whatsapp'); return false;">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </a>
+                            <a href="#" onclick="shareOnPlatform('instagram'); return false;">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </a>
+                            <a href="#" onclick="shareOnPlatform('facebook'); return false;">
+                                <i class="fab fa-facebook"></i> Facebook
+                            </a>
+                            <a href="#" onclick="shareOnPlatform('twitter'); return false;">
+                                <i class="fab fa-twitter"></i> Twitter
+                            </a>
+                            <a href="#" onclick="shareOnPlatform('pinterest'); return false;">
+                                <i class="fab fa-pinterest"></i> Pinterest
+                            </a>
+                            <div class="share-divider"></div>
+                            <a href="/recipe/{{ recipe.0 }}/download/">
+                                <i class="fas fa-file-pdf"></i> Download PDF
+                            </a>
+                            <a href="#" onclick="copyLink(); return false;">
+                                <i class="fas fa-link"></i> Copy Link
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="recipe-content-modern">
+        <div class="content-grid">
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Description -->
+                <div class="info-card">
+                    <h3 class="section-title-modern">
+                        <i class="fas fa-book-open"></i> About this Recipe
+                    </h3>
+                    <p class="description-text-modern">
+                        {{ recipe.2|default:"No description provided, but trust us — it's mouthwatering! 🍽️✨" }}
+                    </p>
+                </div>
+
+                <!-- Ingredients -->
+                <div class="info-card">
+                    <h3 class="section-title-modern">
+                        <i class="fas fa-shopping-basket"></i> Ingredients
+                        <span class="ingredient-count">{{ recipe.3.splitlines|length }} items</span>
+                    </h3>
+                    <div class="ingredients-list-modern">
+                        {% for ing in recipe.3.splitlines %}
+                            {% if ing and ing.strip %}
+                            <div class="ingredient-item-modern">
+                                <div class="ingredient-checkbox">
+                                    <i class="far fa-circle"></i>
+                                </div>
+                                <span>{{ ing }}</span>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <p class="empty-state-text">✨ No ingredients listed yet!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Steps -->
+                <div class="info-card">
+                    <h3 class="section-title-modern">
+                        <i class="fas fa-list-ol"></i> Step by Step Instructions
+                    </h3>
+                    <div class="steps-list-modern">
+                        {% for step in recipe.4.splitlines %}
+                            {% if step and step.strip %}
+                            <div class="step-item-modern">
+                                <div class="step-number-modern">{{ forloop.counter }}</div>
+                                <div class="step-content-modern">
+                                    <p>{{ step }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <p class="empty-state-text">📝 No steps provided — time to unleash your inner chef!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pro Tip -->
+                <div class="pro-tip-modern">
+                    <div class="tip-icon">💡</div>
+                    <div class="tip-content">
+                        <strong>Pro Tip</strong>
+                        <p>Don't forget to taste as you go! Every chef's secret weapon is love and a little extra seasoning! ❤️</p>
                     </div>
                 </div>
             </div>
 
-            <hr>
-
-            <!-- Comments & Ratings Section with Reply System -->
-            <div class="comments-section">
-                <div class="comments-header">
-                    <i class="fas fa-comments"></i>
-                    <h4>💬 What Foodies Are Saying 🗣️</h4>
-                    <span class="comments-count" id="commentsCount">{{ comments|length }} comments 💭</span>
+            <!-- Sidebar -->
+            <div class="sidebar-content">
+                <!-- Stats Card -->
+                <div class="stats-card">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ recipe.6|length|add:"100" }}</div>
+                        <div class="stat-label">Saves</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ comments|length }}</div>
+                        <div class="stat-label">Reviews</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">4.8</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
                 </div>
 
-                <div id="commentsContainer">
-                    {% for c in comments %}
-                    <div class="comment-card" data-comment-id="{{ c.0 }}" data-comment-level="0">
-                        <div class="comment-header">
-                            <span class="comment-author">
-                                <i class="fas fa-user-circle"></i> {{ c.3 }} 
-                                {% if forloop.counter == 1 %}👑 <span class="top-fan-badge">(Top Fan)</span>{% endif %}
-                            </span>
-                            <span class="comment-rating">
+                <!-- Quick Info -->
+                <div class="info-card">
+                    <h3 class="section-title-modern">
+                        <i class="fas fa-info-circle"></i> Quick Info
+                    </h3>
+                    <div class="quick-info-list">
+                        <div class="quick-info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Prep Time</span>
+                            <strong>15 mins</strong>
+                        </div>
+                        <div class="quick-info-item">
+                            <i class="fas fa-fire"></i>
+                            <span>Cook Time</span>
+                            <strong>20 mins</strong>
+                        </div>
+                        <div class="quick-info-item">
+                            <i class="fas fa-utensils"></i>
+                            <span>Servings</span>
+                            <strong>4 people</strong>
+                        </div>
+                        <div class="quick-info-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Difficulty</span>
+                            <strong>Medium</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Card -->
+                <div class="download-card">
+                    <i class="fas fa-file-pdf"></i>
+                    <div>
+                        <h4>Save for Later</h4>
+                        <p>Download PDF version to cook offline</p>
+                    </div>
+                    <a href="/recipe/{{ recipe.0 }}/download/" class="download-btn">Get PDF</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section - Instagram Style -->
+        <div class="comments-section-modern">
+            <div class="comments-header-modern">
+                <h3><i class="fas fa-comment-dots"></i> Reviews & Comments</h3>
+                <span class="comments-count">{{ comments|length }} comments</span>
+            </div>
+
+            <div class="comments-feed">
+                {% for c in comments %}
+                <div class="comment-card-modern" data-comment-id="{{ c.0 }}">
+                    <div class="comment-avatar">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    <div class="comment-body">
+                        <div class="comment-header-modern">
+                            <div class="comment-user">
+                                <span class="username">{{ c.3 }}</span>
+                                <span class="user-badge">Foodie</span>
+                            </div>
+                            <div class="comment-rating-modern">
                                 {% with rating=c.2|default:0 %}
                                     {% for i in "12345"|make_list %}
-                                        {% if forloop.counter <= rating %}⭐{% else %}☆{% endif %}
+                                        {% if forloop.counter <= rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
                                     {% endfor %}
-                                    ({{ rating }}/5)
                                 {% endwith %}
-                            </span>
+                            </div>
                         </div>
-                        <div class="comment-text">
-                            <i class="fas fa-quote-left"></i>
+                        <div class="comment-text-modern">
                             {{ c.1 }}
                         </div>
-                        <div class="comment-footer">
+                        <div class="comment-footer-modern">
                             <button class="comment-like-btn" onclick="toggleCommentLike({{ c.0 }})">
-                                <i class="far fa-heart"></i> <span class="like-count" id="commentLikeCount{{ c.0 }}">0</span>
+                                <i class="far fa-heart"></i> <span id="commentLikeCount{{ c.0 }}">0</span>
                             </button>
-                            <span class="separator">·</span>
-                            <span class="comment-time" id="commentTime{{ c.0 }}" data-timestamp="{{ c.4|default:'' }}">just now</span>
-                            <span class="separator">·</span>
-                            <button class="reply-btn" onclick="showReplyForm({{ c.0 }}, '{{ c.3|escapejs }}')">
-                                <i class="fas fa-reply"></i> Reply
+                            <span class="comment-time">{{ c.4|date:"M d, Y" }}</span>
+                            <button class="reply-btn-modern" onclick="showReplyForm({{ c.0 }}, '{{ c.3|escapejs }}')">
+                                Reply
                             </button>
                             {% if request.session.user_id and c.3 == request.session.user_name %}
-                            <span class="separator">·</span>
-                            <button class="delete-comment-btn" onclick="deleteComment({{ c.0 }})">
-                                <i class="fas fa-trash-alt"></i> Delete
+                            <button class="delete-comment-modern" onclick="deleteComment({{ c.0 }})">
+                                Delete
                             </button>
                             {% endif %}
                         </div>
-                        
-                        <!-- Reply Form (hidden by default) -->
-                        <div class="reply-form-container" id="replyForm{{ c.0 }}" style="display: none;">
-                            <div class="reply-form">
-                                <textarea id="replyText{{ c.0 }}" rows="2" placeholder="Write your reply... 💬" class="reply-textarea"></textarea>
-                                <div class="reply-actions">
-                                    <button class="btn-submit-reply" onclick="submitReply({{ c.0 }})">
-                                        <i class="fas fa-paper-plane"></i> Post Reply
-                                    </button>
-                                    <button class="btn-cancel-reply" onclick="hideReplyForm({{ c.0 }})">
-                                        Cancel
-                                    </button>
-                                </div>
+
+                        <!-- Replies Container -->
+                        <div class="replies-container-modern" id="repliesContainer{{ c.0 }}">
+                            <!-- Replies loaded dynamically -->
+                        </div>
+
+                        <!-- Reply Form -->
+                        <div class="reply-form-modern" id="replyForm{{ c.0 }}" style="display: none;">
+                            <textarea id="replyText{{ c.0 }}" rows="2" placeholder="Write a reply..."></textarea>
+                            <div class="reply-actions-modern">
+                                <button class="btn-submit-reply-modern" onclick="submitReply({{ c.0 }})">Post</button>
+                                <button class="btn-cancel-reply-modern" onclick="hideReplyForm({{ c.0 }})">Cancel</button>
                             </div>
                         </div>
-                        
-                        <!-- Replies Container -->
-                        <div class="replies-container" id="repliesContainer{{ c.0 }}">
-                            <!-- Replies will be loaded here dynamically -->
-                        </div>
                     </div>
-                    {% empty %}
-                    <div class="empty-comments" id="emptyComments">
-                        <i class="far fa-comment-dots"></i>
-                        <p>😢 No comments yet... Be the first to share your amazing experience! 🌟✨</p>
-                    </div>
-                    {% endfor %}
                 </div>
+                {% empty %}
+                <div class="empty-comments-modern">
+                    <i class="far fa-comment-dots"></i>
+                    <p>No reviews yet</p>
+                    <span>Be the first to share your experience!</span>
+                </div>
+                {% endfor %}
+            </div>
 
-                <!-- Add Comment Form -->
-                {% if request.session.user_id %}
-                <div class="comment-form-modern mt-4">
-                    <div class="form-header">
-                        <i class="fas fa-pen-fancy"></i> ✍️ Share Your Thoughts
-                    </div>
+            <!-- Add Comment - Instagram Style -->
+            {% if request.session.user_id %}
+            <div class="add-comment-modern">
+                <div class="comment-avatar-small">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="comment-input-wrapper">
                     <form id="commentForm">
                         {% csrf_token %}
-                        <div class="form-group">
-                            <label><i class="fas fa-pen-alt"></i> 📝 Your Review</label>
-                            <textarea name="comment" id="commentText" placeholder="How was it? Did you add any special touches? Share your experience! 🍽️✨" 
-                                      class="form-control-custom" rows="3" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fas fa-star"></i> ⭐ Rate This Recipe</label>
-                            <select name="rating" id="ratingSelect" class="form-control-custom" required>
-                                <option value="" disabled selected>🤔 How many stars? 🌟</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5 – Absolutely Amazing! 🎉</option>
-                                <option value="4">⭐⭐⭐⭐ 4 – Really Good! 👍</option>
-                                <option value="3">⭐⭐⭐ 3 – Pretty Good 🤔</option>
-                                <option value="2">⭐⭐ 2 – Could be better 😕</option>
-                                <option value="1">⭐ 1 – Not for me 😢</option>
+                        <textarea name="comment" id="commentText" placeholder="Share your thoughts about this recipe..." rows="2"></textarea>
+                        <div class="comment-actions">
+                            <select name="rating" id="ratingSelect">
+                                <option value="" disabled selected>Rate this recipe</option>
+                                <option value="5">⭐⭐⭐⭐⭐ 5 stars</option>
+                                <option value="4">⭐⭐⭐⭐ 4 stars</option>
+                                <option value="3">⭐⭐⭐ 3 stars</option>
+                                <option value="2">⭐⭐ 2 stars</option>
+                                <option value="1">⭐ 1 star</option>
                             </select>
+                            <button type="submit" id="submitCommentBtn">Post</button>
                         </div>
-                        <button type="submit" class="btn-submit" id="submitCommentBtn">
-                            <i class="fas fa-paper-plane"></i> 🚀 Post My Review
-                        </button>
                     </form>
                 </div>
-                {% else %}
-                <div class="login-prompt">
-                    <i class="fas fa-lock"></i> 
-                    <a href="/login/">🔐 Login</a> to share your rating and join the foodie community! 🎉🍕
-                </div>
-                {% endif %}
             </div>
-
-            <!-- Encouragement footer -->
-            <div class="recipe-footer">
-                <i class="fas fa-heart"></i> Made with love · 
-                <i class="fas fa-utensils"></i> Enjoy every bite · 
-                <i class="fas fa-camera"></i> Don't forget to share your creation! 📸
+            {% else %}
+            <div class="login-prompt-modern">
+                <i class="fas fa-lock"></i>
+                <a href="/login/">Login to share your review</a>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <style>
-    /* Previous styles remain the same, plus new styles below */
-    * {
-           margin: 0;
-           padding: 0;
-           box-sizing: border-box;
-       }
-   
-       body {
-           background: linear-gradient(135deg, #fefaf5 0%, #fff5ed 100%);
-           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-       }
-   
-       .recipe-detail-container {
-           max-width: 1200px;
-           margin: 2rem auto;
-           padding: 0 1.5rem 3rem;
-       }
-   
-       .recipe-card-elegant {
-           background: #ffffff;
-           border-radius: 40px;
-           box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1);
-           overflow: hidden;
-           transition: transform 0.3s ease, box-shadow 0.3s ease;
-       }
-   
-       .recipe-card-elegant:hover {
-           transform: translateY(-5px);
-           box-shadow: 0 30px 50px -18px rgba(0, 0, 0, 0.2);
-       }
-   
-       .recipe-image-hero {
-           position: relative;
-           width: 100%;
-           background: linear-gradient(135deg, #f7efe8 0%, #fcf5ef 100%);
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           overflow: hidden;
-           min-height: 380px;
-           border-bottom: 2px solid rgba(201, 76, 76, 0.1);
-       }
-   
-       .recipe-main-img {
-           width: 100%;
-           height: auto;
-           max-height: 520px;
-           object-fit: contain;
-           background: #faf3ec;
-           transition: transform 0.5s ease;
-           display: block;
-       }
-   
-       .recipe-image-hero:hover .recipe-main-img {
-           transform: scale(1.02);
-       }
-   
-       .image-emoji-overlay {
-           position: absolute;
-           bottom: 20px;
-           right: 20px;
-           background: rgba(0,0,0,0.6);
-           backdrop-filter: blur(8px);
-           padding: 8px 15px;
-           border-radius: 60px;
-           font-size: 1.2rem;
-           display: flex;
-           gap: 8px;
-       }
-   
-       .recipe-content-padded {
-           padding: 2.5rem;
-       }
-   
-       @media (max-width: 768px) {
-           .recipe-content-padded {
-               padding: 1.5rem;
-           }
-       }
-   
-       .recipe-title-header {
-           border-bottom: 2px solid #fae6db;
-           padding-bottom: 1.2rem;
-           margin-bottom: 1.8rem;
-       }
-   
-       .recipe-title-header h2 {
-           font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-           font-size: 2.8rem;
-           font-weight: 800;
-           color: #c94c4c;
-           letter-spacing: -0.02em;
-           line-height: 1.2;
-           margin-bottom: 0.8rem;
-       }
-   
-       .title-emoji {
-           font-size: 2.5rem;
-           display: inline-block;
-           animation: wave 1s ease infinite;
-       }
-   
-       @keyframes wave {
-           0%, 100% { transform: rotate(0deg); }
-           50% { transform: rotate(15deg); }
-       }
-   
-       .author-badge-large {
-           display: inline-flex;
-           align-items: center;
-           gap: 10px;
-           background: #fef1e8;
-           padding: 0.5rem 1.3rem;
-           border-radius: 60px;
-           font-size: 0.9rem;
-           font-weight: 600;
-           color: #a3533a;
-           flex-wrap: wrap;
-       }
-   
-       .section-title {
-           font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-           font-weight: 700;
-           font-size: 1.8rem;
-           color: #c94c4c;
-           margin-top: 2rem;
-           margin-bottom: 1.2rem;
-           display: flex;
-           align-items: center;
-           gap: 12px;
-       }
-   
-       .section-title i {
-           font-size: 1.6rem;
-           background: #fdf0e8;
-           padding: 10px;
-           border-radius: 50%;
-           color: #c94c4c;
-       }
-   
-       .description-text {
-           font-size: 1rem;
-           line-height: 1.7;
-           color: #3d352e;
-           background: linear-gradient(120deg, #fefbf8, #fff8f2);
-           padding: 1.2rem 1.5rem;
-           border-radius: 24px;
-           border-left: 5px solid #c94c4c;
-           margin-bottom: 0.5rem;
-       }
-   
-       .ingredients-grid {
-           display: grid;
-           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-           gap: 1rem;
-           background: #fefbf8;
-           border-radius: 28px;
-           padding: 1.5rem;
-           border: 1px solid #fae6db;
-       }
-   
-       .ingredient-card {
-           background: white;
-           padding: 0.8rem 1.2rem;
-           border-radius: 16px;
-           display: flex;
-           align-items: center;
-           gap: 12px;
-           transition: all 0.25s ease;
-           border: 1px solid #fee8de;
-           box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-       }
-   
-       .ingredient-card:hover {
-           transform: translateX(6px);
-           border-color: #c94c4c;
-           background: #fffaf5;
-           box-shadow: 0 4px 12px rgba(201,76,76,0.08);
-       }
-   
-       .ingredient-icon {
-           width: 32px;
-           height: 32px;
-           background: #c94c4c;
-           border-radius: 50%;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           flex-shrink: 0;
-       }
-   
-       .ingredient-icon i {
-           color: white;
-           font-size: 0.9rem;
-       }
-   
-       .ingredient-content {
-           font-size: 0.95rem;
-           font-weight: 500;
-           color: #4a3a2f;
-           line-height: 1.4;
-           flex: 1;
-       }
-   
-       .steps-container {
-           background: #fefbf8;
-           border-radius: 28px;
-           padding: 1.5rem;
-           border: 1px solid #fae6db;
-       }
-   
-       .step-card {
-           display: flex;
-           gap: 1rem;
-           margin-bottom: 1rem;
-           padding: 0.8rem;
-           border-radius: 20px;
-           background: white;
-           transition: all 0.25s ease;
-           border: 1px solid #fff0e6;
-       }
-   
-       .step-card:hover {
-           transform: translateX(6px);
-           border-color: #f0cfc0;
-           background: #ffffff;
-           box-shadow: 0 6px 14px rgba(0,0,0,0.03);
-       }
-   
-       .step-number {
-           width: 42px;
-           height: 42px;
-           background: #c94c4c;
-           border-radius: 30px;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           font-weight: 800;
-           font-size: 1.1rem;
-           color: white;
-           flex-shrink: 0;
-           box-shadow: 0 4px 10px rgba(201,76,76,0.2);
-       }
-   
-       .step-content {
-           flex: 1;
-           font-size: 0.95rem;
-           line-height: 1.6;
-           color: #3d352e;
-           padding-top: 0.2rem;
-       }
-   
-       .pro-tip {
-           background: linear-gradient(135deg, #fff8e8, #fff3e0);
-           border-radius: 20px;
-           padding: 1rem 1.5rem;
-           margin: 1.5rem 0;
-           display: flex;
-           align-items: center;
-           gap: 12px;
-           border-left: 5px solid #ffa500;
-       }
-   
-       .pro-tip i {
-           font-size: 1.5rem;
-           color: #ffa500;
-       }
-   
-       .action-row {
-           display: flex;
-           flex-wrap: wrap;
-           gap: 1rem;
-           margin: 2rem 0 1.5rem;
-       }
-   
-       .btn-pdf {
-           background: #c94c4c;
-           border: none;
-           color: white;
-           padding: 0.8rem 2rem;
-           border-radius: 60px;
-           font-weight: 700;
-           transition: all 0.25s ease;
-           text-decoration: none;
-           display: inline-flex;
-           align-items: center;
-           gap: 10px;
-           box-shadow: 0 4px 12px rgba(201,76,76,0.2);
-       }
-   
-       .btn-pdf:hover {
-           background: #ad3f3f;
-           transform: translateY(-2px);
-           box-shadow: 0 8px 20px rgba(201,76,76,0.3);
-           color: white;
-           text-decoration: none;
-       }
-   
-       .btn-like-modern {
-           background: white;
-           border: 2px solid #e7cdbc;
-           padding: 0.8rem 2rem;
-           border-radius: 60px;
-           font-weight: 700;
-           color: #b15e43;
-           transition: all 0.25s ease;
-           cursor: pointer;
-           display: inline-flex;
-           align-items: center;
-           gap: 10px;
-       }
-   
-       .btn-like-modern:hover {
-           background: #fff5ef;
-           border-color: #c94c4c;
-           color: #c94c4c;
-           transform: scale(1.02);
-       }
-   
-       .btn-like-modern.saved {
-           background: #ffefe7;
-           border-color: #c94c4c;
-           color: #c94c4c;
-       }
-   
-       .btn-share {
-           background: #4a90e2;
-           border: none;
-           color: white;
-           padding: 0.8rem 2rem;
-           border-radius: 60px;
-           font-weight: 700;
-           transition: all 0.25s ease;
-           cursor: pointer;
-           display: inline-flex;
-           align-items: center;
-           gap: 10px;
-       }
-   
-       .btn-share:hover {
-           background: #357abd;
-           transform: translateY(-2px);
-       }
-   
-       hr {
-           margin: 1.5rem 0;
-           opacity: 0.3;
-           background: #e7cfc1;
-           height: 2px;
-           border: none;
-       }
-   
-       .comments-section {
-           margin-top: 2rem;
-           background: #fef9f5;
-           border-radius: 28px;
-           padding: 1.8rem;
-           border: 1px solid #f5e4d9;
-       }
-   
-       .comments-header {
-           display: flex;
-           align-items: center;
-           gap: 12px;
-           margin-bottom: 1.5rem;
-           flex-wrap: wrap;
-       }
-   
-       .comments-header i {
-           font-size: 2rem;
-           color: #c94c4c;
-       }
-   
-       .comments-header h4 {
-           margin: 0;
-           font-weight: 700;
-           color: #4b3a2e;
-           font-size: 1.5rem;
-       }
-   
-       .comments-count {
-           background: #c94c4c;
-           color: white;
-           padding: 0.2rem 0.8rem;
-           border-radius: 60px;
-           font-size: 0.8rem;
-       }
-   
-       .comment-card {
-           background: white;
-           border-radius: 20px;
-           padding: 1.2rem;
-           margin-bottom: 1rem;
-           transition: all 0.2s;
-           border: 1px solid #ffede2;
-       }
-   
-       .comment-card:hover {
-           transform: translateX(4px);
-           box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-       }
-   
-       .comment-header {
-           display: flex;
-           justify-content: space-between;
-           align-items: center;
-           flex-wrap: wrap;
-           margin-bottom: 0.8rem;
-       }
-   
-       .comment-author {
-           font-weight: 700;
-           color: #a55337;
-           font-size: 0.95rem;
-           display: flex;
-           align-items: center;
-           gap: 8px;
-       }
-   
-       .comment-rating {
-           background: #fff0e6;
-           padding: 0.2rem 0.8rem;
-           border-radius: 40px;
-           font-size: 0.8rem;
-           font-weight: 600;
-       }
-   
-       .comment-text {
-           font-size: 0.92rem;
-           color: #46433f;
-           line-height: 1.5;
-           display: flex;
-           gap: 8px;
-           margin-bottom: 0.5rem;
-       }
-   
-       .comment-footer {
-           font-size: 0.7rem;
-           color: #b48b72;
-           display: flex;
-           gap: 10px;
-           align-items: center;
-           flex-wrap: wrap;
-       }
-   
-       .delete-comment-btn {
-           background: none;
-           border: none;
-           color: #dc3545;
-           cursor: pointer;
-           font-size: 0.7rem;
-           padding: 0;
-           margin-left: 10px;
-           transition: color 0.2s;
-       }
-   
-       .delete-comment-btn:hover {
-           color: #a71d2a;
-           text-decoration: underline;
-       }
-   
-       .empty-comments {
-           text-align: center;
-           padding: 2rem;
-           background: #fff9f4;
-           border-radius: 24px;
-           color: #b48b72;
-       }
-   
-       .empty-comments i {
-           font-size: 2.5rem;
-           opacity: 0.5;
-           margin-bottom: 0.5rem;
-           display: block;
-       }
-   
-       .comment-form-modern {
-           background: white;
-           padding: 1.5rem;
-           border-radius: 24px;
-           margin-top: 1rem;
-           border: 1px solid #f0dfd3;
-       }
-   
-       .form-header {
-           font-size: 1.1rem;
-           font-weight: 700;
-           color: #c94c4c;
-           margin-bottom: 1rem;
-           display: flex;
-           align-items: center;
-           gap: 8px;
-       }
-   
-       .form-group {
-           margin-bottom: 1rem;
-       }
-   
-       .form-group label {
-           display: block;
-           margin-bottom: 0.5rem;
-           font-weight: 600;
-           color: #5a3f32;
-       }
-   
-       .form-control-custom {
-           width: 100%;
-           border-radius: 16px;
-           border: 1.5px solid #f0daca;
-           padding: 0.8rem 1rem;
-           transition: all 0.2s;
-           font-family: inherit;
-       }
-   
-       .form-control-custom:focus {
-           border-color: #c94c4c;
-           box-shadow: 0 0 0 3px rgba(201,76,76,0.1);
-           outline: none;
-       }
-   
-       .btn-submit {
-           background: #c94c4c;
-           border: none;
-           padding: 0.8rem;
-           border-radius: 60px;
-           font-weight: 700;
-           color: white;
-           transition: all 0.2s;
-           width: 100%;
-           cursor: pointer;
-       }
-   
-       .btn-submit:hover {
-           background: #aa3e3e;
-           transform: translateY(-2px);
-       }
-   
-       .btn-submit:disabled {
-           opacity: 0.6;
-           cursor: not-allowed;
-           transform: none;
-       }
-   
-       .login-prompt {
-           text-align: center;
-           padding: 1rem;
-           background: #fff2ea;
-           border-radius: 60px;
-           margin-top: 1rem;
-       }
-   
-       .login-prompt a {
-           color: #c94c4c;
-           font-weight: 700;
-           text-decoration: none;
-       }
-   
-       .recipe-footer {
-           text-align: center;
-           margin-top: 2rem;
-           padding-top: 1rem;
-           color: #b48b72;
-           font-size: 0.85rem;
-           border-top: 1px solid #f0e1d4;
-       }
-   
-       @media (max-width: 768px) {
-           .recipe-title-header h2 {
-               font-size: 2rem;
-           }
-           .section-title {
-               font-size: 1.5rem;
-           }
-           .ingredients-grid {
-               grid-template-columns: 1fr;
-               padding: 1rem;
-           }
-           .step-card {
-               flex-direction: column;
-               align-items: flex-start;
-           }
-           .step-number {
-               margin-bottom: 0.5rem;
-           }
-       }
-   
-       @media (max-width: 480px) {
-           .recipe-main-img {
-               max-height: 280px;
-           }
-           .action-row {
-               flex-direction: column;
-           }
-           .btn-pdf, .btn-like-modern, .btn-share {
-               justify-content: center;
-           }
-       }
-   
-       @keyframes fadeUp {
-           from {
-               opacity: 0;
-               transform: translateY(30px);
-           }
-           to {
-               opacity: 1;
-               transform: translateY(0);
-           }
-       }
-   
-       .recipe-card-elegant {
-           animation: fadeUp 0.6s ease-out;
-       }
+    /* Modern Instagram + Zomato Inspired Styles */
+    .recipe-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: #fafafa;
+        min-height: 100vh;
+    }
+
+    /* Hero Section */
+    .recipe-hero-modern {
+        position: relative;
+        height: 500px;
+        overflow: hidden;
+        border-radius: 0 0 24px 24px;
+    }
+
+    .hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .hero-bg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%);
+    }
+
+    .hero-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 2rem;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        color: white;
+    }
+
+    .recipe-badge {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .badge-category {
+        background: #ff4757;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-time {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .recipe-title-modern {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .author-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .author-avatar-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .avatar-circle {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .author-info-modern {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-name {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .author-stats {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .action-icon-btn {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 30px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .action-icon-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.02);
+    }
+
+    .action-icon-btn.liked {
+        background: #ff4757;
+    }
+
+    /* Content Layout */
+    .recipe-content-modern {
+        max-width: 1100px;
+        margin: -30px auto 0;
+        padding: 0 2rem 3rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 2rem;
+    }
+
+    /* Cards */
+    .info-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .section-title-modern {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2d2f36;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ingredient-count {
+        font-size: 0.75rem;
+        background: #f0f0f0;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: normal;
+    }
+
+    .ingredients-list-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .ingredient-item-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .ingredient-item-modern:hover {
+        background: #fafafa;
+        padding-left: 8px;
+    }
+
+    .ingredient-item-modern .ingredient-checkbox i {
+        color: #c96b4a;
+        font-size: 1.2rem;
+    }
+
+    .steps-list-modern {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .step-item-modern {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .step-item-modern:hover {
+        background: #f5f5f5;
+        transform: translateX(5px);
+    }
+
+    .step-number-modern {
+        width: 36px;
+        height: 36px;
+        background: #c96b4a;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .step-content-modern {
+        flex: 1;
+    }
+
+    .step-content-modern p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .pro-tip-modern {
+        background: linear-gradient(135deg, #fff8e8, #fff3e0);
+        border-radius: 20px;
+        padding: 1.2rem;
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .tip-icon {
+        font-size: 2rem;
+    }
+
+    .tip-content strong {
+        color: #c96b4a;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    /* Sidebar */
+    .stats-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #c96b4a;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: #8e8e8e;
+    }
+
+    .quick-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .quick-info-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .quick-info-item i {
+        width: 24px;
+        color: #c96b4a;
+    }
+
+    .quick-info-item span {
+        flex: 1;
+        color: #8e8e8e;
+        font-size: 0.85rem;
+    }
+
+    .quick-info-item strong {
+        color: #2d2f36;
+    }
+
+    .download-card {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        border-radius: 20px;
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white;
+    }
+
+    .download-card i {
+        font-size: 2rem;
+    }
+
+    .download-card h4 {
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .download-card p {
+        font-size: 0.7rem;
+        opacity: 0.8;
+        margin: 0;
+    }
+
+    .download-btn {
+        background: white;
+        color: #c96b4a;
+        padding: 6px 12px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: auto;
+        transition: all 0.2s;
+    }
+
+    .download-btn:hover {
+        transform: scale(1.05);
+    }
+
+    /* Comments Section - Instagram Style */
+    .comments-section-modern {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .comments-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .comments-header-modern h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .comments-header-modern h3 i {
+        color: #c96b4a;
+        margin-right: 8px;
+    }
+
+    .comments-feed {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .comment-card-modern {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .comment-avatar {
+        flex-shrink: 0;
+    }
+
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        background: #f0f0f0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #c96b4a;
+    }
+
+    .comment-body {
+        flex: 1;
+    }
+
+    .comment-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+
+    .comment-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .username {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .user-badge {
+        background: #f0f0f0;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        color: #8e8e8e;
+    }
+
+    .comment-rating-modern i {
+        font-size: 0.7rem;
+        color: #ffc107;
+    }
+
+    .comment-text-modern {
+        font-size: 0.85rem;
+        color: #262626;
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+
+    .comment-footer-modern {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .comment-like-btn, .reply-btn-modern, .delete-comment-modern {
+        background: none;
+        border: none;
+        color: #8e8e8e;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: color 0.2s;
+        padding: 0;
+    }
+
+    .comment-like-btn:hover, .reply-btn-modern:hover {
+        color: #c96b4a;
+    }
+
+    .delete-comment-modern:hover {
+        color: #ff4757;
+    }
+
+    .comment-time {
+        font-size: 0.65rem;
+        color: #8e8e8e;
+    }
+
+    /* Reply Section */
+    .replies-container-modern {
+        margin-left: 48px;
+        margin-top: 8px;
+    }
+
+    .reply-card-modern {
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+    }
+
+    .reply-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .reply-author-modern {
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: #c96b4a;
+    }
+
+    .reply-text-modern {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+
+    .reply-footer-modern {
+        display: flex;
+        gap: 12px;
+        font-size: 0.65rem;
+    }
+
+    .reply-form-modern {
+        margin-left: 48px;
+        margin-top: 8px;
+    }
+
+    .reply-form-modern textarea {
+        width: 100%;
+        border: 1px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        resize: none;
+    }
+
+    .reply-actions-modern {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .btn-submit-reply-modern {
+        background: #c96b4a;
+        color: white;
+        border: none;
+        padding: 4px 16px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
+    .btn-cancel-reply-modern {
+        background: #f0f0f0;
+        border: none;
+        padding: 4px 16px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
+    /* Add Comment */
+    .add-comment-modern {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .comment-avatar-small {
+        flex-shrink: 0;
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .comment-input-wrapper {
+        flex: 1;
+    }
+
+    .comment-input-wrapper textarea {
+        width: 100%;
+        border: 1px solid #f0f0f0;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        resize: none;
+    }
+
+    .comment-input-wrapper textarea:focus {
+        outline: none;
+        border-color: #c96b4a;
+    }
+
+    .comment-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+    }
+
+    .comment-actions select {
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        background: white;
+    }
+
+    .comment-actions button {
+        background: #c96b4a;
+        color: white;
+        border: none;
+        padding: 6px 20px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .comment-actions button:hover {
+        background: #a55233;
+    }
+
+    .login-prompt-modern {
+        text-align: center;
+        padding: 1rem;
+        background: #fafafa;
+        border-radius: 20px;
+        margin-top: 1rem;
+    }
+
+    .login-prompt-modern a {
+        color: #c96b4a;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .empty-comments-modern {
+        text-align: center;
+        padding: 2rem;
+        color: #8e8e8e;
+    }
+
+    .empty-comments-modern i {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .empty-state-text {
+        color: #8e8e8e;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    /* Share Dropdown */
     .share-dropdown {
         position: relative;
         display: inline-block;
     }
-    
+
     .share-dropdown-content {
         display: none;
         position: absolute;
-        bottom: 100%;
-        left: 0;
+        bottom: 50px;
+        right: 0;
         background: white;
         min-width: 220px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         border-radius: 16px;
-        z-index: 1000;
-        margin-bottom: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        z-index: 100;
         overflow: hidden;
-        border: 1px solid #f0dfbf;
     }
-    
+
     .share-dropdown-content.show {
         display: block;
-        animation: fadeInUp 0.2s ease;
+        animation: fadeIn 0.2s ease;
     }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
+
     .share-header {
         padding: 12px 16px;
-        background: #fff9ef;
         font-weight: 600;
-        color: #c96b4a;
-        border-bottom: 1px solid #f0dfbf;
+        border-bottom: 1px solid #f0f0f0;
     }
-    
+
     .share-dropdown-content a {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 10px 16px;
         text-decoration: none;
-        color: #5a4a3a;
+        color: #262626;
         transition: background 0.2s;
     }
-    
+
     .share-dropdown-content a:hover {
-        background: #fff5ea;
+        background: #fafafa;
     }
-    
-    .share-dropdown-content a i {
-        width: 24px;
-        font-size: 1.1rem;
-    }
-    
-    .share-dropdown-content a i.fa-whatsapp { color: #25D366; }
-    .share-dropdown-content a i.fa-facebook { color: #1877f2; }
-    .share-dropdown-content a i.fa-instagram { color: #E4405F; }
-    .share-dropdown-content a i.fa-twitter { color: #1DA1F2; }
-    .share-dropdown-content a i.fa-pinterest { color: #BD081C; }
-    .share-dropdown-content a i.fa-envelope { color: #EA4335; }
-    .share-dropdown-content a i.fa-file-pdf { color: #dc3545; }
-    .share-dropdown-content a i.fa-link { color: #17a2b8; }
-    
+
     .share-divider {
         height: 1px;
-        background: #f0dfbf;
-        margin: 5px 0;
+        background: #f0f0f0;
+        margin: 4px 0;
     }
-    
-    /* Reply System Styles */
-    .reply-btn {
-        background: none;
-        border: none;
-        color: #c96b4a;
-        cursor: pointer;
-        font-size: 0.7rem;
-        padding: 0;
-        transition: color 0.2s;
-    }
-    
-    .reply-btn:hover {
-        color: #a55233;
-        text-decoration: underline;
-    }
-    
-    .comment-like-btn {
-        background: none;
-        border: none;
-        color: #b48b72;
-        cursor: pointer;
-        font-size: 0.7rem;
-        padding: 0;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        transition: color 0.2s;
-    }
-    
-    .comment-like-btn:hover {
-        color: #e25822;
-    }
-    
-    .comment-like-btn.liked {
-        color: #e25822;
-    }
-    
-    .comment-like-btn.liked i {
-        font-weight: 900;
-    }
-    
-    .comment-time {
-        font-size: 0.7rem;
-        color: #b48b72;
-    }
-    
-    .separator {
-        color: #e0cfc0;
-    }
-    
-    .replies-container {
-        margin-left: 40px;
-        margin-top: 10px;
-        padding-left: 15px;
-        border-left: 2px solid #f0dfbf;
-    }
-    
-    .reply-card {
-        background: #fef9f5;
-        border-radius: 16px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        border: 1px solid #ffede2;
-    }
-    
-    .reply-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-        flex-wrap: wrap;
-    }
-    
-    .reply-author {
-        font-weight: 600;
-        color: #a55337;
-        font-size: 0.8rem;
-    }
-    
-    .reply-author i {
-        margin-right: 5px;
-    }
-    
-    .reply-text {
-        font-size: 0.85rem;
-        color: #46433f;
-        line-height: 1.4;
-        margin-bottom: 5px;
-    }
-    
-    .reply-footer {
-        font-size: 0.65rem;
-        color: #b48b72;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-    
-    .reply-like-btn {
-        background: none;
-        border: none;
-        color: #b48b72;
-        cursor: pointer;
-        font-size: 0.65rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    
-    .reply-like-btn:hover {
-        color: #e25822;
-    }
-    
-    .reply-like-btn.liked {
-        color: #e25822;
-    }
-    
-    .reply-form-container {
-        margin-top: 10px;
-        margin-left: 40px;
-    }
-    
-    .reply-form {
-        background: white;
-        padding: 12px;
-        border-radius: 16px;
-        border: 1px solid #f0dfbf;
-    }
-    
-    .reply-textarea {
-        width: 100%;
-        border: 1px solid #f0dfbf;
-        border-radius: 12px;
-        padding: 8px 12px;
-        font-family: inherit;
-        resize: vertical;
-    }
-    
-    .reply-textarea:focus {
-        outline: none;
-        border-color: #e2b13b;
-    }
-    
-    .reply-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 8px;
-    }
-    
-    .btn-submit-reply {
-        background: #c96b4a;
-        border: none;
-        padding: 6px 16px;
-        border-radius: 20px;
-        color: white;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .btn-submit-reply:hover {
-        background: #a55233;
-        transform: translateY(-1px);
-    }
-    
-    .btn-cancel-reply {
-        background: #e0cfc0;
-        border: none;
-        padding: 6px 16px;
-        border-radius: 20px;
-        color: #5a4a3a;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .btn-cancel-reply:hover {
-        background: #d0bfb0;
-    }
-    
-    .top-fan-badge {
-        font-size: 0.65rem;
-        background: #e2b13b;
-        padding: 2px 8px;
-        border-radius: 20px;
-        color: white;
-        margin-left: 5px;
-    }
-    
+
+    /* Responsive */
     @media (max-width: 768px) {
-        .replies-container {
-            margin-left: 20px;
+        .content-grid {
+            grid-template-columns: 1fr;
         }
-        
-        .reply-form-container {
-            margin-left: 20px;
+
+        .recipe-hero-modern {
+            height: 400px;
         }
-        
-        .share-dropdown-content {
-            right: 0;
-            left: auto;
+
+        .recipe-title-modern {
+            font-size: 1.5rem;
+        }
+
+        .hero-content {
+            padding: 1rem;
+        }
+
+        .author-section {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .action-buttons {
+            width: 100%;
+            justify-content: space-around;
         }
     }
 </style>
 
 <script>
-    // Get CSRF token
+    // ==============================================
+    // SHARE DROPDOWN FUNCTIONS
+    // ==============================================
+    let shareDropdownOpen = false;
+
+    function toggleShareDropdown() {
+        const dropdown = document.getElementById('shareDropdown');
+        if (shareDropdownOpen) {
+            dropdown.classList.remove('show');
+            shareDropdownOpen = false;
+        } else {
+            dropdown.classList.add('show');
+            shareDropdownOpen = true;
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('shareDropdown');
+        const shareBtn = document.querySelector('.action-icon-btn:has(.fa-share-alt)');
+        if (dropdown && shareBtn && !shareBtn.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.remove('show');
+            shareDropdownOpen = false;
+        }
+    });
+
+    const recipeTitle = "{{ recipe.1|escapejs }}";
+    const recipeUrl = window.location.href;
+
+    function shareOnPlatform(platform) {
+        let shareUrl = '';
+        const text = `Check out this amazing recipe: ${recipeTitle} 🍳✨\n\n`;
+        
+        switch(platform) {
+            case 'whatsapp':
+                shareUrl = `https://wa.me/?text=${encodeURIComponent(text + recipeUrl)}`;
+                break;
+            case 'facebook':
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(recipeUrl)}`;
+                break;
+            case 'instagram':
+                copyToClipboard(`${text}\n${recipeUrl}`);
+                window.showToast('📋 Link copied! Share on Instagram 📸', 'success');
+                return;
+            case 'twitter':
+                shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(recipeUrl)}`;
+                break;
+            case 'pinterest':
+                shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(recipeUrl)}`;
+                break;
+        }
+        
+        if (shareUrl) {
+            window.open(shareUrl, '_blank', 'width=600,height=500');
+        }
+        toggleShareDropdown();
+    }
+
+    function copyLink() {
+        copyToClipboard(recipeUrl);
+        window.showToast('📋 Link copied to clipboard!', 'success');
+        toggleShareDropdown();
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+    }
+
+    // ==============================================
+    // LIKE FUNCTION
+    // ==============================================
     function getCSRFToken() {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -1176,333 +1146,10 @@
         return cookieValue;
     }
 
-    // ==============================================
-    // SHARE DROPDOWN FUNCTIONS
-    // ==============================================
-    let shareDropdownOpen = false;
-    
-    function toggleShareDropdown() {
-        const dropdown = document.getElementById('shareDropdown');
-        if (shareDropdownOpen) {
-            dropdown.classList.remove('show');
-            shareDropdownOpen = false;
-        } else {
-            dropdown.classList.add('show');
-            shareDropdownOpen = true;
-        }
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('shareDropdown');
-        const shareBtn = document.querySelector('.btn-share');
-        if (dropdown && shareBtn && !shareBtn.contains(event.target) && !dropdown.contains(event.target)) {
-            dropdown.classList.remove('show');
-            shareDropdownOpen = false;
-        }
-    });
-    
-    // Share on social platforms
-    const recipeTitle = "{{ recipe.1|escapejs }}";
-    const recipeUrl = window.location.href;
-    const recipeDescription = "{{ recipe.2|escapejs|truncatechars:200 }}";
-    
-    function shareOnPlatform(platform) {
-        let shareUrl = '';
-        const text = `Check out this amazing recipe: ${recipeTitle} 🍳✨\n\n${recipeDescription}\n\n`;
-        
-        switch(platform) {
-            case 'whatsapp':
-                shareUrl = `https://wa.me/?text=${encodeURIComponent(text + recipeUrl)}`;
-                break;
-            case 'facebook':
-                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(recipeUrl)}`;
-                break;
-            case 'instagram':
-                // Instagram doesn't have direct share URL, copy to clipboard instead
-                copyToClipboard(`${text}\n${recipeUrl}`);
-                window.showToast('📋 Link copied! Share it on Instagram 📸', 'success');
-                return;
-            case 'twitter':
-                shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(recipeUrl)}`;
-                break;
-            case 'pinterest':
-                shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(recipeUrl)}&description=${encodeURIComponent(recipeTitle)}`;
-                break;
-            case 'email':
-                shareUrl = `mailto:?subject=${encodeURIComponent(`Delicious Recipe: ${recipeTitle}`)}&body=${encodeURIComponent(text + recipeUrl)}`;
-                break;
-        }
-        
-        if (shareUrl) {
-            window.open(shareUrl, '_blank', 'width=600,height=500');
-        }
-        toggleShareDropdown();
-    }
-    
-    function copyLink() {
-        copyToClipboard(recipeUrl);
-        window.showToast('📋 Recipe link copied to clipboard!', 'success');
-        toggleShareDropdown();
-    }
-    
-    function shareAsPDF() {
-        // Trigger PDF download
-        window.location.href = `/recipe/{{ recipe.0 }}/download/`;
-        window.showToast('📄 Downloading PDF...', 'info');
-        toggleShareDropdown();
-    }
-    
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text);
-    }
-    
-    // ==============================================
-    // COMMENT LIKE FUNCTION
-    // ==============================================
-    async function toggleCommentLike(commentId) {
-        const btn = document.querySelector(`.comment-card[data-comment-id="${commentId}"] .comment-like-btn`);
-        if (!btn) return;
-        
-        const isLiked = btn.classList.contains('liked');
-        
-        try {
-            const response = await fetch('/api/toggle-comment-like/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({
-                    comment_id: commentId,
-                    action: isLiked ? 'unlike' : 'like'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                if (!isLiked) {
-                    btn.classList.add('liked');
-                    btn.querySelector('i').classList.remove('far');
-                    btn.querySelector('i').classList.add('fas');
-                } else {
-                    btn.classList.remove('liked');
-                    btn.querySelector('i').classList.remove('fas');
-                    btn.querySelector('i').classList.add('far');
-                }
-                const likeCountSpan = document.getElementById(`commentLikeCount${commentId}`);
-                if (likeCountSpan) {
-                    likeCountSpan.textContent = data.likes_count;
-                }
-            } else if (data.error === 'Not logged in') {
-                window.showToast('Please login to like comments!', 'warning');
-                setTimeout(() => {
-                    window.location.href = '/login/';
-                }, 1500);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            window.showToast('Network error. Please try again.', 'error');
-        }
-    }
-    
-    // ==============================================
-    // REPLY SYSTEM
-    // ==============================================
-    function showReplyForm(commentId, authorName) {
-        const formContainer = document.getElementById(`replyForm${commentId}`);
-        if (formContainer) {
-            formContainer.style.display = 'block';
-            const textarea = document.getElementById(`replyText${commentId}`);
-            if (textarea) {
-                textarea.focus();
-                textarea.placeholder = `Reply to ${authorName}... 💬`;
-            }
-        }
-    }
-    
-    function hideReplyForm(commentId) {
-        const formContainer = document.getElementById(`replyForm${commentId}`);
-        if (formContainer) {
-            formContainer.style.display = 'none';
-            const textarea = document.getElementById(`replyText${commentId}`);
-            if (textarea) {
-                textarea.value = '';
-            }
-        }
-    }
-    
-    async function submitReply(commentId) {
-        const replyText = document.getElementById(`replyText${commentId}`).value.trim();
-        
-        if (!replyText) {
-            window.showToast('Please write a reply!', 'warning');
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/add-reply/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({
-                    comment_id: commentId,
-                    reply_text: replyText,
-                    recipe_id: {{ recipe.0 }}
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                window.showToast('💬 Reply posted!', 'success');
-                hideReplyForm(commentId);
-                loadReplies(commentId);
-            } else if (data.error === 'Not logged in') {
-                window.showToast('Please login to reply!', 'warning');
-                setTimeout(() => {
-                    window.location.href = '/login/';
-                }, 1500);
-            } else {
-                window.showToast(data.message || 'Error posting reply', 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            window.showToast('Network error. Please try again.', 'error');
-        }
-    }
-    
-    async function loadReplies(commentId) {
-        try {
-            const response = await fetch(`/api/get-replies/${commentId}/`);
-            const data = await response.json();
-            
-            if (data.success) {
-                const container = document.getElementById(`repliesContainer${commentId}`);
-                if (container && data.replies.length > 0) {
-                    container.innerHTML = data.replies.map(reply => `
-                        <div class="reply-card" data-reply-id="${reply.reply_id}">
-                            <div class="reply-header">
-                                <span class="reply-author">
-                                    <i class="fas fa-user-circle"></i> ${reply.author_name}
-                                </span>
-                                <span class="reply-time">${formatTimeAgo(reply.created_at)}</span>
-                            </div>
-                            <div class="reply-text">
-                                ${escapeHtml(reply.reply_text)}
-                            </div>
-                            <div class="reply-footer">
-                                <button class="reply-like-btn" onclick="toggleReplyLike(${reply.reply_id}, this)">
-                                    <i class="far fa-heart"></i> <span class="like-count">${reply.likes_count || 0}</span>
-                                </button>
-                                ${reply.can_delete ? `<span class="separator">·</span>
-                                <button class="delete-reply-btn" onclick="deleteReply(${reply.reply_id})">
-                                    <i class="fas fa-trash-alt"></i> Delete
-                                </button>` : ''}
-                            </div>
-                        </div>
-                    `).join('');
-                } else if (container && data.replies.length === 0) {
-                    container.innerHTML = '';
-                }
-            }
-        } catch (error) {
-            console.error('Error loading replies:', error);
-        }
-    }
-    
-    async function toggleReplyLike(replyId, btnElement) {
-        const isLiked = btnElement.classList.contains('liked');
-        
-        try {
-            const response = await fetch('/api/toggle-reply-like/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({
-                    reply_id: replyId,
-                    action: isLiked ? 'unlike' : 'like'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                if (!isLiked) {
-                    btnElement.classList.add('liked');
-                    btnElement.querySelector('i').classList.remove('far');
-                    btnElement.querySelector('i').classList.add('fas');
-                } else {
-                    btnElement.classList.remove('liked');
-                    btnElement.querySelector('i').classList.remove('fas');
-                    btnElement.querySelector('i').classList.add('far');
-                }
-                const likeCountSpan = btnElement.querySelector('.like-count');
-                if (likeCountSpan) {
-                    likeCountSpan.textContent = data.likes_count;
-                }
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-    
-    async function deleteReply(replyId) {
-        if (!confirm('Are you sure you want to delete this reply?')) return;
-        
-        try {
-            const response = await fetch('/api/delete-reply/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({ reply_id: replyId })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                window.showToast('Reply deleted', 'info');
-                const replyElement = document.querySelector(`.reply-card[data-reply-id="${replyId}"]`);
-                if (replyElement) replyElement.remove();
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-    
-    // Helper functions
-    function formatTimeAgo(timestamp) {
-        if (!timestamp) return 'just now';
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diff = Math.floor((now - date) / 1000);
-        
-        if (diff < 60) return 'just now';
-        if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-        return `${Math.floor(diff / 86400)} days ago`;
-    }
-    
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-    
-    // ==============================================
-    // LIKE/FAVORITE BUTTON
-    // ==============================================
     const likeBtn = document.getElementById('likeBtn');
     let isLiked = likeBtn?.getAttribute('data-liked') === 'true';
     let isProcessing = false;
-    
+
     if (likeBtn) {
         likeBtn.addEventListener('click', async function() {
             if (isProcessing) return;
@@ -1518,10 +1165,7 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCSRFToken(),
                     },
-                    body: JSON.stringify({
-                        recipe_id: recipeId,
-                        action: action
-                    })
+                    body: JSON.stringify({ recipe_id: recipeId, action: action })
                 });
                 
                 const data = await response.json();
@@ -1530,69 +1174,175 @@
                     isLiked = !isLiked;
                     
                     if (isLiked) {
-                        likeBtn.innerHTML = '<i class="fas fa-heart"></i> 💖 Saved to Favorites';
-                        likeBtn.classList.add('saved');
-                        window.showToast('✨ Recipe added to your favorites! ✨', 'success');
+                        likeBtn.innerHTML = '<i class="fas fa-heart"></i><span class="action-text">Saved</span>';
+                        likeBtn.classList.add('liked');
+                        window.showToast('✨ Saved to favorites!', 'success');
                     } else {
-                        likeBtn.innerHTML = '<i class="far fa-heart"></i> 💖 Save to Favorites';
-                        likeBtn.classList.remove('saved');
-                        window.showToast('💔 Recipe removed from favorites', 'info');
+                        likeBtn.innerHTML = '<i class="far fa-heart"></i><span class="action-text">Save</span>';
+                        likeBtn.classList.remove('liked');
+                        window.showToast('Removed from favorites', 'info');
                     }
-                    
                     likeBtn.setAttribute('data-liked', isLiked);
-                    
-                    if (typeof fetchSavedRecipesCount !== 'undefined') {
-                        await fetchSavedRecipesCount();
-                    }
-                } else if (data.error === 'Not logged in') {
-                    window.showToast('Please login to save favorites!', 'warning');
-                    setTimeout(() => {
-                        window.location.href = '/login/';
-                    }, 1500);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                window.showToast('Network error. Please try again.', 'error');
             } finally {
-                setTimeout(() => {
-                    isProcessing = false;
-                }, 1000);
+                setTimeout(() => { isProcessing = false; }, 1000);
             }
         });
     }
-    
+
     // ==============================================
-    // COMMENT SUBMISSION
+    // COMMENT FUNCTIONS
     // ==============================================
+    async function toggleCommentLike(commentId) {
+        try {
+            const response = await fetch('/api/toggle-comment-like/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ comment_id: commentId, action: 'like' })
+            });
+            const data = await response.json();
+            if (data.success) {
+                const likeSpan = document.getElementById(`commentLikeCount${commentId}`);
+                if (likeSpan) likeSpan.textContent = data.likes_count;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function showReplyForm(commentId, authorName) {
+        const form = document.getElementById(`replyForm${commentId}`);
+        if (form) {
+            form.style.display = 'block';
+            const textarea = document.getElementById(`replyText${commentId}`);
+            if (textarea) textarea.focus();
+        }
+    }
+
+    function hideReplyForm(commentId) {
+        const form = document.getElementById(`replyForm${commentId}`);
+        if (form) {
+            form.style.display = 'none';
+            const textarea = document.getElementById(`replyText${commentId}`);
+            if (textarea) textarea.value = '';
+        }
+    }
+
+    async function submitReply(commentId) {
+        const replyText = document.getElementById(`replyText${commentId}`).value.trim();
+        if (!replyText) return;
+        
+        try {
+            const response = await fetch('/api/add-reply/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    comment_id: commentId,
+                    reply_text: replyText,
+                    recipe_id: {{ recipe.0 }}
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                hideReplyForm(commentId);
+                loadReplies(commentId);
+                window.showToast('Reply posted!', 'success');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function loadReplies(commentId) {
+        try {
+            const response = await fetch(`/api/get-replies/${commentId}/`);
+            const data = await response.json();
+            if (data.success) {
+                const container = document.getElementById(`repliesContainer${commentId}`);
+                if (container && data.replies.length > 0) {
+                    container.innerHTML = data.replies.map(reply => `
+                        <div class="reply-card-modern">
+                            <div class="reply-header-modern">
+                                <span class="reply-author-modern">${escapeHtml(reply.author_name)}</span>
+                                <span class="reply-time">${formatTimeAgo(reply.created_at)}</span>
+                            </div>
+                            <div class="reply-text-modern">${escapeHtml(reply.reply_text)}</div>
+                            <div class="reply-footer-modern">
+                                <button class="reply-like-btn" onclick="toggleReplyLike(${reply.reply_id}, this)">
+                                    <i class="far fa-heart"></i> ${reply.likes_count || 0}
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function formatTimeAgo(timestamp) {
+        if (!timestamp) return 'just now';
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return `${Math.floor(diff / 86400)}d ago`;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    window.deleteComment = async function(commentId) {
+        if (!confirm('Delete this comment?')) return;
+        try {
+            const response = await fetch('/api/delete-comment/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCSRFToken() },
+                body: JSON.stringify({ comment_id: commentId })
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    // Comment form submission
     const commentForm = document.getElementById('commentForm');
-    let isSubmitting = false;
-    
     if (commentForm) {
         commentForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            if (isSubmitting) return;
-            isSubmitting = true;
-            
             const commentText = document.getElementById('commentText').value;
             const rating = document.getElementById('ratingSelect').value;
-            const submitBtn = document.getElementById('submitCommentBtn');
-            const originalText = submitBtn.innerHTML;
             
             if (!commentText.trim()) {
-                window.showToast('Please write a review before posting!', 'warning');
-                isSubmitting = false;
+                window.showToast('Please write a review!', 'warning');
                 return;
             }
-            
             if (!rating) {
                 window.showToast('Please select a rating!', 'warning');
-                isSubmitting = false;
                 return;
             }
             
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+            const submitBtn = document.getElementById('submitCommentBtn');
             submitBtn.disabled = true;
+            submitBtn.textContent = 'Posting...';
             
             try {
                 const response = await fetch('/api/add-comment/', {
@@ -1607,115 +1357,26 @@
                         rating: parseInt(rating)
                     })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
-                    window.showToast('🎉 Your review has been posted! Thank you for sharing! 🎉', 'success');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else if (data.error === 'Not logged in') {
-                    window.showToast('Please login to post reviews', 'warning');
-                    setTimeout(() => {
-                        window.location.href = '/login/';
-                    }, 1500);
-                } else {
-                    window.showToast(data.message || 'Error posting comment', 'error');
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
+                    window.showToast('Review posted! 🎉', 'success');
+                    setTimeout(() => location.reload(), 1500);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                window.showToast('Network error. Please try again.', 'error');
-                submitBtn.innerHTML = originalText;
+                window.showToast('Error posting review', 'error');
                 submitBtn.disabled = false;
-            } finally {
-                isSubmitting = false;
+                submitBtn.textContent = 'Post';
             }
         });
     }
-    
-    // ==============================================
-    // DELETE COMMENT
-    // ==============================================
-    window.deleteComment = async function(commentId) {
-        if (!confirm('Are you sure you want to delete your review? This action cannot be undone.')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/delete-comment/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({ comment_id: commentId })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                window.showToast('🗑️ Your review has been deleted', 'info');
-                const commentElement = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
-                if (commentElement) {
-                    commentElement.remove();
-                }
-                const commentsCount = document.getElementById('commentsCount');
-                if (commentsCount) {
-                    const currentCount = parseInt(commentsCount.textContent) || 0;
-                    commentsCount.textContent = `${currentCount - 1} comments 💭`;
-                }
-            } else {
-                window.showToast(data.message || 'Error deleting comment', 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            window.showToast('Network error. Please try again.', 'error');
-        }
-    };
-    
-    // ==============================================
-    // UPDATE TIMESTAMPS IN REAL-TIME
-    // ==============================================
-    function updateAllTimestamps() {
-        document.querySelectorAll('.comment-time').forEach(element => {
-            const timestamp = element.getAttribute('data-timestamp');
-            if (timestamp) {
-                element.textContent = formatTimeAgo(timestamp);
-            }
-        });
-        
-        document.querySelectorAll('.reply-time').forEach(element => {
-            const timestamp = element.getAttribute('data-timestamp');
-            if (timestamp) {
-                element.textContent = formatTimeAgo(timestamp);
-            }
-        });
-    }
-    
-    // Update timestamps every minute
-    setInterval(updateAllTimestamps, 60000);
-    
-    // Load all replies on page load
+
+    // Load replies on page load
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.comment-card[data-comment-id]').forEach(comment => {
+        document.querySelectorAll('.comment-card-modern').forEach(comment => {
             const commentId = comment.getAttribute('data-comment-id');
-            loadReplies(commentId);
+            if (commentId) loadReplies(commentId);
         });
-        updateAllTimestamps();
     });
-    
-    // Image loading optimization
-    const imgElement = document.getElementById('recipeImage');
-    if (imgElement) {
-        imgElement.addEventListener('load', function() {
-            if (this.naturalWidth < 300 || this.naturalHeight < 200) {
-                this.style.objectFit = 'contain';
-                this.style.background = '#f8ede4';
-            }
-        });
-    }
 </script>
 {% endblock %}
