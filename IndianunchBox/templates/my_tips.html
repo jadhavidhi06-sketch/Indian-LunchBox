@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="my-tips-container">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-mortar-pestle"></i> My Kitchen Wisdom</h1>
+            <p>Tips you've shared with the community</p>
+        </div>
+
+        {% if tips %}
+        <div class="tips-list">
+            {% for tip in tips %}
+            <div class="tip-row">
+                <div class="tip-row-content">
+                    <div class="tip-row-info">
+                        <h3><a href="/tip/{{ tip.0 }}/">{{ tip.1 }}</a></h3>
+                        <p>{{ tip.2|truncatechars:100 }}</p>
+                        <div class="tip-row-stats">
+                            <span><i class="fas fa-heart"></i> {{ tip.5 }}</span>
+                            <span><i class="fas fa-bookmark"></i> {{ tip.6 }}</span>
+                            <span><i class="fas fa-eye"></i> {{ tip.7 }}</span>
+                            <span><i class="far fa-calendar"></i> {{ tip.8|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="tip-row-actions">
+                        <a href="/edit-tip/{{ tip.0 }}/" class="btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                        <a href="/delete-tip/{{ tip.0 }}/" class="btn-delete" onclick="return confirm('Delete this tip?')"><i class="fas fa-trash-alt"></i> Delete</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-mortar-pestle"></i>
+            <h3>No tips yet</h3>
+            <p>Share your first kitchen tip with our community!</p>
+            <a href="/add-tip/" class="btn-wisdom">Share Your Wisdom</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.my-tips-container { padding: 2rem 0; min-height: 70vh; background: linear-gradient(135deg, #fff9f5, #fff5ed); }
+.page-header { text-align: center; margin-bottom: 2rem; }
+.page-header h1 { font-family: 'Playfair Display', serif; color: #5a3e2e; }
+.tips-list { max-width: 800px; margin: 0 auto; }
+.tip-row { background: white; border-radius: 20px; margin-bottom: 1rem; padding: 1rem; transition: all 0.2s; border: 1px solid #f0dfbf; }
+.tip-row:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+.tip-row-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.tip-row-info { flex: 1; }
+.tip-row-info h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.tip-row-info h3 a { color: #5a3e2e; text-decoration: none; }
+.tip-row-info h3 a:hover { color: #c96b4a; }
+.tip-row-info p { color: #7a624b; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.tip-row-stats { display: flex; gap: 1rem; font-size: 0.7rem; color: #c96b4a; }
+.tip-row-actions { display: flex; gap: 0.5rem; }
+.btn-edit, .btn-delete { padding: 6px 16px; border-radius: 30px; text-decoration: none; font-size: 0.8rem; transition: all 0.2s; }
+.btn-edit { background: #e2b13b; color: white; }
+.btn-edit:hover { background: #d4a32e; transform: translateY(-2px); }
+.btn-delete { background: #dc3545; color: white; }
+.btn-delete:hover { background: #c82333; transform: translateY(-2px); }
+.btn-wisdom { display: inline-block; background: #c96b4a; color: white; padding: 10px 24px; border-radius: 40px; text-decoration: none; margin-top: 1rem; }
+.empty-state { text-align: center; padding: 4rem; background: white; border-radius: 32px; }
+.empty-state i { font-size: 4rem; color: #e2b13b; }
+@media (max-width: 768px) { .tip-row-content { flex-direction: column; text-align: center; } .tip-row-stats { justify-content: center; } }
+</style>
+{% endblock %}

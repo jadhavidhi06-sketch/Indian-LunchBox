@@ -8,27 +8,29 @@
         />
         <title>IndianLunchBox — Cozy Bites, Nostalgic Delights</title>
 
-        <!-- Google Fonts: A warm, readable mix for all ages -->
+        <!-- Google Fonts -->
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Kalam:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
             rel="stylesheet"
         />
 
-        <!-- Bootstrap 5 CSS (with subtle warmth) -->
+        <!-- Bootstrap 5 CSS -->
         <link
             href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
             rel="stylesheet"
         />
 
-        <!-- Font Awesome 6 (free icons for homy touches) -->
+        <!-- Font Awesome 6 -->
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
         />
 
-        <!-- Custom CSS: cozy, nostalgic, aesthetic palette & details -->
+        <!-- SweetAlert2 -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
         <style>
-            /* ---------- ROOT VARIABLES: WARMTH & NOSTALGIA ---------- */
+            /* Root Variables */
             :root {
                 --bg-cream: #fff9ef;
                 --warm-terracotta: #c96b4a;
@@ -38,9 +40,7 @@
                 --charcoal-soft: #2d2f36;
                 --card-bg: #ffffffea;
                 --border-nostalgic: #f0e0c0;
-                --shadow-cozy:
-                    0 12px 28px rgba(0, 0, 0, 0.05),
-                    0 2px 4px rgba(0, 0, 0, 0.02);
+                --shadow-cozy: 0 12px 28px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
                 --shadow-hover: 0 20px 32px rgba(0, 0, 0, 0.08);
             }
 
@@ -58,12 +58,7 @@
                 scroll-behavior: smooth;
             }
 
-            /* nostalgic header / typography */
-            h1,
-            h2,
-            h3,
-            h4,
-            .brand-font {
+            h1, h2, h3, h4, .brand-font {
                 font-family: "Playfair Display", serif;
                 font-weight: 600;
                 letter-spacing: -0.01em;
@@ -84,7 +79,6 @@
                 font-family: "Inter", sans-serif;
             }
 
-            /* Brand Logo Styling */
             .brand-logo {
                 font-family: "Playfair Display", serif;
                 font-size: 1.6rem;
@@ -113,7 +107,6 @@
                 font-weight: normal;
             }
 
-            /* Nav Links */
             .nav-link-custom {
                 color: #5a4a3a !important;
                 font-weight: 500;
@@ -135,7 +128,6 @@
                 transform: translateY(-2px);
             }
 
-            /* Notification Bell */
             .notification-bell {
                 position: relative;
                 color: #5a4a3a !important;
@@ -156,24 +148,19 @@
             }
 
             @keyframes pulse {
-                0% {
-                    transform: scale(1);
-                }
-                50% {
-                    transform: scale(1.1);
-                }
-                100% {
-                    transform: scale(1);
-                }
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
             }
 
-            /* Notification Dropdown */
             .notification-dropdown {
-                min-width: 300px;
+                min-width: 380px;
                 padding: 0;
                 border-radius: 16px;
                 box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
                 border: none;
+                max-height: 500px;
+                overflow-y: auto;
             }
 
             .dropdown-header {
@@ -184,22 +171,83 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                position: sticky;
+                top: 0;
+                z-index: 10;
             }
 
-            .notification-item.unread {
+            .notification-item-dropdown {
+                padding: 12px 16px;
+                border-bottom: 1px solid #f0dfbf;
+                cursor: pointer;
+                transition: background 0.2s;
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .notification-item-dropdown:hover {
                 background: #fff9ef;
             }
 
-            .notification-item:hover {
-                background: #f5f5f5;
+            .notification-item-dropdown.unread {
+                background: #fff9f0;
             }
 
-            .notification-item .dropdown-item {
-                white-space: normal;
-                padding: 10px 16px;
+            .notification-icon-small {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
             }
 
-            /* User Profile - FIXED FOR BETTER VISIBILITY */
+            .notification-icon-small.like { background: #ffe8e8; color: #e25822; }
+            .notification-icon-small.comment { background: #e8f4ff; color: #4a90e2; }
+            .notification-icon-small.save { background: #e8ffe8; color: #28a745; }
+            .notification-icon-small.follow { background: #f0e8ff; color: #9b59b6; }
+            .notification-icon-small.system { background: #fff0e0; color: #e2b13b; }
+
+            .notification-content-small {
+                flex: 1;
+            }
+
+            .notification-title-small {
+                font-weight: 600;
+                font-size: 0.85rem;
+                color: #5a3e2e;
+                margin-bottom: 4px;
+            }
+
+            .notification-message-small {
+                font-size: 0.75rem;
+                color: #7a624b;
+                margin-bottom: 4px;
+            }
+
+            .notification-time-small {
+                font-size: 0.65rem;
+                color: #aaa;
+            }
+
+            .mark-read-btn {
+                background: none;
+                border: none;
+                color: #c96b4a;
+                cursor: pointer;
+                padding: 4px 8px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                transition: all 0.2s;
+            }
+
+            .mark-read-btn:hover {
+                background: #c96b4a;
+                color: white;
+            }
+
             .user-profile {
                 display: flex;
                 align-items: center;
@@ -242,7 +290,6 @@
                 vertical-align: middle;
             }
 
-            /* User Dropdown */
             .user-dropdown {
                 min-width: 280px;
                 border-radius: 16px;
@@ -274,7 +321,6 @@
                 padding-left: 26px;
             }
 
-            /* Saved Count Badge Animation */
             .saved-count-badge {
                 display: inline-block;
                 transition: all 0.3s ease;
@@ -286,20 +332,11 @@
             }
 
             @keyframes badgePop {
-                0% {
-                    transform: scale(1);
-                }
-                50% {
-                    transform: scale(1.3);
-                    background: #28a745;
-                    color: white;
-                }
-                100% {
-                    transform: scale(1);
-                }
+                0% { transform: scale(1); }
+                50% { transform: scale(1.3); background: #28a745; color: white; }
+                100% { transform: scale(1); }
             }
 
-            /* Buttons */
             .btn-add-recipe {
                 background: linear-gradient(135deg, #c96b4a, #a55233);
                 border: none;
@@ -347,7 +384,6 @@
                 color: #3a2a1e;
             }
 
-            /* Guest Message */
             .guest-message {
                 background: #fff5ea;
                 padding: 8px 16px;
@@ -362,69 +398,26 @@
                 color: #e2b13b;
             }
 
-            /* Mobile Responsive */
             @media (max-width: 992px) {
-                .custom-navbar {
-                    padding: 0.5rem 0;
-                }
-
-                .brand-logo {
-                    font-size: 1.3rem;
-                }
-
-                .brand-tagline {
-                    display: none;
-                }
-
-                .navbar-nav {
-                    margin-top: 1rem;
-                    gap: 8px !important;
-                }
-
-                .nav-link-custom,
-                .user-profile,
-                .notification-bell {
-                    padding: 8px 12px !important;
-                }
-
-                .btn-add-recipe,
-                .btn-login,
-                .btn-register {
-                    width: 100%;
-                    text-align: center;
-                    margin: 5px 0;
-                }
-
-                .guest-message {
-                    text-align: center;
-                    margin: 10px 0;
-                }
-
-                .user-name {
-                    display: inline-block;
-                    max-width: 120px;
-                }
-                
-                .user-profile {
-                    justify-content: center;
-                }
+                .custom-navbar { padding: 0.5rem 0; }
+                .brand-logo { font-size: 1.3rem; }
+                .brand-tagline { display: none; }
+                .navbar-nav { margin-top: 1rem; gap: 8px !important; }
+                .nav-link-custom, .user-profile, .notification-bell { padding: 8px 12px !important; }
+                .btn-add-recipe, .btn-login, .btn-register { width: 100%; text-align: center; margin: 5px 0; }
+                .guest-message { text-align: center; margin: 10px 0; }
+                .user-name { display: inline-block; max-width: 120px; }
+                .user-profile { justify-content: center; }
+                .notification-dropdown { min-width: 320px; right: 0; left: auto !important; }
             }
 
             @media (max-width: 576px) {
-                .user-name {
-                    display: none;
-                }
-
-                .brand-logo i {
-                    font-size: 1.2rem;
-                }
-                
-                .user-profile {
-                    padding: 8px 12px !important;
-                }
+                .user-name { display: none; }
+                .brand-logo i { font-size: 1.2rem; }
+                .user-profile { padding: 8px 12px !important; }
+                .notification-dropdown { min-width: 300px; }
             }
 
-            /* Custom Toggler */
             .custom-toggler {
                 border: none;
                 background: #fff5ea;
@@ -434,23 +427,15 @@
                 box-shadow: none;
             }
 
-            /* Animation for new items */
             @keyframes slideDown {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
             }
 
             .dropdown-menu.show {
                 animation: slideDown 0.2s ease;
             }
 
-            /* main container – cozy breathing space */
             .main-cozy {
                 background: var(--bg-cream);
                 min-height: 65vh;
@@ -458,14 +443,12 @@
                 padding-bottom: 3rem;
             }
 
-            /* card style for any blocks – vintage recipe card feel */
             .nostalgic-card {
                 background: var(--card-bg);
                 border-radius: 28px;
                 border: 1px solid var(--border-nostalgic);
                 box-shadow: var(--shadow-cozy);
                 transition: all 0.25s ease;
-                backdrop-filter: blur(0px);
                 overflow: hidden;
             }
 
@@ -475,7 +458,6 @@
                 border-color: #eedbba;
             }
 
-            /* buttons with homy texture */
             .btn-cozy {
                 background: var(--warm-terracotta);
                 border: none;
@@ -509,7 +491,6 @@
                 color: white;
             }
 
-            /* footer – sweet & nostalgic */
             .cozy-footer {
                 background: #fef2e3;
                 border-top: 1px solid #f2e2ce;
@@ -537,7 +518,6 @@
                 transform: translateY(-3px);
             }
 
-            /* additional vintage details */
             .divider-nostalgic {
                 height: 2px;
                 background: linear-gradient(90deg, #f0dfbf, #eacf9e, #f0dfbf);
@@ -555,14 +535,10 @@
                 color: #a86848;
             }
 
-            /* responsive tweaks */
             @media (max-width: 768px) {
-                .main-cozy {
-                    padding-top: 0.5rem;
-                }
+                .main-cozy { padding-top: 0.5rem; }
             }
 
-            /* Toast Notification Container */
             .toast-notification {
                 position: fixed;
                 bottom: 30px;
@@ -578,31 +554,44 @@
                 font-family: "Inter", sans-serif;
             }
 
-            .toast-notification.error {
-                background: #dc3545;
-            }
-
-            .toast-notification.warning {
-                background: #ffc107;
-                color: #333;
-            }
-
-            .toast-notification.info {
-                background: #17a2b8;
-            }
+            .toast-notification.error { background: #dc3545; }
+            .toast-notification.warning { background: #ffc107; color: #333; }
+            .toast-notification.info { background: #17a2b8; }
 
             @keyframes slideInRight {
-                from {
-                    opacity: 0;
-                    transform: translateX(100px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
+                from { opacity: 0; transform: translateX(100px); }
+                to { opacity: 1; transform: translateX(0); }
             }
 
-            /* extra warmth for any alert messages */
+            /* Notification Modal Styles */
+            .notification-modal-content {
+                border-radius: 28px;
+                overflow: hidden;
+            }
+
+            .notification-modal-header {
+                background: linear-gradient(135deg, #c96b4a, #a55233);
+                color: white;
+                padding: 1.2rem 1.5rem;
+                border: none;
+            }
+
+            .notification-modal-icon {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1rem;
+            }
+
+            .notification-modal-icon.like { background: #ffe8e8; color: #e25822; }
+            .notification-modal-icon.comment { background: #e8f4ff; color: #4a90e2; }
+            .notification-modal-icon.save { background: #e8ffe8; color: #28a745; }
+            .notification-modal-icon.follow { background: #f0e8ff; color: #9b59b6; }
+            .notification-modal-icon.system { background: #fff0e0; color: #e2b13b; }
+
             .alert-cozy {
                 background-color: #fff0e0;
                 border-left: 6px solid var(--golden-mustard);
@@ -611,13 +600,11 @@
                 font-weight: 500;
             }
 
-            /* make images blend softly */
             img {
                 border-radius: 20px;
                 max-width: 100%;
             }
 
-            /* custom scrollbar — nostalgic touch */
             ::-webkit-scrollbar {
                 width: 10px;
             }
@@ -632,490 +619,250 @@
             ::-webkit-scrollbar-thumb:hover {
                 background: #bd7a58;
             }
+
+            /* Loading Animation */
+            @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+            
+            .skeleton-loader {
+                background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+                border-radius: 12px;
+            }
         </style>
 
-        <!-- block for extra page-specific css -->
         {% block extra_css %}{% endblock %}
     </head>
     <body>
-        <!-- ==================== ENHANCED NAVBAR ==================== -->
+        <!-- NAVBAR -->
         <nav class="navbar navbar-expand-lg custom-navbar shadow-sm sticky-top">
             <div class="container">
-                <!-- Brand with hover effect and animated icon -->
                 <a class="navbar-brand brand-logo" href="/">
                     <i class="fas fa-utensil-spoon"></i>
                     IndianLunchBox
                     <span class="brand-tagline">❤️ Taste of Home</span>
                 </a>
 
-                <!-- Toggler for mobile with custom styling -->
-                <button
-                    class="navbar-toggler custom-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navMenu"
-                    aria-label="Toggle navigation"
-                >
+                <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navMenu">
-                    <ul
-                        class="navbar-nav ms-auto align-items-center gap-2 gap-lg-1"
-                    >
-                        <!-- Common Navigation Links for All Users -->
+                    <ul class="navbar-nav ms-auto align-items-center gap-2 gap-lg-1">
                         <li class="nav-item">
-                            <a class="nav-link nav-link-custom" href="/">
-                                <i class="fas fa-home"></i> Home
-                            </a>
+                            <a class="nav-link nav-link-custom" href="/"><i class="fas fa-home"></i> Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-custom" href="/recipes/"><i class="fas fa-utensils"></i> Recipes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-custom" href="/about/"><i class="fas fa-info-circle"></i> About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-custom" href="/contact/"><i class="fas fa-envelope"></i> Contact</a>
                         </li>
 
-                        <li class="nav-item">
-                            <a
-                                class="nav-link nav-link-custom"
-                                href="/recipes/"
-                            >
-                                <i class="fas fa-utensils"></i> Recipes
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-custom" href="/about/">
-                                <i class="fas fa-info-circle"></i> About
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a
-                                class="nav-link nav-link-custom"
-                                href="/contact/"
-                            >
-                                <i class="fas fa-envelope"></i> Contact
-                            </a>
-                        </li>
-
-                        <!-- Conditional Content Based on Login Status -->
                         {% if request.session.user_id %}
-
-                        <!-- User is LOGGED IN -->
-
-                        <!-- Notification Bell with Dropdown -->
+                        <!-- Logged In User -->
                         <li class="nav-item dropdown">
-                            <a
-                                class="nav-link notification-bell"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
+                            <a class="nav-link notification-bell" href="#" role="button" data-bs-toggle="dropdown" id="notificationBell">
                                 <i class="fas fa-bell"></i>
-                                <span
-                                    class="notification-badge"
-                                    id="notificationCount"
-                                    >3</span
-                                >
+                                <span class="notification-badge" id="notificationCount">0</span>
                             </a>
-                            <ul
-                                class="dropdown-menu notification-dropdown"
-                                aria-labelledby="notificationDropdown"
-                            >
+                            <ul class="dropdown-menu notification-dropdown" id="notificationDropdown">
                                 <li class="dropdown-header">
                                     <i class="fas fa-bell"></i> Notifications
-                                    <button
-                                        class="btn btn-sm btn-link mark-all-read"
-                                        onclick="markAllNotificationsRead()"
-                                    >
-                                        Mark all read
-                                    </button>
+                                    <button class="btn btn-sm btn-link mark-all-read" onclick="markAllNotificationsRead()">Mark all read</button>
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li class="notification-item unread">
-                                    <a class="dropdown-item" href="#">
-                                        <i class="fas fa-heart text-danger"></i>
-                                        Your recipe got 5 new likes!
-                                        <small class="d-block text-muted"
-                                            >2 hours ago</small
-                                        >
-                                    </a>
+                                <li><hr class="dropdown-divider"></li>
+                                <li id="notificationsLoading" class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-warning" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="small mt-2 text-muted">Loading notifications...</p>
                                 </li>
-                                <li class="notification-item unread">
-                                    <a class="dropdown-item" href="#">
-                                        <i
-                                            class="fas fa-comment text-primary"
-                                        ></i>
-                                        New comment on "Butter Chicken"
-                                        <small class="d-block text-muted"
-                                            >5 hours ago</small
-                                        >
-                                    </a>
+                                <li id="notificationsList"></li>
+                                <li id="notificationsEmpty" style="display: none;" class="text-center py-3">
+                                    <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                                    <p class="small text-muted mb-0">No notifications yet</p>
                                 </li>
-                                <li class="notification-item">
-                                    <a class="dropdown-item" href="#">
-                                        <i
-                                            class="fas fa-user-plus text-success"
-                                        ></i>
-                                        Welcome to IndianLunchBox!
-                                        <small class="d-block text-muted"
-                                            >Yesterday</small
-                                        >
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li class="text-center">
-                                    <a
-                                        class="dropdown-item small"
-                                        href="/notifications/"
-                                        >View all notifications</a
-                                    >
+                                <li><hr class="dropdown-divider" id="notifDivider" style="display: none;"></li>
+                                <li class="text-center" id="viewAllLink" style="display: none;">
+                                    <a class="dropdown-item small" href="/notifications/">View all notifications</a>
                                 </li>
                             </ul>
                         </li>
 
-                        <!-- User Profile Dropdown with Avatar - FIXED FOR PROPER DISPLAY -->
                         <li class="nav-item dropdown">
-                            <a
-                                class="nav-link dropdown-toggle user-profile"
-                                href="#"
-                                role="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
-                            >
-                                <div class="user-avatar">
-                                    <i class="fas fa-user-circle"></i>
-                                </div>
-                                <span class="user-name"
-                                    >{{ request.session.user_name }}</span
-                                >
+                            <a class="nav-link dropdown-toggle user-profile" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+                                <span class="user-name">{{ request.session.user_name }}</span>
                             </a>
                             <ul class="dropdown-menu user-dropdown">
                                 <li class="dropdown-header text-center">
-                                    <div class="user-avatar-large mb-2">
-                                        <i class="fas fa-user-circle fa-3x"></i>
-                                    </div>
-                                    <strong
-                                        >{{ request.session.user_name }}</strong
-                                    >
-                                    <small class="d-block text-muted"
-                                        >{% if request.session.user_email %}{{ request.session.user_email }}{% else %}foodie@indianlunchbox.com{% endif %}</small
-                                    >
+                                    <div class="user-avatar-large mb-2"><i class="fas fa-user-circle fa-3x"></i></div>
+                                    <strong>{{ request.session.user_name }}</strong>
+                                    <small class="d-block text-muted">{{ request.session.user_email|default:"foodie@indianlunchbox.com" }}</small>
                                 </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="/my-profile/"
-                                    >
-                                        <i class="fas fa-id-card"></i> My
-                                        Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="/my-recipes/"
-                                    >
-                                        <i class="fas fa-utensils"></i> My
-                                        Recipes
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="/saved-recipes/"
-                                        id="savedRecipesLink"
-                                    >
-                                        <i class="fas fa-bookmark"></i> Saved
-                                        Recipes
-                                        <span
-                                            class="badge bg-warning text-dark ms-2 saved-count-badge"
-                                            id="savedCount"
-                                            >0</span
-                                        >
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="/favorites/">
-                                        <i class="fas fa-heart"></i> Favorites
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item"
-                                        href="/my-reviews/"
-                                    >
-                                        <i class="fas fa-star"></i> My Reviews
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <a class="dropdown-item" href="/settings/">
-                                        <i class="fas fa-cog"></i> Settings
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        class="dropdown-item text-danger"
-                                        href="/logout/"
-                                    >
-                                        <i class="fas fa-sign-out-alt"></i>
-                                        Logout
-                                    </a>
-                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/my-profile/"><i class="fas fa-id-card"></i> My Profile</a></li>
+                                <li><a class="dropdown-item" href="/my-recipes/"><i class="fas fa-utensils"></i> My Recipes</a></li>
+                                <li><a class="dropdown-item" href="/saved-recipes/"><i class="fas fa-bookmark"></i> Saved Recipes <span class="badge bg-warning text-dark ms-2 saved-count-badge" id="savedCount">0</span></a></li>
+                                <li><a class="dropdown-item" href="/favorites/"><i class="fas fa-heart"></i> Favorites</a></li>
+                                <li><a class="dropdown-item" href="/my-reviews/"><i class="fas fa-star"></i> My Reviews</a></li>
+                                
+                                <!-- GRANDMA'S TIPS DROPDOWN ITEMS -->
+                                <li class="dropdown-divider"></li>
+                                <li class="dropdown-header small text-muted"><i class="fas fa-graduation-cap"></i> Grandma's Kitchen</li>
+                                <li><a class="dropdown-item" href="/grandma-tips/"><i class="fas fa-mortar-pestle"></i> Explore Tips</a></li>
+                                <li><a class="dropdown-item" href="/my-tips/"><i class="fas fa-pen-fancy"></i> My Tips</a></li>
+                                <li><a class="dropdown-item" href="/saved-tips/" id="savedTipsLink"><i class="fas fa-bookmark"></i> Saved Tips <span class="badge bg-warning text-dark ms-2 saved-tips-count" id="savedTipsCount">0</span></a></li>
+                                <li><a class="dropdown-item" href="/add-tip/"><i class="fas fa-plus-circle"></i> Share a Tip</a></li>
+                                
+                                <li class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/settings/"><i class="fas fa-cog"></i> Settings</a></li>
+                                <li><a class="dropdown-item text-danger" href="/logout/"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                             </ul>
                         </li>
 
-                        <!-- Add Recipe Button (Prominent) -->
                         <li class="nav-item">
-                            <a
-                                class="btn btn-primary btn-add-recipe"
-                                href="/add-recipe/"
-                            >
-                                <i class="fas fa-plus-circle"></i> Add Recipe
-                            </a>
+                            <a class="btn btn-primary btn-add-recipe" href="/add-recipe/"><i class="fas fa-plus-circle"></i> Add Recipe</a>
                         </li>
 
                         {% else %}
-
-                        <!-- User is NOT LOGGED IN -->
-
-                        <!-- Login Button -->
+                        <!-- Guest User -->
                         <li class="nav-item">
-                            <a
-                                class="btn btn-outline-primary btn-login"
-                                href="/login/"
-                            >
-                                <i class="fas fa-sign-in-alt"></i> Login
-                            </a>
+                            <a class="btn btn-outline-primary btn-login" href="/login/"><i class="fas fa-sign-in-alt"></i> Login</a>
                         </li>
-
-                        <!-- Register Button with Special Styling -->
                         <li class="nav-item">
-                            <a
-                                class="btn btn-primary btn-register"
-                                href="/register/"
-                            >
-                                <i class="fas fa-user-plus"></i> Register
-                            </a>
+                            <a class="btn btn-primary btn-register" href="/register/"><i class="fas fa-user-plus"></i> Register</a>
                         </li>
-
-                        <!-- Guest Message -->
                         <li class="nav-item">
-                            <span class="guest-message">
-                                <i class="fas fa-utensil-spoon"></i> Join our
-                                food family!
-                            </span>
+                            <span class="guest-message"><i class="fas fa-utensil-spoon"></i> Join our food family!</span>
                         </li>
-
                         {% endif %}
                     </ul>
                 </div>
             </div>
         </nav>
 
-        <!-- A tiny nostalgic spice banner (subtle message for every visitor) -->
-        <div class="container mt-2 text-center">
-            <div class="quote-badge">
-                <i class="fas fa-egg"></i> From grandma's kitchen to your tiffin
-                <i class="fas fa-mug-hot"></i>
+        <!-- Notification Detail Modal -->
+        <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content notification-modal-content">
+                    <div class="modal-header notification-modal-header">
+                        <h5 class="modal-title" id="notificationModalTitle">
+                            <i class="fas fa-bell me-2"></i> Notification
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4" id="notificationModalBody">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                    <div class="modal-footer" style="background: #fef9f5; border-top: 1px solid #f0dfbf;">
+                        <button type="button" class="btn-outline-cozy btn-sm" data-bs-dismiss="modal">Close</button>
+                        <a href="#" id="notificationModalLink" class="btn-cozy btn-sm">View Details</a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- ==================== MAIN DYNAMIC BLOCK (with cozy container) ==================== -->
+        <!-- Spice Banner -->
+        <div class="container mt-2 text-center">
+            <div class="quote-badge">
+                <i class="fas fa-egg"></i> From grandma's kitchen to your tiffin <i class="fas fa-mug-hot"></i>
+            </div>
+        </div>
+
+        <!-- Main Content -->
         <main class="main-cozy">
             <div class="container">
                 {% block content %}
-                <!-- default cozy placeholder (can be overridden) -->
                 <div class="text-center py-5">
                     <div class="nostalgic-card p-5">
-                        <i
-                            class="fas fa-dharmachakra fa-3x"
-                            style="color: #d9a066"
-                        ></i>
+                        <i class="fas fa-dharmachakra fa-3x" style="color: #d9a066"></i>
                         <h2 class="mt-3">Welcome to IndianLunchBox</h2>
                         <div class="divider-nostalgic"></div>
-                        <p class="lead handwritten-accent">
-                            Memories are made of spices & love.
-                        </p>
-                        <p>
-                            Explore timeless recipes, lunchbox stories, and homy
-                            flavours for all generations.
-                        </p>
-                        <a href="/recipes/" class="btn btn-cozy mt-2"
-                            ><i class="fas fa-arrow-right"></i> Discover
-                            Recipes</a
-                        >
+                        <p class="lead handwritten-accent">Memories are made of spices & love.</p>
+                        <p>Explore timeless recipes, lunchbox stories, and homy flavours for all generations.</p>
+                        <a href="/recipes/" class="btn btn-cozy mt-2"><i class="fas fa-arrow-right"></i> Discover Recipes</a>
                     </div>
                 </div>
                 {% endblock %}
             </div>
         </main>
 
-        <!-- ==================== FOOTER (nostalgic, aesthetic & full of warmth) ==================== -->
+        <!-- Footer -->
         <footer class="cozy-footer">
             <div class="container">
                 <div class="row g-4">
                     <div class="col-md-5">
-                        <h5
-                            style="
-                                font-family: &quot;Playfair Display&quot;;
-                                font-weight: 600;
-                                color: #835e46;
-                            "
-                        >
+                        <h5 style="font-family: 'Playfair Display'; font-weight: 600; color:#835e46;">
                             <i class="fas fa-tiffin-carrier"></i> IndianLunchBox
                         </h5>
-                        <p class="small mt-2" style="color: #7a634f">
-                            Preserving the soul of Indian homecooked meals —
-                            from dabbas to digital, every recipe carries a
-                            story. Warm, simple, timeless.
-                        </p>
+                        <p class="small mt-2" style="color: #7a634f;">Preserving the soul of Indian homecooked meals — from dabbas to digital, every recipe carries a story.</p>
                         <div class="social-icons mt-3">
-                            <a href="#" aria-label="Instagram"
-                                ><i class="fab fa-instagram"></i
-                            ></a>
-                            <a href="#" aria-label="Pinterest"
-                                ><i class="fab fa-pinterest"></i
-                            ></a>
-                            <a href="#" aria-label="Youtube"
-                                ><i class="fab fa-youtube"></i
-                            ></a>
-                            <a href="#" aria-label="Facebook"
-                                ><i class="fab fa-facebook"></i
-                            ></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-pinterest"></i></a>
+                            <a href="#"><i class="fab fa-youtube"></i></a>
+                            <a href="#"><i class="fab fa-facebook"></i></a>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <h6 style="font-weight: 600; color: #a75938">
-                            Explore
-                        </h6>
+                        <h6 style="font-weight: 600; color: #a75938;">Explore</h6>
                         <ul class="list-unstyled">
-                            <li>
-                                <a
-                                    href="/recipes/"
-                                    class="text-decoration-none"
-                                    style="color: #7b5d46"
-                                    >🍛 All Recipes</a
-                                >
-                            </li>
-                            <li>
-                                <a
-                                    href="/lunchbox-stories/"
-                                    class="text-decoration-none"
-                                    style="color: #7b5d46"
-                                    >📖 Nostalgic Tales</a
-                                >
-                            </li>
-                            <li>
-                                <a
-                                    href="/seasonal/"
-                                    class="text-decoration-none"
-                                    style="color: #7b5d46"
-                                    >🌿 Seasonal Bites</a
-                                >
-                            </li>
-                            <li>
-                                <a
-                                    href="/grandma-tips/"
-                                    class="text-decoration-none"
-                                    style="color: #7b5d46"
-                                    >👩‍🍳 Grandma's Tips</a
-                                >
-                            </li>
+                            <li><a href="/recipes/" class="text-decoration-none" style="color:#7b5d46;">🍛 All Recipes</a></li>
+                            <li><a href="/lunchbox-stories/" class="text-decoration-none" style="color:#7b5d46;">📖 Nostalgic Tales</a></li>
+                            <li><a href="/grandma-tips/" class="text-decoration-none" style="color:#7b5d46;">👩‍🍳 Grandma's Tips</a></li>
                         </ul>
                     </div>
                     <div class="col-md-4">
-                        <h6 style="font-weight: 600; color: #a75938">
-                            The Tiffin Club
-                        </h6>
-                        <p class="small">
-                            Subscribe to get a dash of nostalgia in your inbox
-                            ✨
-                        </p>
+                        <h6 style="font-weight: 600; color: #a75938;">The Tiffin Club</h6>
+                        <p class="small">Subscribe to get a dash of nostalgia in your inbox ✨</p>
                         <div class="input-group">
-                            <input
-                                type="email"
-                                class="form-control form-control-sm"
-                                placeholder="your email"
-                                style="
-                                    border-radius: 50px 0 0 50px;
-                                    background: #fff6ea;
-                                    border: 1px solid #eedbba;
-                                "
-                            />
-                            <button
-                                class="btn btn-sm"
-                                style="
-                                    background: #d49c6c;
-                                    color: white;
-                                    border-radius: 0 50px 50px 0;
-                                "
-                                type="button"
-                            >
-                                Join
-                            </button>
+                            <input type="email" class="form-control form-control-sm" placeholder="your email" style="border-radius: 50px 0 0 50px; background: #fff6ea; border:1px solid #eedbba;">
+                            <button class="btn btn-sm" style="background: #d49c6c; color: white; border-radius: 0 50px 50px 0;" type="button">Join</button>
                         </div>
-                        <p
-                            class="small mt-2 handwritten-accent"
-                            style="font-size: 0.7rem"
-                        >
-                            ❤️ No spam, only warm memories.
-                        </p>
+                        <p class="small mt-2 handwritten-accent" style="font-size: 0.7rem;">❤️ No spam, only warm memories.</p>
                     </div>
                 </div>
-                <hr class="mt-4" style="background: #e4cfb5" />
+                <hr class="mt-4" style="background: #e4cfb5;">
                 <div class="text-center pt-2">
-                    <p class="mb-0 small">
-                        © 2026 IndianLunchBox — Made with
-                        <span class="footer-heart"
-                            ><i class="fas fa-heart"></i
-                        ></span>
-                        for food lovers & generations |
-                        <i class="fas fa-thermometer-half"></i> Always homestyle
-                    </p>
+                    <p class="mb-0 small">© 2026 IndianLunchBox — Made with <span class="footer-heart"><i class="fas fa-heart"></i></span> for food lovers & generations | <i class="fas fa-thermometer-half"></i> Always homestyle</p>
                     <p class="mb-0 small mt-1">
-                        <a
-                            href="#"
-                            class="text-decoration-none"
-                            style="color: #b68662"
-                            >Privacy</a
-                        >
-                        •
-                        <a
-                            href="#"
-                            class="text-decoration-none"
-                            style="color: #b68662"
-                            >Accessibility</a
-                        >
-                        •
+                        <a href="#" class="text-decoration-none" style="color:#b68662;">Privacy</a> •
+                        <a href="#" class="text-decoration-none" style="color:#b68662;">Accessibility</a> •
                         <span><i class="fas fa-chai"></i> Chai & stories</span>
                     </p>
                 </div>
             </div>
         </footer>
 
-        <!-- Bootstrap JS Bundle (includes Popper) -->
+        <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        <!-- Navbar JavaScript for Interactive Features -->
         <script>
             // ==============================================
-            // GLOBAL TOAST FUNCTION (Single instance, no duplicates)
+            // GLOBAL FUNCTIONS
             // ==============================================
             let activeToast = null;
             let toastTimeout = null;
+            let notificationRefreshInterval = null;
 
             window.showToast = function(message, type = 'success') {
                 if (activeToast) {
                     activeToast.remove();
                     if (toastTimeout) clearTimeout(toastTimeout);
                 }
-
                 const toast = document.createElement('div');
                 toast.className = `toast-notification ${type}`;
                 toast.innerHTML = message;
                 document.body.appendChild(toast);
                 activeToast = toast;
-
                 toastTimeout = setTimeout(() => {
                     if (toast && toast.remove) {
                         toast.remove();
@@ -1123,10 +870,6 @@
                     }
                 }, 3000);
             };
-
-            // ==============================================
-            // SAVED RECIPES COUNT MANAGEMENT
-            // ==============================================
 
             function getCSRFToken() {
                 let cookieValue = null;
@@ -1147,71 +890,301 @@
                 return {% if request.session.user_id %}true{% else %}false{% endif %};
             }
 
-            function updateSavedCountBadge(count) {
-                const savedCountElement = document.getElementById('savedCount');
-                if (savedCountElement) {
-                    const oldCount = parseInt(savedCountElement.textContent) || 0;
-                    savedCountElement.textContent = count;
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
-                    if (oldCount !== count) {
-                        savedCountElement.classList.add('updated');
-                        setTimeout(() => {
-                            savedCountElement.classList.remove('updated');
-                        }, 300);
-                    }
+            function formatTimeAgo(dateString) {
+                if (!dateString) return 'just now';
+                const date = new Date(dateString);
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000);
+                
+                if (diff < 60) return 'just now';
+                if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+                if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+                return `${Math.floor(diff / 604800)}w ago`;
+            }
+
+            function getNotificationIcon(type) {
+                switch(type) {
+                    case 'like': return '<i class="fas fa-heart"></i>';
+                    case 'comment': return '<i class="fas fa-comment"></i>';
+                    case 'save': return '<i class="fas fa-bookmark"></i>';
+                    case 'follow': return '<i class="fas fa-user-plus"></i>';
+                    default: return '<i class="fas fa-bell"></i>';
                 }
             }
 
-            async function fetchSavedRecipesCount() {
-                if (!isUserLoggedIn()) return;
-
-                try {
-                    const response = await fetch('/api/get-saved-count/');
-                    const data = await response.json();
-                    if (data.success) {
-                        updateSavedCountBadge(data.count);
-                    }
-                } catch (error) {
-                    console.error('Error fetching saved count:', error);
+            function getNotificationIconClass(type) {
+                switch(type) {
+                    case 'like': return 'like';
+                    case 'comment': return 'comment';
+                    case 'save': return 'save';
+                    case 'follow': return 'follow';
+                    default: return 'system';
                 }
             }
 
             // ==============================================
             // NOTIFICATION FUNCTIONS
             // ==============================================
-
-            window.markAllNotificationsRead = function() {
-                const unreadItems = document.querySelectorAll('.notification-item.unread');
-                unreadItems.forEach(item => {
-                    item.classList.remove('unread');
-                });
-
-                const badge = document.getElementById('notificationCount');
-                if (badge) {
-                    badge.textContent = '0';
-                    badge.style.display = 'none';
+            
+            // Fetch unread count
+            async function fetchUnreadCount() {
+                if (!isUserLoggedIn()) return;
+                try {
+                    const response = await fetch('/api/notifications/unread-count/');
+                    const data = await response.json();
+                    const badge = document.getElementById('notificationCount');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching unread count:', error);
                 }
+            }
 
-                localStorage.setItem('notificationsRead', 'true');
-                showToast('All notifications marked as read!', 'success');
+            // Fetch recent notifications for dropdown
+            async function fetchRecentNotifications() {
+                if (!isUserLoggedIn()) return;
+                
+                const loadingDiv = document.getElementById('notificationsLoading');
+                const notificationsList = document.getElementById('notificationsList');
+                const emptyDiv = document.getElementById('notificationsEmpty');
+                const divider = document.getElementById('notifDivider');
+                const viewAllLink = document.getElementById('viewAllLink');
+                
+                try {
+                    const response = await fetch('/api/notifications/recent/?limit=5');
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    if (loadingDiv) loadingDiv.style.display = 'none';
+                    
+                    if (data.notifications && data.notifications.length > 0) {
+                        notificationsList.innerHTML = '';
+                        data.notifications.forEach(notif => {
+                            const notifItem = document.createElement('div');
+                            notifItem.className = `notification-item-dropdown ${!notif.is_read ? 'unread' : ''}`;
+                            notifItem.setAttribute('data-id', notif.id);
+                            notifItem.setAttribute('data-title', escapeHtml(notif.title));
+                            notifItem.setAttribute('data-message', escapeHtml(notif.message));
+                            notifItem.setAttribute('data-link', notif.link || '#');
+                            notifItem.setAttribute('data-type', notif.type);
+                            notifItem.setAttribute('data-time', notif.created_at);
+                            notifItem.setAttribute('data-is-read', notif.is_read);
+                            
+                            notifItem.innerHTML = `
+                                <div class="notification-icon-small ${getNotificationIconClass(notif.type)}">
+                                    ${getNotificationIcon(notif.type)}
+                                </div>
+                                <div class="notification-content-small">
+                                    <div class="notification-title-small">${escapeHtml(notif.title)}</div>
+                                    <div class="notification-message-small">${escapeHtml(notif.message.substring(0, 60))}${notif.message.length > 60 ? '...' : ''}</div>
+                                    <div class="notification-time-small">${formatTimeAgo(notif.created_at)}</div>
+                                </div>
+                                ${!notif.is_read ? `<button class="mark-read-btn" onclick="event.stopPropagation(); markSingleNotificationRead(${notif.id})"><i class="fas fa-check"></i> Mark read</button>` : ''}
+                            `;
+                            
+                            notifItem.addEventListener('click', (e) => {
+                                if (!e.target.closest('.mark-read-btn')) {
+                                    showNotificationModal(notif);
+                                }
+                            });
+                            
+                            notificationsList.appendChild(notifItem);
+                        });
+                        
+                        notificationsList.style.display = 'block';
+                        emptyDiv.style.display = 'none';
+                        divider.style.display = 'block';
+                        viewAllLink.style.display = 'block';
+                    } else {
+                        notificationsList.style.display = 'none';
+                        emptyDiv.style.display = 'block';
+                        divider.style.display = 'none';
+                        viewAllLink.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error fetching notifications:', error);
+                    if (loadingDiv) {
+                        loadingDiv.innerHTML = `
+                            <div class="text-center py-3">
+                                <i class="fas fa-exclamation-triangle text-danger"></i>
+                                <p class="small text-danger mt-2">Failed to load notifications</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            // Show notification modal
+            function showNotificationModal(notification) {
+                const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+                const modalBody = document.getElementById('notificationModalBody');
+                const modalLink = document.getElementById('notificationModalLink');
+                const modalTitle = document.getElementById('notificationModalTitle');
+                
+                modalTitle.innerHTML = `<i class="fas fa-${notification.type === 'like' ? 'heart' : notification.type === 'comment' ? 'comment' : notification.type === 'save' ? 'bookmark' : 'bell'} me-2"></i> ${escapeHtml(notification.title)}`;
+                
+                modalBody.innerHTML = `
+                    <div class="text-center mb-3">
+                        <div class="notification-modal-icon ${getNotificationIconClass(notification.type)}" style="width: 70px; height: 70px; font-size: 2rem;">
+                            ${getNotificationIcon(notification.type)}
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-3" style="font-family: 'Playfair Display', serif; color: #5a3e2e;">${escapeHtml(notification.title)}</h4>
+                        <p class="mb-3" style="color: #7a624b; line-height: 1.6;">${escapeHtml(notification.message)}</p>
+                        <small class="text-muted"><i class="far fa-clock me-1"></i> ${formatTimeAgo(notification.created_at)}</small>
+                    </div>
+                `;
+                
+                if (notification.link && notification.link !== '#') {
+                    modalLink.href = notification.link;
+                    modalLink.style.display = 'inline-block';
+                } else {
+                    modalLink.style.display = 'none';
+                }
+                
+                // Mark as read if not already
+                if (!notification.is_read) {
+                    markSingleNotificationRead(notification.id);
+                }
+                
+                modal.show();
+            }
+
+            // Mark single notification as read
+            async function markSingleNotificationRead(notificationId) {
+                try {
+                    const response = await fetch('/api/notifications/mark-read/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken(),
+                        },
+                        body: JSON.stringify({ notification_id: notificationId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update the notification in the dropdown
+                        const notifItem = document.querySelector(`.notification-item-dropdown[data-id="${notificationId}"]`);
+                        if (notifItem) {
+                            notifItem.classList.remove('unread');
+                            const markBtn = notifItem.querySelector('.mark-read-btn');
+                            if (markBtn) markBtn.remove();
+                        }
+                        await fetchUnreadCount();
+                    }
+                } catch (error) {
+                    console.error('Error marking notification read:', error);
+                }
+            }
+
+            // Mark all notifications as read
+            window.markAllNotificationsRead = async function() {
+                try {
+                    const response = await fetch('/api/notifications/mark-all-read/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCSRFToken(),
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        await fetchRecentNotifications();
+                        await fetchUnreadCount();
+                        showToast('All notifications marked as read', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error marking all read:', error);
+                }
             };
+
+            // ==============================================
+            // SAVED RECIPES & TIPS COUNT
+            // ==============================================
+            
+            function updateSavedCountBadge(count) {
+                const savedCountElement = document.getElementById('savedCount');
+                if (savedCountElement) {
+                    const oldCount = parseInt(savedCountElement.textContent) || 0;
+                    savedCountElement.textContent = count;
+                    if (oldCount !== count) {
+                        savedCountElement.classList.add('updated');
+                        setTimeout(() => savedCountElement.classList.remove('updated'), 300);
+                    }
+                }
+            }
+
+            async function fetchSavedRecipesCount() {
+                if (!isUserLoggedIn()) return;
+                try {
+                    const response = await fetch('/api/get-saved-count/');
+                    const data = await response.json();
+                    if (data.success) updateSavedCountBadge(data.count);
+                } catch (error) { console.error('Error:', error); }
+            }
+
+            async function fetchSavedTipsCount() {
+                if (!isUserLoggedIn()) return;
+                try {
+                    const response = await fetch('/api/get-saved-tips-count/');
+                    const data = await response.json();
+                    if (data.success) {
+                        const savedTipsCount = document.getElementById('savedTipsCount');
+                        if (savedTipsCount) savedTipsCount.textContent = data.count;
+                    }
+                } catch (error) { console.error('Error fetching saved tips count:', error); }
+            }
 
             // ==============================================
             // INITIALIZATION
             // ==============================================
+            
+            // Start notification polling
+            function startNotificationPolling() {
+                if (notificationRefreshInterval) clearInterval(notificationRefreshInterval);
+                notificationRefreshInterval = setInterval(() => {
+                    if (document.getElementById('notificationDropdown')?.classList.contains('show')) {
+                        fetchRecentNotifications();
+                    }
+                    fetchUnreadCount();
+                }, 30000); // Poll every 30 seconds
+            }
 
             document.addEventListener('DOMContentLoaded', async function() {
                 await fetchSavedRecipesCount();
-
-                const notificationsRead = localStorage.getItem('notificationsRead');
-                const badge = document.getElementById('notificationCount');
-                if (notificationsRead === 'true' && badge) {
-                    badge.textContent = '0';
-                    badge.style.display = 'none';
-                } else if (badge && badge.textContent === '0') {
-                    badge.style.display = 'none';
+                await fetchSavedTipsCount();
+                await fetchUnreadCount();
+                
+                // Pre-fetch notifications when dropdown is opened
+                const notificationBell = document.getElementById('notificationBell');
+                if (notificationBell) {
+                    notificationBell.addEventListener('click', function() {
+                        fetchRecentNotifications();
+                    });
                 }
-
+                
+                // Start polling for notifications
+                startNotificationPolling();
+                
+                // Active nav link
                 const currentPath = window.location.pathname;
                 document.querySelectorAll('.nav-link-custom').forEach(link => {
                     const href = link.getAttribute('href');
@@ -1221,16 +1194,13 @@
                         link.style.color = '#c96b4a';
                     }
                 });
-
+                
                 window.addEventListener('storage', function(e) {
-                    if (e.key === 'savedRecipesCount') {
-                        updateSavedCountBadge(parseInt(e.newValue) || 0);
-                    }
+                    if (e.key === 'savedRecipesCount') updateSavedCountBadge(parseInt(e.newValue) || 0);
                 });
             });
         </script>
 
-        <!-- block for extra javascript (child pages can add) -->
         {% block extra_js %}{% endblock %}
     </body>
 </html>

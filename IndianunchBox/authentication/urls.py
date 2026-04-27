@@ -10,6 +10,8 @@ urlpatterns = [
     path('api/check-registration/', views.api_check_registration, name='api_check_registration'),
     path('logout/', views.logout_view, name='logout'),
     path('contact/', views.contact_view, name='contact'),
+    
+    path('api/subscribe-newsletter/', views.api_subscribe_newsletter, name='subscribe_newsletter'),
     # Add these to your existing urls.py
     
     path('forgot-password/', views.forgot_password, name='forgot_password'),
@@ -114,6 +116,18 @@ urlpatterns = [
  path('delete-tip/<int:id>/', views.delete_tip, name='delete_tip'),
  path('my-tips/', views.my_tips, name='my_tips'),
  path('saved-tips/', views.saved_tips, name='saved_tips'),
+ path('api/get-saved-tips-count/', views.api_get_saved_tips_count, name='api_get_saved_tips_count'),
+ 
+ 
+ 
+ # Notifications URLs
+ path('notifications/', views.notifications_view, name='notifications'),
+ path('api/notifications/unread-count/', views.get_unread_notifications_count, name='unread_count'),
+ path('api/notifications/recent/', views.get_recent_notifications, name='recent_notifications'),
+ path('api/notifications/mark-read/', views.mark_notification_read, name='mark_notification_read'),
+ path('api/notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_read'),
+ path('api/notifications/delete/', views.delete_notification, name='delete_notification'),
+ 
  
  # API Endpoints
  path('api/tip/<int:id>/like/', views.toggle_tip_like, name='toggle_tip_like'),

@@ -26,15 +26,164 @@ def hash_password(password):
 # HOME PAGE VIEW
 # ==============================================
 def home(request):
+    """
+    Dynamic home page with all data from database
+    """
     if not request.session.get('user_id'):
         return redirect('login')
-
-    # Fetch all recipes (latest first)
+    
     with connection.cursor() as cursor:
-        cursor.execute("SELECT recipe_id, title, description, image FROM recipes ORDER BY recipe_id DESC")
-        recipes = cursor.fetchall()  # List of tuples
+        # Get recent recipes with author name and likes
+        cursor.execute("""
+            SELECT r.recipe_id, r.title, r.description, r.image, 
+                   COALESCE(AVG(c.rating), 0) as avg_rating,
+                   COUNT(DISTINCT c.comment_id) as rating_count,
+                   COUNT(DISTINCT l.like_id) as likes_count,
+                   u.name as author_name
+            FROM recipes r
+            LEFT JOIN comments c ON r.recipe_id = c.recipe_id
+            LEFT JOIN likes l ON r.recipe_id = l.recipe_id
+            LEFT JOIN users u ON r.user_id = u.user_id
+            GROUP BY r.recipe_id
+            ORDER BY r.created_at DESC
+            LIMIT 6
+        """)
+        recipes_data = cursor.fetchall()
+        
+        recipes = []
+        for recipe in recipes_data:
+            recipes.append({
+                'recipe_id': recipe[0],
+                'title': recipe[1],
+                'description': recipe[2],
+                'image': recipe[3],
+                'avg_rating': round(recipe[4], 1) if recipe[4] else 0,
+                'rating_count': recipe[5] or 0,
+                'likes_count': recipe[6] or 0,
+                'author_name': recipe[7] or 'Anonymous'
+            })
+        
+        # Get total counts
+        cursor.execute("SELECT COUNT(*) FROM recipes")
+        total_recipes = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM users")
+        total_users = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM comments WHERE rating > 0")
+        total_reviews = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM lunchbox_stories")
+        total_stories = cursor.fetchone()[0]
+        
+        # Get trending recipes (most liked)
+        cursor.execute("""
+            SELECT r.recipe_id, r.title, COUNT(l.like_id) as likes_count
+            FROM recipes r
+            LEFT JOIN likes l ON r.recipe_id = l.recipe_id
+            GROUP BY r.recipe_id
+            ORDER BY likes_count DESC
+            LIMIT 3
+        """)
+        trending_data = cursor.fetchall()
+        
+        trending_recipes = []
+        for trend in trending_data:
+            trending_recipes.append({
+                'recipe_id': trend[0],
+                'title': trend[1],
+                'likes_count': trend[2] or 0
+            })
+        
+        # Get testimonials from comments (latest high-rated comments)
+        cursor.execute("""
+            SELECT c.comment, c.rating, u.name as author_name
+            FROM comments c
+            JOIN users u ON c.user_id = u.user_id
+            WHERE c.rating >= 4 AND c.comment IS NOT NULL AND c.comment != ''
+            ORDER BY c.created_at DESC
+            LIMIT 6
+        """)
+        testimonials_data = cursor.fetchall()
+        
+        testimonials = []
+        for test in testimonials_data:
+            testimonials.append({
+                'comment': test[0][:200] + ('...' if len(test[0]) > 200 else ''),
+                'rating': test[1],
+                'author_name': test[2]
+            })
+        
+        # Newsletter count (skip if table doesn't exist)
+        newsletter_count = 0
+        try:
+            cursor.execute("SELECT COUNT(*) FROM newsletter_subscribers")
+            newsletter_count = cursor.fetchone()[0]
+        except:
+            pass
+        
+        # Categories for explore section
+        categories = [
+            {'name': 'Comfort Food', 'icon': 'fas fa-heart', 'color': '#d97755'},
+            {'name': 'Quick Bites', 'icon': 'fas fa-clock', 'color': '#e2b13b'},
+            {'name': 'Festive Special', 'icon': 'fas fa-crown', 'color': '#c96b4a'},
+            {'name': 'Healthy Twist', 'icon': 'fas fa-leaf', 'color': '#558b8f'},
+            {'name': 'Street Style', 'icon': 'fas fa-motorcycle', 'color': '#d9a066'},
+            {'name': 'Sweet Cravings', 'icon': 'fas fa-candy-cane', 'color': '#e2b13b'},
+        ]
+    
+    context = {
+        'recipes': recipes,
+        'total_recipes': total_recipes,
+        'total_users': total_users,
+        'total_reviews': total_reviews,
+        'total_stories': total_stories,
+        'trending_recipes': trending_recipes,
+        'testimonials': testimonials,
+        'newsletter_count': newsletter_count,
+        'categories': categories,
+        'page_title': 'IndianLunchBox - Home'
+    }
+    
+    return render(request, 'home.html', context)
 
-    return render(request, 'home.html', {'recipes': recipes})
+@csrf_exempt
+def api_subscribe_newsletter(request):
+    """API to subscribe to newsletter"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            
+            if not email:
+                return JsonResponse({'success': False, 'message': 'Email is required'})
+            
+            import re
+            if not re.match(r'^[^\s@]+@([^\s@]+\.)+[^\s@]+$', email):
+                return JsonResponse({'success': False, 'message': 'Invalid email format'})
+            
+            with connection.cursor() as cursor:
+                # Check if already subscribed
+                cursor.execute("SELECT id FROM newsletter_subscribers WHERE email = %s", [email])
+                existing = cursor.fetchone()
+                
+                if existing:
+                    # Re-activate if exists
+                    cursor.execute("UPDATE newsletter_subscribers SET is_active = TRUE, subscribed_at = NOW() WHERE email = %s", [email])
+                else:
+                    import random
+                    import string
+                    token = ''.join(random.choices(string.ascii_letters + string.digits, k=64))
+                    cursor.execute("""
+                        INSERT INTO newsletter_subscribers (email, unsubscribe_token, subscribed_at)
+                        VALUES (%s, %s, NOW())
+                    """, [email, token])
+            
+            return JsonResponse({'success': True, 'message': 'Subscribed successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Invalid method'}, status=405)
 
 
 # ==============================================
@@ -2491,4 +2640,258 @@ def get_featured_tips(request):
             'likes': tip[5]
         })
     
-    return JsonResponse({'tips': tips_list})    
+    return JsonResponse({'tips': tips_list})
+
+
+# ==============================================
+# API: GET SAVED TIPS COUNT
+# ==============================================
+def api_get_saved_tips_count(request):
+    """API endpoint to get the count of saved tips for the current user"""
+    if not request.session.get('user_id'):
+        return JsonResponse({'success': True, 'count': 0})
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) FROM tip_saves 
+            WHERE user_id = %s
+        """, [user_id])
+        count = cursor.fetchone()[0]
+    
+    return JsonResponse({'success': True, 'count': count})    
+    
+    
+    
+    
+
+
+# ==============================================
+# NOTIFICATIONS VIEWS
+# ==============================================
+
+from django.shortcuts import render, redirect
+from django.db import connection
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from datetime import datetime
+import json
+
+def notifications_view(request):
+    """
+    Display all notifications for the logged-in user
+    """
+    if not request.session.get('user_id'):
+        messages.error(request, 'Please login to view notifications')
+        return redirect('login')
+    
+    user_id = request.session['user_id']
+    
+    # Get pagination parameters
+    page = int(request.GET.get('page', 1))
+    per_page = 20
+    offset = (page - 1) * per_page
+    
+    notifications = []
+    total_count = 0
+    
+    with connection.cursor() as cursor:
+        # Get total count
+        cursor.execute("""
+            SELECT COUNT(*) FROM notifications 
+            WHERE user_id = %s
+        """, [user_id])
+        total_count = cursor.fetchone()[0]
+        
+        # Get notifications
+        cursor.execute("""
+            SELECT 
+                notification_id, type, title, message, link, 
+                is_read, created_at
+            FROM notifications 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s OFFSET %s
+        """, [user_id, per_page, offset])
+        notifications = cursor.fetchall()
+    
+    total_pages = (total_count + per_page - 1) // per_page
+    
+    context = {
+        'notifications': notifications,
+        'total_count': total_count,
+        'current_page': page,
+        'total_pages': total_pages,
+        'page_title': 'Notifications'
+    }
+    
+    return render(request, 'notifications.html', context)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def mark_notification_read(request):
+    """
+    API to mark a single notification as read
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        user_id = request.session['user_id']
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                UPDATE notifications 
+                SET is_read = TRUE 
+                WHERE notification_id = %s AND user_id = %s
+            """, [notification_id, user_id])
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def mark_all_notifications_read(request):
+    """
+    API to mark all notifications as read
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            UPDATE notifications 
+            SET is_read = TRUE 
+            WHERE user_id = %s AND is_read = FALSE
+        """, [user_id])
+    
+    return JsonResponse({'success': True})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def delete_notification(request):
+    """
+    API to delete a single notification
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'error': 'Not logged in'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        notification_id = data.get('notification_id')
+        user_id = request.session['user_id']
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                DELETE FROM notifications 
+                WHERE notification_id = %s AND user_id = %s
+            """, [notification_id, user_id])
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def get_unread_notifications_count(request):
+    """
+    API to get unread notifications count (for navbar badge)
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'count': 0})
+    
+    user_id = request.session['user_id']
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT COUNT(*) FROM notifications 
+            WHERE user_id = %s AND is_read = FALSE
+        """, [user_id])
+        count = cursor.fetchone()[0]
+    
+    return JsonResponse({'count': count})
+
+
+def get_recent_notifications(request):
+    """
+    API to get recent notifications for dropdown
+    """
+    if not request.session.get('user_id'):
+        return JsonResponse({'notifications': []})
+    
+    user_id = request.session['user_id']
+    limit = int(request.GET.get('limit', 5))
+    
+    notifications = []
+    
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                notification_id, type, title, message, link, 
+                is_read, created_at
+            FROM notifications 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, [user_id, limit])
+        results = cursor.fetchall()
+        
+        for notif in results:
+            notifications.append({
+                'id': notif[0],
+                'type': notif[1],
+                'title': notif[2],
+                'message': notif[3],
+                'link': notif[4],
+                'is_read': notif[5],
+                'created_at': notif[6].strftime('%Y-%m-%d %H:%M:%S') if notif[6] else None,
+                'time_ago': get_time_ago(notif[6]) if notif[6] else ''
+            })
+    
+    return JsonResponse({'notifications': notifications})
+
+
+def get_time_ago(dt):
+    """Helper function to format time ago"""
+    if not dt:
+        return ''
+    
+    now = datetime.now()
+    diff = now - dt
+    
+    if diff.days > 365:
+        return f"{diff.days // 365}y ago"
+    elif diff.days > 30:
+        return f"{diff.days // 30}mo ago"
+    elif diff.days > 0:
+        return f"{diff.days}d ago"
+    elif diff.seconds > 3600:
+        return f"{diff.seconds // 3600}h ago"
+    elif diff.seconds > 60:
+        return f"{diff.seconds // 60}m ago"
+    else:
+        return "just now"
+
+
+def create_notification(user_id, notif_type, title, message, link=None):
+    """
+    Helper function to create a notification
+    """
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO notifications (user_id, type, title, message, link, created_at)
+            VALUES (%s, %s, %s, %s, %s, NOW())
+        """, [user_id, notif_type, title, message, link])    
+
+
+    

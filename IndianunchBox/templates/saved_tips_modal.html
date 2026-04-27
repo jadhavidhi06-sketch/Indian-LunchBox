@@ -1,0 +1,223 @@
+<!-- Saved Tips Modal -->
+<div class="modal fade" id="savedTipsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 28px; overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #c96b4a, #a55233); color: white; border: none;">
+                <h5 class="modal-title">
+                    <i class="fas fa-bookmark me-2"></i> Saved Kitchen Wisdom
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 0; max-height: 70vh; overflow-y: auto;">
+                <div id="savedTipsModalContent" class="p-3">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading your saved wisdom...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #fef9f5; border-top: 1px solid #f0dfbf;">
+                <a href="/saved-tips/" class="btn-cozy btn-sm">View All</a>
+                <button type="button" class="btn-outline-cozy btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .saved-tip-item {
+        background: white;
+        border-radius: 20px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+        border: 1px solid #f0dfbf;
+        cursor: pointer;
+    }
+    
+    .saved-tip-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        border-color: #c96b4a;
+    }
+    
+    .saved-tip-category {
+        display: inline-block;
+        background: #fff5ea;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        color: #c96b4a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .saved-tip-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+    
+    .saved-tip-excerpt {
+        font-size: 0.8rem;
+        color: #7a624b;
+        line-height: 1.5;
+        margin-bottom: 0.5rem;
+    }
+    
+    .saved-tip-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f0dfbf;
+    }
+    
+    .saved-tip-author {
+        font-size: 0.7rem;
+        color: #999;
+    }
+    
+    .saved-tip-author i {
+        color: #c96b4a;
+        margin-right: 4px;
+    }
+    
+    .unsave-tip-btn {
+        background: none;
+        border: none;
+        color: #dc3545;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        padding: 4px 8px;
+        border-radius: 20px;
+    }
+    
+    .unsave-tip-btn:hover {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .empty-tips {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .empty-tips i {
+        font-size: 3rem;
+        color: #e2b13b;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<script>
+    async function loadSavedTipsModal() {
+        const modalContent = document.getElementById('savedTipsModalContent');
+        
+        try {
+            const response = await fetch('/api/get-saved-tips-details/');
+            const data = await response.json();
+            
+            if (data.success && data.tips.length > 0) {
+                modalContent.innerHTML = data.tips.map(tip => `
+                    <div class="saved-tip-item" onclick="window.location.href='/tip/${tip.tip_id}/'">
+                        <div class="saved-tip-category">
+                            <i class="fas fa-tag"></i> ${tip.category}
+                        </div>
+                        <h4 class="saved-tip-title">${escapeHtml(tip.title)}</h4>
+                        <p class="saved-tip-excerpt">${escapeHtml(tip.excerpt)}</p>
+                        <div class="saved-tip-meta">
+                            <span class="saved-tip-author">
+                                <i class="fas fa-user-circle"></i> ${escapeHtml(tip.author_name)}
+                            </span>
+                            <button class="unsave-tip-btn" onclick="event.stopPropagation(); unsaveTipFromModal(${tip.tip_id}, this)">
+                                <i class="fas fa-bookmark"></i> Unsave
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                modalContent.innerHTML = `
+                    <div class="empty-tips">
+                        <i class="fas fa-bookmark"></i>
+                        <h4>No saved tips yet</h4>
+                        <p>Save kitchen wisdom you love and they'll appear here!</p>
+                        <a href="/grandma-tips/" class="btn-cozy btn-sm mt-2">Explore Tips</a>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading saved tips:', error);
+            modalContent.innerHTML = `
+                <div class="empty-tips">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Error loading tips</h4>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+    
+    async function unsaveTipFromModal(tipId, element) {
+        element.disabled = true;
+        element.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        try {
+            const response = await fetch(`/api/tip/${tipId}/save/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCSRFToken() }
+            });
+            const data = await response.json();
+            
+            if (data.saved === false) {
+                const tipItem = element.closest('.saved-tip-item');
+                tipItem.style.opacity = '0';
+                setTimeout(() => {
+                    tipItem.remove();
+                    const remaining = document.querySelectorAll('.saved-tip-item').length;
+                    if (remaining === 0) {
+                        document.getElementById('savedTipsModalContent').innerHTML = `
+                            <div class="empty-tips">
+                                <i class="fas fa-bookmark"></i>
+                                <h4>No saved tips yet</h4>
+                                <p>Save kitchen wisdom you love and they'll appear here!</p>
+                                <a href="/grandma-tips/" class="btn-cozy btn-sm mt-2">Explore Tips</a>
+                            </div>
+                        `;
+                    }
+                    // Update the saved count in navbar
+                    const savedTipsCount = document.getElementById('savedTipsCount');
+                    if (savedTipsCount) {
+                        const currentCount = parseInt(savedTipsCount.textContent) || 0;
+                        savedTipsCount.textContent = Math.max(0, currentCount - 1);
+                    }
+                    showToast('Tip removed from saved', 'info');
+                }, 300);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Error removing tip', 'error');
+            element.disabled = false;
+            element.innerHTML = '<i class="fas fa-bookmark"></i> Unsave';
+        }
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Add click handler for saved tips link
+    document.getElementById('savedTipsLink')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        const modal = new bootstrap.Modal(document.getElementById('savedTipsModal'));
+        loadSavedTipsModal();
+        modal.show();
+    });
+</script>

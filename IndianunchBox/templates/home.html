@@ -1,6 +1,411 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    /* Modern Grid Layout Enhancements */
+    .recipes-grid-modern {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.8rem;
+        margin-bottom: 2rem;
+    }
+
+    .recipe-card-modern {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f5ede4;
+        position: relative;
+    }
+
+    .recipe-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 35px rgba(201, 107, 74, 0.12);
+        border-color: #c96b4a30;
+    }
+
+    /* Image Container */
+    .recipe-image-wrapper {
+        position: relative;
+        height: 240px;
+        overflow: hidden;
+        background: #fef5ea;
+    }
+
+    .recipe-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .recipe-card-modern:hover .recipe-image-wrapper img {
+        transform: scale(1.05);
+    }
+
+    /* Image Overlay */
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(201,107,74,0.3), rgba(165,82,51,0.4));
+        opacity: 0;
+        transition: opacity 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .recipe-card-modern:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .quick-view-overlay {
+        background: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 40px;
+        font-weight: 600;
+        color: #c96b4a;
+        cursor: pointer;
+        transform: translateY(20px);
+        transition: all 0.3s;
+        font-size: 0.85rem;
+    }
+
+    .recipe-card-modern:hover .quick-view-overlay {
+        transform: translateY(0);
+    }
+
+    .quick-view-overlay:hover {
+        background: #c96b4a;
+        color: white;
+    }
+
+    /* Badges */
+    .recipe-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(4px);
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #c96b4a;
+        z-index: 2;
+    }
+
+    .like-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(4px);
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #e25822;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 2;
+    }
+
+    .like-badge:hover {
+        background: #e25822;
+        color: white;
+    }
+
+    .like-badge.liked {
+        background: #e25822;
+        color: white;
+    }
+
+    /* Card Content */
+    .recipe-info-modern {
+        padding: 1.2rem 1.2rem 1rem;
+    }
+
+    .recipe-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .recipe-title-modern {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #2d2f36;
+        margin: 0;
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    .bookmark-btn {
+        background: none;
+        border: none;
+        color: #d9a066;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s;
+        padding: 4px;
+    }
+
+    .bookmark-btn:hover {
+        color: #e2b13b;
+        transform: scale(1.1);
+    }
+
+    .bookmark-btn.saved {
+        color: #e2b13b;
+    }
+
+    .recipe-description {
+        font-size: 0.8rem;
+        color: #7a624b;
+        line-height: 1.5;
+        margin-bottom: 0.8rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Rating Stars */
+    .rating-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 0.8rem;
+    }
+
+    .stars {
+        display: flex;
+        gap: 2px;
+    }
+
+    .stars i {
+        font-size: 0.7rem;
+        color: #ffc107;
+    }
+
+    .stars i.far {
+        color: #ddd;
+    }
+
+    .rating-count {
+        font-size: 0.7rem;
+        color: #999;
+    }
+
+    /* Recipe Meta */
+    .recipe-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f5ede4;
+    }
+
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .author-avatar {
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6rem;
+        color: white;
+    }
+
+    .author-name {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #999;
+    }
+
+    .recipe-stats {
+        display: flex;
+        gap: 10px;
+    }
+
+    .stat {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.65rem;
+        color: #c96b4a;
+    }
+
+    /* View Button */
+    .view-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        padding: 8px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #c96b4a;
+        transition: all 0.2s;
+        margin-top: 0.5rem;
+    }
+
+    .view-btn:hover {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        color: white;
+    }
+
+    .view-btn i {
+        transition: transform 0.2s;
+    }
+
+    .view-btn:hover i {
+        transform: translateX(4px);
+    }
+
+    /* List View Style */
+    .recipes-grid-modern.list-view {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .recipes-grid-modern.list-view .recipe-card-modern {
+        display: flex;
+        max-width: 100%;
+    }
+
+    .recipes-grid-modern.list-view .recipe-image-wrapper {
+        width: 280px;
+        height: 200px;
+        flex-shrink: 0;
+    }
+
+    .recipes-grid-modern.list-view .recipe-info-modern {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* View Toggle Buttons */
+    .view-toggle-group {
+        display: flex;
+        background: #f5f0ea;
+        border-radius: 40px;
+        padding: 4px;
+    }
+
+    .view-toggle-btn {
+        padding: 6px 14px;
+        border: none;
+        background: none;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+        color: #7a624b;
+    }
+
+    .view-toggle-btn.active {
+        background: #c96b4a;
+        color: white;
+    }
+
+    /* Loading Skeleton */
+    .skeleton-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid #f5ede4;
+    }
+
+    .skeleton-image {
+        height: 240px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+
+    .skeleton-content {
+        padding: 1.2rem;
+    }
+
+    .skeleton-title {
+        height: 20px;
+        width: 80%;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .skeleton-text {
+        height: 14px;
+        width: 100%;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+
+    .skeleton-text.short {
+        width: 60%;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    @media (max-width: 768px) {
+        .recipes-grid-modern.list-view .recipe-card-modern {
+            flex-direction: column;
+        }
+        
+        .recipes-grid-modern.list-view .recipe-image-wrapper {
+            width: 100%;
+        }
+        
+        .recipes-grid-modern {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .recipes-grid-modern {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section with Nostalgic Warmth -->
 <div class="hero-section text-center py-5 my-3">
@@ -57,35 +462,35 @@
         <div class="col-6 col-md-3">
             <div class="nostalgic-card p-3">
                 <i class="fas fa-utensils fa-2x" style="color: #c96b4a;"></i>
-                <h3 class="mt-2 mb-0 fw-bold" id="recipe-count">0</h3>
+                <h3 class="mt-2 mb-0 fw-bold">{{ total_recipes|default:0 }}</h3>
                 <small class="text-muted">Recipes Shared</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="nostalgic-card p-3">
                 <i class="fas fa-users fa-2x" style="color: #e2b13b;"></i>
-                <h3 class="mt-2 mb-0 fw-bold" id="member-count">0</h3>
+                <h3 class="mt-2 mb-0 fw-bold">{{ total_users|default:0 }}</h3>
                 <small class="text-muted">Food Lovers</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="nostalgic-card p-3">
                 <i class="fas fa-star fa-2x" style="color: #d9a066;"></i>
-                <h3 class="mt-2 mb-0 fw-bold" id="review-count">0</h3>
+                <h3 class="mt-2 mb-0 fw-bold">{{ total_reviews|default:0 }}</h3>
                 <small class="text-muted">Happy Reviews</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="nostalgic-card p-3">
                 <i class="fas fa-mug-hot fa-2x" style="color: #c96b4a;"></i>
-                <h3 class="mt-2 mb-0 fw-bold" id="story-count">0</h3>
+                <h3 class="mt-2 mb-0 fw-bold">{{ total_stories|default:0 }}</h3>
                 <small class="text-muted">Kitchen Stories</small>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Featured Categories -->
+<!-- Categories Section -->
 <div class="container my-5">
     <div class="text-center mb-4">
         <h2 class="display-6" style="font-family: 'Playfair Display', serif;">
@@ -94,145 +499,101 @@
         <div class="divider-nostalgic"></div>
     </div>
     <div class="row g-3 text-center">
+        {% for category in categories %}
         <div class="col-4 col-md-2">
-            <a href="/recipes/?category=comfort" class="text-decoration-none">
+            <a href="/recipes/?category={{ category.name }}" class="text-decoration-none">
                 <div class="nostalgic-card p-3 hover-lift">
-                    <i class="fas fa-heart fa-2x" style="color: #d97755;"></i>
-                    <small class="d-block mt-2 fw-bold">Comfort Food</small>
+                    <i class="{{ category.icon }} fa-2x" style="color: {{ category.color }};"></i>
+                    <small class="d-block mt-2 fw-bold">{{ category.name }}</small>
                 </div>
             </a>
         </div>
-        <div class="col-4 col-md-2">
-            <a href="/recipes/?category=quick" class="text-decoration-none">
-                <div class="nostalgic-card p-3 hover-lift">
-                    <i class="fas fa-clock fa-2x" style="color: #e2b13b;"></i>
-                    <small class="d-block mt-2 fw-bold">Quick Bites</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-4 col-md-2">
-            <a href="/recipes/?category=festive" class="text-decoration-none">
-                <div class="nostalgic-card p-3 hover-lift">
-                    <i class="fas fa-crown fa-2x" style="color: #c96b4a;"></i>
-                    <small class="d-block mt-2 fw-bold">Festive Special</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-4 col-md-2">
-            <a href="/recipes/?category=healthy" class="text-decoration-none">
-                <div class="nostalgic-card p-3 hover-lift">
-                    <i class="fas fa-leaf fa-2x" style="color: #558b8f;"></i>
-                    <small class="d-block mt-2 fw-bold">Healthy Twist</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-4 col-md-2">
-            <a href="/recipes/?category=street" class="text-decoration-none">
-                <div class="nostalgic-card p-3 hover-lift">
-                    <i class="fas fa-motorcycle fa-2x" style="color: #d9a066;"></i>
-                    <small class="d-block mt-2 fw-bold">Street Style</small>
-                </div>
-            </a>
-        </div>
-        <div class="col-4 col-md-2">
-            <a href="/recipes/?category=sweet" class="text-decoration-none">
-                <div class="nostalgic-card p-3 hover-lift">
-                    <i class="fas fa-candy-cane fa-2x" style="color: #e2b13b;"></i>
-                    <small class="d-block mt-2 fw-bold">Sweet Cravings</small>
-                </div>
-            </a>
-        </div>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Latest Recipes Section -->
+<!-- Latest Recipes Section with Modern Grid -->
 <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
             <h2 class="display-6" style="font-family: 'Playfair Display', serif; color: #4a3727;">
                 <i class="fas fa-egg me-2" style="color: #e2b13b;"></i> Fresh from the Kitchen
             </h2>
             <p class="text-muted">Recently shared recipes from our community ❤️</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-cozy btn-sm" id="view-toggle">
-                <i class="fas fa-th-large me-1"></i> Grid View
-            </button>
+        <div class="d-flex gap-2 align-items-center">
+            <div class="view-toggle-group">
+                <button class="view-toggle-btn active" data-view="grid" id="gridViewBtn">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-toggle-btn" data-view="list" id="listViewBtn">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
             <a href="/recipes/" class="btn btn-outline-cozy btn-sm">
                 View All <i class="fas fa-arrow-right ms-1"></i>
             </a>
         </div>
     </div>
 
-    <!-- Recipe Cards Grid -->
-    <div class="row g-4 mt-2" id="recipe-grid">
+    <!-- Modern Grid Container -->
+    <div class="recipes-grid-modern" id="recipesGrid">
         {% for r in recipes %}
-        <div class="col-md-6 col-lg-4 recipe-item" data-recipe-id="{{ r.0 }}">
-            <div class="nostalgic-card h-100 d-flex flex-column recipe-card">
-                <!-- Recipe Image with Badges -->
-                <div class="position-relative overflow-hidden" style="border-radius: 28px 28px 0 0;">
-                    <img src="/media/{{ r.3 }}" class="card-img-top" alt="{{ r.1 }}" 
-                         style="height: 220px; width: 100%; object-fit: cover; transition: transform 0.3s ease;">
-                    <div class="position-absolute top-0 end-0 m-3">
-                        <span class="quote-badge bg-white shadow-sm">
-                            <i class="fas fa-utensils me-1"></i> Homestyle
-                        </span>
-                    </div>
-                    <!-- Quick View Button -->
-                    <button class="position-absolute bottom-0 start-50 translate-middle-x btn btn-cozy btn-sm quick-view-btn" 
-                            style="opacity: 0; transition: all 0.3s; white-space: nowrap;"
-                            data-recipe-id="{{ r.0 }}" data-recipe-title="{{ r.1 }}" data-recipe-desc="{{ r.2 }}">
-                        <i class="fas fa-eye me-1"></i> Quick View
+        <div class="recipe-card-modern" data-recipe-id="{{ r.recipe_id }}">
+            <div class="recipe-image-wrapper">
+                <img src="/media/{{ r.image }}" alt="{{ r.title }}" loading="lazy" onerror="this.src='https://placehold.co/400x300/fef1e6/c94c4c?text=🍳+Recipe'">
+                <div class="image-overlay">
+                    <button class="quick-view-overlay" data-recipe-id="{{ r.recipe_id }}" data-recipe-title="{{ r.title }}" data-recipe-desc="{{ r.description }}">
+                        Quick View
+                    </button>
+                </div>
+                <div class="recipe-badge">
+                    <i class="fas fa-star"></i> Featured
+                </div>
+                <button class="like-badge" onclick="toggleLike(this, {{ r.recipe_id }})">
+                    <i class="far fa-heart"></i> <span class="like-count">{{ r.likes_count|default:0 }}</span>
+                </button>
+            </div>
+            
+            <div class="recipe-info-modern">
+                <div class="recipe-header">
+                    <h3 class="recipe-title-modern">{{ r.title }}</h3>
+                    <button class="bookmark-btn" onclick="toggleBookmarkBackend(this, {{ r.recipe_id }})">
+                        <i class="far fa-bookmark"></i>
                     </button>
                 </div>
                 
-                <div class="card-body p-4 d-flex flex-column">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-chili-pepper" style="color: #c96b4a; font-size: 0.9rem;"></i>
-                            <span class="ms-2 small text-uppercase text-muted" style="letter-spacing: 1px;">Authentic</span>
-                        </div>
-                        <!-- Bookmark Feature - Now saves to backend -->
-                        <i class="far fa-bookmark bookmark-icon" style="cursor: pointer; color: #d9a066;" 
-                           data-recipe-id="{{ r.0 }}" onclick="toggleBookmarkBackend(this, {{ r.0 }})"></i>
+                <p class="recipe-description">{{ r.description|truncatechars:100 }}</p>
+                
+                <div class="rating-container">
+                    <div class="stars">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= r.avg_rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                    
-                    <h5 class="card-title fw-bold" style="font-family: 'Playfair Display', serif; font-size: 1.35rem; color: #3a2a1e;">
-                        {{ r.1 }}
-                    </h5>
-                    
-                    <p class="card-text text-muted mt-2" style="line-height: 1.5;">
-                        {{ r.2|truncatechars:100 }}
-                    </p>
-                    
-                    <!-- Rating Stars -->
-                    <div class="my-2">
-                        <div class="rating-stars" data-recipe-id="{{ r.0 }}">
-                            <i class="far fa-star" data-rating="1"></i>
-                            <i class="far fa-star" data-rating="2"></i>
-                            <i class="far fa-star" data-rating="3"></i>
-                            <i class="far fa-star" data-rating="4"></i>
-                            <i class="far fa-star" data-rating="5"></i>
-                            <span class="ms-2 small text-muted rating-count">(0)</span>
+                    <span class="rating-count">({{ r.rating_count }} reviews)</span>
+                </div>
+                
+                <div class="recipe-meta">
+                    <div class="author-info">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
                         </div>
+                        <span class="author-name">{{ r.author_name|default:"Anonymous" }}</span>
                     </div>
-                    
-                    <div class="mt-auto pt-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="/recipe/{{ r.0 }}/" class="btn btn-cozy btn-sm">
-                                <i class="fas fa-book-open me-1"></i> View Recipe
-                            </a>
-                            <div class="d-flex gap-2">
-                                <small class="text-muted">
-                                    <i class="far fa-clock me-1"></i> 20-30 min
-                                </small>
-                                <!-- Share Button -->
-                                <i class="fas fa-share-alt share-icon" style="cursor: pointer; color: #c96b4a;" 
-                                   data-recipe="{{ r.1 }}" onclick="shareRecipe(this)"></i>
-                            </div>
-                        </div>
+                    <div class="recipe-stats">
+                        <span class="stat"><i class="fas fa-clock"></i> 20-30 min</span>
                     </div>
                 </div>
+                
+                <a href="/recipe/{{ r.recipe_id }}/" class="view-btn">
+                    <span>Read Recipe</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
         </div>
         {% empty %}
@@ -258,14 +619,24 @@
             <h3 class="mb-0" style="font-family: 'Playfair Display';">
                 <i class="fas fa-fire me-2" style="color: #e25822;"></i> Trending This Week
             </h3>
-            <span class="quote-badge"><i class="fas fa-chart-line me-1"></i> Based on views & saves</span>
+            <span class="quote-badge"><i class="fas fa-chart-line me-1"></i> Based on likes & views</span>
         </div>
-        <div class="row g-3" id="trending-list">
-            <div class="col-12 text-center py-3">
-                <div class="spinner-border text-warning" role="status">
-                    <span class="visually-hidden">Loading...</span>
+        <div class="row g-3">
+            {% if trending_recipes %}
+                {% for recipe in trending_recipes %}
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center gap-3 p-2">
+                        <span class="quote-badge fs-4 fw-bold">#{{ forloop.counter }}</span>
+                        <div>
+                            <h6 class="mb-0">{{ recipe.title }}</h6>
+                            <small class="text-muted"><i class="fas fa-heart me-1"></i> {{ recipe.likes_count }} likes</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center"><p>No trending recipes yet. Be the first!</p></div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -279,32 +650,25 @@
         <div class="divider-nostalgic"></div>
         <p class="text-muted">What our food family says about IndianLunchBox</p>
     </div>
+    
+    {% if testimonials %}
     <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
-            <div class="carousel-item active">
+            {% for testimonial in testimonials %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
                 <div class="nostalgic-card p-4 text-center mx-auto" style="max-width: 600px;">
                     <i class="fas fa-quote-left fa-2x mb-3" style="color: #d9a066;"></i>
-                    <p class="fs-5">"This website brought back so many memories of my mother's lunchbox. The recipes are exactly how she used to make!"</p>
-                    <h6 class="mt-3 fw-bold">— Priya Sharma</h6>
-                    <small class="text-muted">⭐ ⭐ ⭐ ⭐ ⭐</small>
+                    <p class="fs-5">"{{ testimonial.comment }}"</p>
+                    <h6 class="mt-3 fw-bold">— {{ testimonial.author_name }}</h6>
+                    <small class="text-muted">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= testimonial.rating %}⭐{% endif %}
+                        {% endfor %}
+                        ({{ testimonial.rating }}/5)
+                    </small>
                 </div>
             </div>
-            <div class="carousel-item">
-                <div class="nostalgic-card p-4 text-center mx-auto" style="max-width: 600px;">
-                    <i class="fas fa-quote-left fa-2x mb-3" style="color: #d9a066;"></i>
-                    <p class="fs-5">"My kids now ask for traditional food after seeing the beautiful pictures here. So grateful for this platform!"</p>
-                    <h6 class="mt-3 fw-bold">— Rajesh Kumar</h6>
-                    <small class="text-muted">⭐ ⭐ ⭐ ⭐ ⭐</small>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <div class="nostalgic-card p-4 text-center mx-auto" style="max-width: 600px;">
-                    <i class="fas fa-quote-left fa-2x mb-3" style="color: #d9a066;"></i>
-                    <p class="fs-5">"The community here is so warm and welcoming. I've learned so many new techniques from other home cooks!"</p>
-                    <h6 class="mt-3 fw-bold">— Anjali Mehta</h6>
-                    <small class="text-muted">⭐ ⭐ ⭐ ⭐ ⭐</small>
-                </div>
-            </div>
+            {% endfor %}
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon bg-secondary rounded-circle p-3" aria-hidden="true"></span>
@@ -315,9 +679,18 @@
             <span class="visually-hidden">Next</span>
         </button>
     </div>
+    {% else %}
+    <div class="text-center">
+        <div class="nostalgic-card p-4">
+            <i class="fas fa-comment-dots fa-3x mb-3" style="color: #d9a066;"></i>
+            <p>No testimonials yet. Be the first to share your experience!</p>
+            <a href="/add-recipe/" class="btn-cozy btn-sm">Share Your Story</a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Newsletter & Call to Action Section -->
+<!-- Newsletter Section -->
 <div class="container my-5">
     <div class="row g-4 align-items-center">
         <div class="col-md-6">
@@ -334,7 +707,7 @@
             <div class="nostalgic-card p-4 p-md-5 text-center" style="background: #fff8ef;">
                 <i class="fas fa-envelope-open-text fa-2x mb-2" style="color: #c96b4a;"></i>
                 <h5 class="fw-bold">Get Nostalgic Recipes Weekly</h5>
-                <p class="small">Join 5000+ food lovers who receive heartwarming recipes straight to their inbox.</p>
+                <p class="small">Join {{ newsletter_count|default:0 }}+ food lovers who receive heartwarming recipes straight to their inbox.</p>
                 <div class="input-group mt-3">
                     <input type="email" class="form-control" id="newsletter-email" placeholder="your@email.com" 
                            style="border-radius: 50px 0 0 50px; border-color: #f0dfbf;">
@@ -367,71 +740,8 @@
     </div>
 </div>
 
-<style>
-    .hero-section {
-        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
-        border-radius: 0 0 60px 60px;
-        margin-top: -1rem !important;
-    }
-    
-    .recipe-card {
-        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    }
-    
-    .recipe-card:hover {
-        transform: translateY(-8px);
-    }
-    
-    .recipe-card:hover .quick-view-btn {
-        opacity: 1 !important;
-        transform: translateX(-50%) translateY(-10px) !important;
-    }
-    
-    .hover-lift {
-        transition: transform 0.2s;
-    }
-    
-    .hover-lift:hover {
-        transform: translateY(-5px);
-    }
-    
-    .bookmark-icon.bookmarked {
-        font-family: "Font Awesome 6 Free";
-        font-weight: 900;
-        color: #e2b13b;
-    }
-    
-    .rating-stars i {
-        cursor: pointer;
-        transition: color 0.2s;
-        color: #ddd;
-    }
-    
-    .rating-stars i.active, .rating-stars i:hover {
-        color: #ffc107;
-    }
-    
-    @media (max-width: 768px) {
-        .hero-section .nostalgic-card {
-            margin: 0 1rem;
-        }
-        .display-4 {
-            font-size: 2.2rem;
-        }
-    }
-    
-    @keyframes gentlePop {
-        0% { transform: scale(0.98); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    
-    .hero-section .nostalgic-card {
-        animation: gentlePop 0.5s ease-out;
-    }
-</style>
-
 <script>
-    // Get CSRF token from cookies
+    // Get CSRF token
     function getCSRFToken() {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -447,23 +757,58 @@
         return cookieValue;
     }
 
-    // Check if user is logged in
     function isUserLoggedIn() {
-        return {{ request.session.user_id|default:'false' }} ? true : false;
+        return {% if request.session.user_id %}true{% else %}false{% endif %};
     }
 
-    // Toggle Bookmark with Backend API
-    async function toggleBookmarkBackend(element, recipeId) {
-        // Check if user is logged in
+    // Toggle Like
+    async function toggleLike(element, recipeId) {
         if (!isUserLoggedIn()) {
-            showToast('Please login to save recipes! ❤️', 'warning');
-            setTimeout(() => {
-                window.location.href = '/login/';
-            }, 1500);
+            showToast('Please login to like recipes!', 'warning');
+            setTimeout(() => window.location.href = '/login/', 1500);
             return;
         }
         
-        const isSaved = element.classList.contains('fas');
+        const isLiked = element.classList.contains('liked');
+        
+        try {
+            const response = await fetch(`/api/toggle-like/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ recipe_id: recipeId, action: isLiked ? 'unlike' : 'like' })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                if (!isLiked) {
+                    element.classList.add('liked');
+                    element.querySelector('i').classList.remove('far');
+                    element.querySelector('i').classList.add('fas');
+                    showToast('❤️ Recipe liked!', 'success');
+                } else {
+                    element.classList.remove('liked');
+                    element.querySelector('i').classList.remove('fas');
+                    element.querySelector('i').classList.add('far');
+                    showToast('💔 Recipe unliked', 'info');
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Toggle Bookmark
+    async function toggleBookmarkBackend(element, recipeId) {
+        if (!isUserLoggedIn()) {
+            showToast('Please login to save recipes!', 'warning');
+            setTimeout(() => window.location.href = '/login/', 1500);
+            return;
+        }
+        
+        const isSaved = element.classList.contains('saved');
         
         try {
             const response = await fetch('/api/save-recipe/', {
@@ -472,64 +817,28 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCSRFToken(),
                 },
-                body: JSON.stringify({
-                    recipe_id: recipeId,
-                    action: isSaved ? 'unsave' : 'save'
-                })
+                body: JSON.stringify({ recipe_id: recipeId, action: isSaved ? 'unsave' : 'save' })
             });
-            
             const data = await response.json();
             
             if (data.success) {
                 if (!isSaved) {
-                    element.classList.add('fas');
-                    element.classList.remove('far');
-                    element.style.color = '#e2b13b';
-                    showToast('Recipe saved to your bookmarks! ❤️', 'success');
+                    element.classList.add('saved');
+                    element.querySelector('i').classList.remove('far');
+                    element.querySelector('i').classList.add('fas');
+                    showToast('Recipe saved! ❤️', 'success');
                 } else {
-                    element.classList.remove('fas');
-                    element.classList.add('far');
-                    element.style.color = '#d9a066';
-                    showToast('Recipe removed from bookmarks', 'info');
+                    element.classList.remove('saved');
+                    element.querySelector('i').classList.remove('fas');
+                    element.querySelector('i').classList.add('far');
+                    showToast('Recipe removed', 'info');
                 }
-            } else if (data.error === 'Not logged in') {
-                showToast('Please login to save recipes!', 'warning');
-                setTimeout(() => {
-                    window.location.href = '/login/';
-                }, 1500);
-            } else {
-                showToast('Error saving recipe. Please try again.', 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            showToast('Network error. Please try again.', 'error');
         }
     }
-    
-    // Load saved bookmarks from backend
-    async function loadSavedBookmarks() {
-        if (!isUserLoggedIn()) return;
-        
-        try {
-            const response = await fetch('/api/get-saved-recipes/');
-            const data = await response.json();
-            
-            if (data.success && data.saved_recipes) {
-                const savedIds = data.saved_recipes;
-                document.querySelectorAll('.bookmark-icon').forEach(icon => {
-                    const recipeId = parseInt(icon.getAttribute('data-recipe-id'));
-                    if (savedIds.includes(recipeId)) {
-                        icon.classList.add('fas');
-                        icon.classList.remove('far');
-                        icon.style.color = '#e2b13b';
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error loading saved recipes:', error);
-        }
-    }
-    
+
     // Share Recipe
     function shareRecipe(element) {
         const recipeName = element.getAttribute('data-recipe');
@@ -541,79 +850,11 @@
             });
         } else {
             navigator.clipboard.writeText(`Check out ${recipeName} on IndianLunchBox!`);
-            showToast('Recipe link copied to clipboard! 📋', 'success');
+            showToast('Recipe link copied! 📋', 'success');
         }
     }
-    
-    // Rating System
-    function initRatingSystem() {
-        document.querySelectorAll('.rating-stars').forEach(ratingContainer => {
-            const stars = ratingContainer.querySelectorAll('i');
-            const recipeId = ratingContainer.getAttribute('data-recipe-id');
-            
-            stars.forEach(star => {
-                star.addEventListener('click', async function() {
-                    if (!isUserLoggedIn()) {
-                        showToast('Please login to rate recipes!', 'warning');
-                        setTimeout(() => {
-                            window.location.href = '/login/';
-                        }, 1500);
-                        return;
-                    }
-                    
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    
-                    try {
-                        const response = await fetch('/api/add-rating/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCSRFToken(),
-                            },
-                            body: JSON.stringify({
-                                recipe_id: recipeId,
-                                rating: rating
-                            })
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            updateStars(stars, rating);
-                            showToast(`Thank you for rating ${rating} stars! ⭐`, 'success');
-                            
-                            const ratingCount = ratingContainer.querySelector('.rating-count');
-                            if (ratingCount) {
-                                let count = parseInt(ratingCount.textContent.match(/\d+/) || 0);
-                                ratingCount.textContent = `(${count + 1})`;
-                            }
-                        } else {
-                            showToast('Error saving rating. Please try again.', 'error');
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        showToast('Network error. Please try again.', 'error');
-                    }
-                });
-            });
-        });
-    }
-    
-    function updateStars(stars, rating) {
-        stars.forEach((star, index) => {
-            if (index < rating) {
-                star.classList.remove('far');
-                star.classList.add('fas');
-                star.style.color = '#ffc107';
-            } else {
-                star.classList.remove('fas');
-                star.classList.add('far');
-                star.style.color = '#ddd';
-            }
-        });
-    }
-    
-    // Toast Notification
+
+    // Show Toast
     function showToast(message, type = 'success') {
         let toastContainer = document.querySelector('.toast-container');
         if (!toastContainer) {
@@ -628,31 +869,15 @@
         const toast = document.createElement('div');
         toast.className = 'toast align-items-center text-white border-0';
         toast.style.background = bgColor;
-        toast.setAttribute('role', 'alert');
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas ${icon} me-2"></i>
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        `;
+        toast.innerHTML = `<div class="d-flex"><div class="toast-body"><i class="fas ${icon} me-2"></i>${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
         toastContainer.appendChild(toast);
         const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
         bsToast.show();
         toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
-    
-    // Daily Quotes Array
-    const quotes = [
-        "Food is memory, and every recipe has a story.",
-        "The secret ingredient is always love. ❤️",
-        "A full kitchen is a happy heart.",
-        "Grandma's recipes are the best kind of treasure.",
-        "Every spice tells a tale of home.",
-        "Cooking is an act of love, meant to be shared."
-    ];
+
+    // Daily Quotes
+    const quotes = ["Food is memory, and every recipe has a story.", "The secret ingredient is always love. ❤️", "A full kitchen is a happy heart.", "Grandma's recipes are the best kind of treasure.", "Every spice tells a tale of home.", "Cooking is an act of love, meant to be shared."];
     
     function setDailyQuote() {
         const quoteElement = document.getElementById('daily-quote');
@@ -661,111 +886,86 @@
             quoteElement.innerHTML = `<i class="fas fa-quote-left me-2" style="color: #e2b13b;"></i>${quotes[randomIndex]}`;
         }
     }
-    
-    function loadStats() {
-        const recipeCount = document.querySelectorAll('.recipe-item').length;
-        document.getElementById('recipe-count').textContent = recipeCount;
-        document.getElementById('member-count').textContent = Math.floor(Math.random() * 2000) + 5000;
-        document.getElementById('review-count').textContent = Math.floor(Math.random() * 500) + 1200;
-        document.getElementById('story-count').textContent = Math.floor(Math.random() * 300) + 450;
-    }
-    
-    function loadTrending() {
-        const trendingList = document.getElementById('trending-list');
-        const recipes = Array.from(document.querySelectorAll('.recipe-item'));
-        const trending = recipes.slice(0, 3);
-        
-        if (trending.length > 0) {
-            trendingList.innerHTML = trending.map((item, index) => {
-                const title = item.querySelector('.card-title')?.textContent || 'Recipe';
-                return `
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center gap-3 p-2">
-                            <span class="quote-badge fs-4 fw-bold">#${index + 1}</span>
-                            <div>
-                                <h6 class="mb-0">${title}</h6>
-                                <small class="text-muted"><i class="fas fa-eye me-1"></i> ${Math.floor(Math.random() * 500) + 100} views</small>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            trendingList.innerHTML = '<div class="col-12 text-center"><p>No trending recipes yet. Be the first!</p></div>';
-        }
-    }
-    
+
+    // Quick View
     function initQuickView() {
-        document.querySelectorAll('.quick-view-btn').forEach(btn => {
+        document.querySelectorAll('.quick-view-overlay, .quick-view-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const title = this.getAttribute('data-recipe-title');
                 const desc = this.getAttribute('data-recipe-desc');
                 const recipeId = this.getAttribute('data-recipe-id');
-                
                 document.getElementById('modal-title').textContent = title;
-                document.getElementById('modal-desc').textContent = desc.substring(0, 150) + '...';
+                document.getElementById('modal-desc').textContent = desc?.substring(0, 150) + '...';
                 document.getElementById('modal-link').href = `/recipe/${recipeId}/`;
-                
                 new bootstrap.Modal(document.getElementById('quickViewModal')).show();
             });
         });
     }
-    
+
+    // Newsletter
     function initNewsletter() {
         const subscribeBtn = document.getElementById('subscribe-btn');
         if (subscribeBtn) {
             subscribeBtn.addEventListener('click', function() {
                 const email = document.getElementById('newsletter-email').value;
                 if (email && email.includes('@')) {
-                    localStorage.setItem('newsletter_email', email);
-                    document.getElementById('subscribe-message').innerHTML = '🎉 Thanks for subscribing! Check your inbox for cozy recipes.';
-                    document.getElementById('newsletter-email').value = '';
-                    setTimeout(() => {
-                        document.getElementById('subscribe-message').innerHTML = '';
-                    }, 3000);
+                    fetch('/api/subscribe-newsletter/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+                        body: JSON.stringify({ email: email })
+                    }).then(response => response.json()).then(data => {
+                        if (data.success) {
+                            document.getElementById('subscribe-message').innerHTML = '🎉 Thanks for subscribing!';
+                            document.getElementById('newsletter-email').value = '';
+                            setTimeout(() => document.getElementById('subscribe-message').innerHTML = '', 3000);
+                        }
+                    });
                 } else {
                     document.getElementById('subscribe-message').innerHTML = '⚠️ Please enter a valid email address.';
-                    document.getElementById('subscribe-message').style.color = '#c96b4a';
-                    setTimeout(() => {
-                        document.getElementById('subscribe-message').innerHTML = '';
-                        document.getElementById('subscribe-message').style.color = 'green';
-                    }, 3000);
+                    document.getElementById('subscribe-message').style.color = '#dc3545';
+                    setTimeout(() => document.getElementById('subscribe-message').innerHTML = '', 3000);
                 }
             });
         }
     }
-    
-    // Initialize all features
+
+    // Grid/List View Toggle
+    function initViewToggle() {
+        const gridBtn = document.getElementById('gridViewBtn');
+        const listBtn = document.getElementById('listViewBtn');
+        const grid = document.getElementById('recipesGrid');
+        
+        if (gridBtn && listBtn && grid) {
+            gridBtn.addEventListener('click', () => {
+                grid.classList.remove('list-view');
+                gridBtn.classList.add('active');
+                listBtn.classList.remove('active');
+                localStorage.setItem('recipeView', 'grid');
+            });
+            
+            listBtn.addEventListener('click', () => {
+                grid.classList.add('list-view');
+                listBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+                localStorage.setItem('recipeView', 'list');
+            });
+            
+            // Load saved preference
+            const savedView = localStorage.getItem('recipeView');
+            if (savedView === 'list') {
+                grid.classList.add('list-view');
+                listBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+            }
+        }
+    }
+
+    // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         setDailyQuote();
-        loadStats();
-        loadTrending();
-        initRatingSystem();
         initQuickView();
         initNewsletter();
-        loadSavedBookmarks();
-        
-        // Grid/List View Toggle
-        const viewToggle = document.getElementById('view-toggle');
-        if (viewToggle) {
-            viewToggle.addEventListener('click', function() {
-                const grid = document.getElementById('recipe-grid');
-                grid.classList.toggle('list-view');
-                if (grid.classList.contains('list-view')) {
-                    grid.querySelectorAll('.col-md-6').forEach(col => {
-                        col.classList.add('col-12');
-                        col.classList.remove('col-md-6', 'col-lg-4');
-                    });
-                    viewToggle.innerHTML = '<i class="fas fa-list me-1"></i> List View';
-                } else {
-                    grid.querySelectorAll('.col-12').forEach(col => {
-                        col.classList.add('col-md-6', 'col-lg-4');
-                        col.classList.remove('col-12');
-                    });
-                    viewToggle.innerHTML = '<i class="fas fa-th-large me-1"></i> Grid View';
-                }
-            });
-        }
+        initViewToggle();
     });
 </script>
 

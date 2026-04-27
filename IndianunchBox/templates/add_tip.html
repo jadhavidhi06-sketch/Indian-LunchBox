@@ -1,0 +1,900 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<style>
+    /* Custom SweetAlert styling */
+    .custom-swal-popup {
+        border-radius: 32px !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    
+    .custom-swal-title {
+        font-family: 'Playfair Display', serif !important;
+        color: #5a3e2e !important;
+    }
+    
+    .custom-swal-confirm-btn {
+        background: linear-gradient(135deg, #c96b4a, #a55233) !important;
+        border-radius: 50px !important;
+        font-weight: 600 !important;
+        padding: 10px 30px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-tip-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header Section -->
+                <div class="text-center mb-4">
+                    <div class="header-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                        <i class="fas fa-heart"></i>
+                        <i class="fas fa-mortar-pestle"></i>
+                    </div>
+                    <h1 class="page-title">Share Grandma's Wisdom 👵</h1>
+                    <p class="page-subtitle">Share your kitchen secrets, cooking hacks, and traditional wisdom</p>
+                    <div class="divider-nostalgic"></div>
+                </div>
+
+                <!-- Form Card -->
+                <div class="nostalgic-card p-4 p-md-5">
+                    <form method="POST" enctype="multipart/form-data" id="tipForm">
+                        {% csrf_token %}
+                        
+                        <!-- Tip Title -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Tip Title
+                            </label>
+                            <input type="text" name="title" id="tipTitle" class="form-control-custom" 
+                                   placeholder="e.g., Grandma's Secret to Perfect Roti" required>
+                            <div class="char-count" id="titleCount">0/100 characters</div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-category"></i> Category
+                            </label>
+                            <select name="category" id="tipCategory" class="form-control-custom" required>
+                                <option value="">Select a category</option>
+                                <option value="Kitchen Secrets">🔪 Kitchen Secrets</option>
+                                <option value="Ingredient Tips">🥕 Ingredient Tips</option>
+                                <option value="Cooking Hacks">⚡ Cooking Hacks</option>
+                                <option value="Traditional Wisdom">📿 Traditional Wisdom</option>
+                                <option value="Preservation">🏺 Preservation</option>
+                                <option value="Health & Wellness">🌿 Health & Wellness</option>
+                                <option value="Festive Specials">🎊 Festive Specials</option>
+                                <option value="Kitchen Organization">📦 Kitchen Organization</option>
+                            </select>
+                        </div>
+
+                        <!-- Tip Content -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-align-left"></i> Your Tip
+                            </label>
+                            <textarea name="content" id="tipContent" class="form-control-custom" rows="10" 
+                                      placeholder="Share your grandmother's kitchen wisdom... What makes it special? How is it done? Why does it work? Every detail matters! 💕" required></textarea>
+                            <div class="char-count" id="contentCount">0/5000 characters</div>
+                        </div>
+
+                        <!-- Image Upload Section -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-image"></i> Tip Image (Optional)
+                            </label>
+                            
+                            <div class="upload-options">
+                                <div class="upload-tabs">
+                                    <button type="button" class="upload-tab active" onclick="switchUploadTab('file')">
+                                        <i class="fas fa-upload"></i> Upload File
+                                    </button>
+                                    <button type="button" class="upload-tab" onclick="switchUploadTab('paste')">
+                                        <i class="fas fa-paste"></i> Paste Image
+                                    </button>
+                                </div>
+                                
+                                <div id="fileUpload" class="upload-area">
+                                    <input type="file" name="image" id="imageInput" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="file-input">
+                                    <label for="imageInput" class="file-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Click or drag to upload</span>
+                                        <small>PNG, JPG, JPEG, GIF, WEBP up to 5MB</small>
+                                    </label>
+                                </div>
+                                
+                                <div id="pasteUpload" class="upload-area" style="display: none;">
+                                    <div class="paste-area" id="pasteArea">
+                                        <i class="fas fa-paste"></i>
+                                        <span>Paste image here (Ctrl+V / Cmd+V)</span>
+                                        <small>Paste an image from your clipboard</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="imagePreview" class="image-preview" style="display: none;">
+                                <div class="preview-header">
+                                    <i class="fas fa-image"></i> Image Preview
+                                    <button type="button" class="remove-image" onclick="removeImage()">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                </div>
+                                <img id="previewImg" src="#" alt="Preview">
+                                <div class="preview-info">
+                                    <span id="imageSize"></span>
+                                    <span id="imageDimensions"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tags"></i> Tags (Optional)
+                            </label>
+                            <input type="text" name="tags" id="tipTags" class="form-control-custom" 
+                                   placeholder="e.g., roti, chapati, kneading">
+                            <small class="text-muted">Separate tags with spaces</small>
+                        </div>
+
+                        <!-- Tips Box -->
+                        <div class="tips-box mb-4">
+                            <div class="tips-header">
+                                <i class="fas fa-lightbulb"></i> Tips for a Great Tip
+                            </div>
+                            <ul class="tips-list">
+                                <li><i class="fas fa-check-circle"></i> Be specific and detailed in your explanation</li>
+                                <li><i class="fas fa-check-circle"></i> Explain the "why" behind the tip, not just the "how"</li>
+                                <li><i class="fas fa-check-circle"></i> Add a photo to make it more engaging</li>
+                                <li><i class="fas fa-check-circle"></i> Share personal stories or experiences</li>
+                                <li><i class="fas fa-check-circle"></i> Include measurements and timing for better understanding</li>
+                            </ul>
+                        </div>
+
+                        <!-- Sample Tip Preview -->
+                        <div class="sample-tip-box mb-4">
+                            <div class="sample-header">
+                                <i class="fas fa-eye"></i> Example of a Great Tip
+                            </div>
+                            <div class="sample-content">
+                                <p><strong>Title:</strong> Grandma's Secret to Fluffy Idlis</p>
+                                <p><strong>Tip:</strong> After grinding the batter, let it ferment overnight in a warm place. Add a pinch of fenugreek seeds while grinding - this makes the idlis extra soft and gives them a beautiful aroma. Never stir the batter once fermented; gently scoop it into the idli molds!</p>
+                                <p><strong>Why it works:</strong> Fenugreek seeds act as a natural fermenting agent and the overnight fermentation develops the perfect texture.</p>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-cozy" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Share Wisdom
+                            </button>
+                            <a href="/grandma-tips/" class="btn-outline-cozy">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Inspiration Quote -->
+                <div class="inspiration-quote text-center mt-4">
+                    <p class="handwritten-accent">
+                        <i class="fas fa-quote-left me-2"></i> 
+                        A grandmother's kitchen wisdom is like a treasure chest — open it and you'll find a lifetime of secrets
+                        <i class="fas fa-quote-right ms-2"></i>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .add-tip-container {
+        padding: 2rem 0;
+        min-height: 70vh;
+        background: linear-gradient(135deg, #fff9ef 0%, #fff2e2 100%);
+    }
+
+    .header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .header-icon i {
+        margin: 0 8px;
+        animation: bounce 2s ease infinite;
+    }
+
+    .header-icon i:nth-child(1) { color: #c96b4a; animation-delay: 0s; }
+    .header-icon i:nth-child(2) { color: #e25822; animation-delay: 0.2s; }
+    .header-icon i:nth-child(3) { color: #e2b13b; animation-delay: 0.4s; }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #5a3e2e;
+    }
+
+    .page-subtitle {
+        color: #7a624b;
+    }
+
+    .form-label {
+        color: #5a4a3a;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #e2b13b;
+        box-shadow: 0 0 0 3px rgba(226, 177, 59, 0.1);
+    }
+
+    textarea.form-control-custom {
+        resize: vertical;
+    }
+
+    .char-count {
+        font-size: 0.7rem;
+        color: #7a624b;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    /* Upload Options */
+    .upload-options {
+        border: 2px solid #f0dfbf;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .upload-tabs {
+        display: flex;
+        border-bottom: 2px solid #f0dfbf;
+        background: #fff5ea;
+    }
+
+    .upload-tab {
+        flex: 1;
+        padding: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: #7a624b;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .upload-tab.active {
+        background: white;
+        color: #c96b4a;
+        border-bottom: 2px solid #c96b4a;
+        margin-bottom: -2px;
+    }
+
+    .upload-tab:hover {
+        background: #fff0e0;
+    }
+
+    .upload-area {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .file-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .file-label:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .file-label i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .file-label span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .file-label small {
+        color: #7a624b;
+    }
+
+    .paste-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 2rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .paste-area:hover {
+        border-color: #e2b13b;
+        background: #fff9ef;
+    }
+
+    .paste-area i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .paste-area span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .paste-area small {
+        color: #7a624b;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        margin-top: 1rem;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 15px;
+        background: #fff5ea;
+        border-bottom: 1px solid #f0dfbf;
+        font-weight: 600;
+        color: #c96b4a;
+    }
+
+    .remove-image {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 0.85rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+        transition: all 0.2s;
+    }
+
+    .remove-image:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .image-preview img {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    .preview-info {
+        padding: 8px 15px;
+        background: #fefbf8;
+        border-top: 1px solid #f0dfbf;
+        font-size: 0.7rem;
+        color: #7a624b;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Tips Box */
+    .tips-box {
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        border-radius: 20px;
+        padding: 1.2rem;
+    }
+
+    .tips-header {
+        font-weight: 700;
+        color: #c96b4a;
+        margin-bottom: 0.8rem;
+        font-size: 1rem;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 5px 0;
+        font-size: 0.85rem;
+        color: #5a3e2e;
+    }
+
+    .tips-list li i {
+        color: #28a745;
+        margin-right: 8px;
+    }
+
+    /* Sample Tip Box */
+    .sample-tip-box {
+        background: #fef5ea;
+        border-radius: 20px;
+        padding: 1.2rem;
+        border-left: 4px solid #c96b4a;
+    }
+
+    .sample-header {
+        font-weight: 700;
+        color: #c96b4a;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sample-content p {
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        color: #5a3e2e;
+        line-height: 1.5;
+    }
+
+    .sample-content p strong {
+        color: #c96b4a;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    /* Loading State */
+    .btn-cozy:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .add-tip-container {
+            padding: 1rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .upload-tab {
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+        
+        .upload-area {
+            padding: 1rem;
+        }
+        
+        .file-label, .paste-area {
+            padding: 1rem;
+        }
+        
+        .preview-info {
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header-icon i {
+            font-size: 1.5rem;
+        }
+        
+        .nostalgic-card {
+            padding: 1rem !important;
+        }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Character counters
+    function updateCharCount(element, countElement, max) {
+        const length = element.value.length;
+        const countSpan = document.getElementById(countElement);
+        if (countSpan) {
+            countSpan.textContent = `${length}/${max} characters`;
+            if (length > max - 50) {
+                countSpan.style.color = '#e25822';
+            } else {
+                countSpan.style.color = '#7a624b';
+            }
+        }
+    }
+
+    const titleInput = document.getElementById('tipTitle');
+    const contentInput = document.getElementById('tipContent');
+
+    if (titleInput) {
+        titleInput.addEventListener('input', () => updateCharCount(titleInput, 'titleCount', 100));
+        updateCharCount(titleInput, 'titleCount', 100);
+    }
+
+    if (contentInput) {
+        contentInput.addEventListener('input', () => updateCharCount(contentInput, 'contentCount', 5000));
+        updateCharCount(contentInput, 'contentCount', 5000);
+    }
+
+    // Image upload handling
+    let currentImageFile = null;
+
+    function switchUploadTab(tab) {
+        const fileUpload = document.getElementById('fileUpload');
+        const pasteUpload = document.getElementById('pasteUpload');
+        const tabs = document.querySelectorAll('.upload-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if (tab === 'file') {
+            fileUpload.style.display = 'block';
+            pasteUpload.style.display = 'none';
+            tabs[0].classList.add('active');
+        } else {
+            fileUpload.style.display = 'none';
+            pasteUpload.style.display = 'block';
+            tabs[1].classList.add('active');
+        }
+    }
+
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const imageSizeSpan = document.getElementById('imageSize');
+    const imageDimensionsSpan = document.getElementById('imageDimensions');
+
+    function validateImage(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024;
+        
+        if (!validTypes.includes(file.type)) {
+            Swal.fire({
+                title: 'Invalid File Type',
+                text: 'Please upload a valid image file (PNG, JPG, JPEG, GIF, WEBP)',
+                icon: 'error',
+                confirmButtonColor: '#c96b4a',
+                customClass: {
+                    popup: 'custom-swal-popup',
+                    confirmButton: 'custom-swal-confirm-btn'
+                }
+            });
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            Swal.fire({
+                title: 'File Too Large',
+                text: 'Image size should be less than 5MB',
+                icon: 'error',
+                confirmButtonColor: '#c96b4a',
+                customClass: {
+                    popup: 'custom-swal-popup',
+                    confirmButton: 'custom-swal-confirm-btn'
+                }
+            });
+            return false;
+        }
+        
+        return true;
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && validateImage(file)) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                    imageSizeSpan.textContent = formatFileSize(file.size);
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        imageDimensionsSpan.textContent = `${img.width} x ${img.height} px`;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+            } else if (file) {
+                imageInput.value = '';
+            }
+        });
+    }
+
+    // Paste image functionality
+    document.addEventListener('paste', function(e) {
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                if (validateImage(blob)) {
+                    const dt = new DataTransfer();
+                    dt.items.add(blob);
+                    imageInput.files = dt.files;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImg.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                        imageSizeSpan.textContent = formatFileSize(blob.size);
+                        
+                        const img = new Image();
+                        img.onload = function() {
+                            imageDimensionsSpan.textContent = `${img.width} x ${img.height} px`;
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(blob);
+                    currentImageFile = blob;
+                    
+                    Swal.fire({
+                        title: 'Image Pasted!',
+                        text: 'Image pasted successfully!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        customClass: {
+                            popup: 'custom-swal-popup'
+                        }
+                    });
+                }
+                break;
+            }
+        }
+    });
+
+    // Drag and drop functionality
+    const fileLabel = document.querySelector('.file-label');
+    if (fileLabel) {
+        fileLabel.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#c96b4a';
+            this.style.background = '#fff9ef';
+        });
+        
+        fileLabel.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#f0dfbf';
+            this.style.background = '';
+        });
+        
+        fileLabel.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#f0dfbf';
+            this.style.background = '';
+            
+            const file = e.dataTransfer.files[0];
+            if (file && validateImage(file)) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                imageInput.files = dt.files;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                    imageSizeSpan.textContent = formatFileSize(file.size);
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        imageDimensionsSpan.textContent = `${img.width} x ${img.height} px`;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+            }
+        });
+    }
+
+    // Remove image
+    function removeImage() {
+        if (imageInput) {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            previewImg.src = '#';
+            currentImageFile = null;
+            Swal.fire({
+                title: 'Image Removed',
+                text: 'Image has been removed',
+                icon: 'info',
+                timer: 1500,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'custom-swal-popup'
+                }
+            });
+        }
+    }
+
+    // Form validation
+    const form = document.getElementById('tipForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const title = titleInput?.value.trim();
+            const content = contentInput?.value.trim();
+            const category = document.getElementById('tipCategory')?.value;
+            
+            if (!title) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Missing Title',
+                    text: 'Please enter a tip title',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'custom-swal-confirm-btn'
+                    }
+                });
+                titleInput?.focus();
+                return false;
+            }
+            
+            if (title.length < 3) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Title Too Short',
+                    text: 'Title must be at least 3 characters',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'custom-swal-confirm-btn'
+                    }
+                });
+                return false;
+            }
+            
+            if (!category) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'No Category Selected',
+                    text: 'Please select a category for your tip',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'custom-swal-confirm-btn'
+                    }
+                });
+                return false;
+            }
+            
+            if (!content) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Empty Tip',
+                    text: 'Please share your kitchen wisdom',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'custom-swal-confirm-btn'
+                    }
+                });
+                contentInput?.focus();
+                return false;
+            }
+            
+            if (content.length < 20) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Tip Too Short',
+                    text: 'Please write a bit more detail (at least 20 characters)',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a',
+                    customClass: {
+                        popup: 'custom-swal-popup',
+                        confirmButton: 'custom-swal-confirm-btn'
+                    }
+                });
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sharing wisdom...';
+        });
+    }
+
+    // Auto-resize textarea
+    if (contentInput) {
+        contentInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 400) + 'px';
+        });
+    }
+
+    // Add helpful placeholder examples on focus
+    if (titleInput) {
+        titleInput.addEventListener('focus', function() {
+            if (this.value === '') {
+                this.placeholder = 'Example: "Grandma\'s Secret to Soft Rotis", "How to Keep Spices Fresh for Years"';
+            }
+        });
+        titleInput.addEventListener('blur', function() {
+            this.placeholder = 'e.g., Grandma\'s Secret to Perfect Roti';
+        });
+    }
+
+    if (contentInput) {
+        contentInput.addEventListener('focus', function() {
+            if (this.value === '') {
+                this.placeholder = 'Example:\n\nGrowing up, my grandmother always said that the secret to perfect biryani is in the layering...\n\nHere\'s what you need:\n• Tip 1: Always marinate the meat overnight\n• Tip 2: Use aged basmati rice\n• Tip 3: Seal the pot with dough to trap the steam\n\nWhy this works: The slow cooking process allows the flavors to meld perfectly...';
+            }
+        });
+        contentInput.addEventListener('blur', function() {
+            this.placeholder = 'Share your grandmother\'s kitchen wisdom... What makes it special? How is it done? Why does it work? Every detail matters! 💕';
+        });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="saved-tips-container">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-bookmark"></i> Saved Wisdom</h1>
+            <p>Your collection of kitchen tips</p>
+        </div>
+
+        {% if tips %}
+        <div class="saved-grid">
+            {% for tip in tips %}
+            <div class="saved-card">
+                <div class="saved-card-content">
+                    <div class="saved-category">{{ tip.4 }}</div>
+                    <h3>{{ tip.1 }}</h3>
+                    <p>{{ tip.2|truncatechars:100 }}</p>
+                    <div class="saved-meta">
+                        <span><i class="fas fa-user"></i> {{ tip.9 }}</span>
+                        <span><i class="fas fa-heart"></i> {{ tip.5 }}</span>
+                    </div>
+                    <div class="saved-actions">
+                        <a href="/tip/{{ tip.0 }}/" class="btn-read">Read Tip</a>
+                        <button class="btn-unsave" onclick="unsaveTip({{ tip.0 }}, this)"><i class="fas fa-bookmark"></i> Unsave</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-bookmark"></i>
+            <h3>No saved tips yet</h3>
+            <p>Save tips you love and they'll appear here!</p>
+            <a href="/grandma-tips/" class="btn-wisdom">Explore Wisdom</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.saved-tips-container { padding: 2rem 0; min-height: 70vh; background: linear-gradient(135deg, #fff9f5, #fff5ed); }
+.page-header { text-align: center; margin-bottom: 2rem; }
+.page-header h1 { font-family: 'Playfair Display', serif; color: #5a3e2e; }
+.saved-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto; }
+.saved-card { background: white; border-radius: 20px; overflow: hidden; transition: all 0.2s; border: 1px solid #f0dfbf; }
+.saved-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+.saved-card-content { padding: 1.2rem; }
+.saved-category { display: inline-block; background: #fff5ea; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; color: #c96b4a; margin-bottom: 0.8rem; }
+.saved-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: #5a3e2e; margin-bottom: 0.5rem; }
+.saved-card p { color: #7a624b; font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem; }
+.saved-meta { display: flex; gap: 1rem; font-size: 0.7rem; color: #c96b4a; margin-bottom: 1rem; }
+.saved-actions { display: flex; gap: 0.5rem; }
+.btn-read { flex: 1; background: #c96b4a; color: white; text-decoration: none; padding: 8px; border-radius: 30px; text-align: center; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
+.btn-read:hover { background: #a55233; }
+.btn-unsave { background: none; border: 1px solid #dc3545; color: #dc3545; padding: 8px; border-radius: 30px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-unsave:hover { background: #dc3545; color: white; }
+.btn-wisdom { display: inline-block; background: #c96b4a; color: white; padding: 10px 24px; border-radius: 40px; text-decoration: none; margin-top: 1rem; }
+.empty-state { text-align: center; padding: 4rem; background: white; border-radius: 32px; max-width: 600px; margin: 0 auto; }
+.empty-state i { font-size: 4rem; color: #e2b13b; }
+@media (max-width: 768px) { .saved-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+async function unsaveTip(tipId, element) {
+    try {
+        const response = await fetch(`/api/tip/${tipId}/save/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() }
+        });
+        const data = await response.json();
+        if (data.saved === false) {
+            const card = element.closest('.saved-card');
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 300);
+        }
+    } catch (error) { console.error('Error:', error); }
+}
+</script>
+{% endblock %}

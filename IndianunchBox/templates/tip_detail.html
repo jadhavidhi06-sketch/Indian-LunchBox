@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="tip-detail-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="tip-card-detail">
+                    <div class="tip-header-detail">
+                        <div class="tip-category-detail">
+                            <i class="fas fa-tag"></i> {{ tip.4 }}
+                        </div>
+                        <h1 class="tip-title-detail">{{ tip.1 }}</h1>
+                        <div class="tip-meta-detail">
+                            <div class="author-detail">
+                                <div class="author-avatar-detail">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div>
+                                    <span class="author-name-detail">{{ tip.11 }}</span>
+                                    <span class="author-label">Kitchen Storyteller</span>
+                                </div>
+                            </div>
+                            <div class="stats-detail">
+                                <span><i class="fas fa-heart"></i> {{ tip.6 }}</span>
+                                <span><i class="fas fa-bookmark"></i> {{ tip.7 }}</span>
+                                <span><i class="fas fa-eye"></i> {{ tip.8 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if tip.3 and tip.3 != '' %}
+                    <div class="tip-image-detail">
+                        <img src="/media/{{ tip.3 }}" alt="{{ tip.1 }}">
+                        <div class="image-caption-detail">✨ Wisdom from the kitchen ✨</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="tip-content-detail">
+                        <div class="tip-text-detail">{{ tip.2|linebreaks }}</div>
+
+                        {% if tip.5 %}
+                        <div class="tip-tags-detail">
+                            <i class="fas fa-tags"></i>
+                            {% for tag in tip.5.split %}
+                            <span class="tag-detail">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="tip-actions-detail">
+                            <button class="btn-like-detail" id="likeBtn" data-tip-id="{{ tip.0 }}" data-liked="{{ user_liked|lower }}">
+                                <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                                <span id="likeCount">{{ tip.6 }}</span> Likes
+                            </button>
+                            <button class="btn-save-detail" id="saveBtn" data-tip-id="{{ tip.0 }}" data-saved="{{ user_saved|lower }}">
+                                <i class="{% if user_saved %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                <span id="saveCount">{{ tip.7 }}</span> Save
+                            </button>
+                            <button class="btn-share-detail" onclick="shareTip()">
+                                <i class="fas fa-share-alt"></i> Share
+                            </button>
+                            {% if request.session.user_id and request.session.user_name == tip.11 %}
+                            <a href="/edit-tip/{{ tip.0 }}/" class="btn-edit-detail">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <button class="btn-delete-detail" onclick="confirmDelete()">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if related_tips %}
+                <div class="related-tips-section">
+                    <h3 class="related-title"><i class="fas fa-book-open"></i> More Kitchen Wisdom</h3>
+                    <div class="related-grid">
+                        {% for rt in related_tips %}
+                        <a href="/tip/{{ rt.0 }}/" class="related-card">
+                            <div class="related-icon"><i class="fas fa-mortar-pestle"></i></div>
+                            <h4>{{ rt.1 }}</h4>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Delete Tip</h3>
+            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete "<strong>{{ tip.1 }}</strong>"?</p>
+            <p class="warning-text">This action cannot be undone.</p>
+            <div class="modal-actions">
+                <a href="/delete-tip/{{ tip.0 }}/" class="btn-danger">Yes, Delete</a>
+                <button type="button" class="btn-outline" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tip-detail-container { padding: 3rem 1rem; background: linear-gradient(135deg, #fff9f5, #fff5ed); min-height: 100vh; }
+.tip-card-detail { background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+.tip-header-detail { padding: 2rem 2rem 1rem; border-bottom: 1px solid #f0dfbf; }
+.tip-category-detail { display: inline-block; background: #fff5ea; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; color: #c96b4a; margin-bottom: 1rem; }
+.tip-title-detail { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #5a3e2e; margin-bottom: 1rem; }
+.tip-meta-detail { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.author-detail { display: flex; align-items: center; gap: 12px; }
+.author-avatar-detail { font-size: 2.5rem; color: #c96b4a; }
+.author-name-detail { font-weight: 700; color: #5a3e2e; display: block; }
+.author-label { font-size: 0.7rem; color: #999; }
+.stats-detail { display: flex; gap: 1rem; font-size: 0.85rem; color: #c96b4a; }
+.tip-image-detail { padding: 1.5rem 2rem; background: #fef9f5; text-align: center; }
+.tip-image-detail img { max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 20px; }
+.image-caption-detail { font-size: 0.7rem; color: #b48b72; margin-top: 8px; }
+.tip-content-detail { padding: 2rem; }
+.tip-text-detail { font-size: 1rem; line-height: 1.8; color: #3d352e; }
+.tip-text-detail p { margin-bottom: 1rem; }
+.tip-tags-detail { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 1.5rem 0; padding: 1rem 0; border-top: 1px solid #f0dfbf; border-bottom: 1px solid #f0dfbf; }
+.tag-detail { background: #fff5ea; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; color: #c96b4a; }
+.tip-actions-detail { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.btn-like-detail, .btn-save-detail, .btn-share-detail, .btn-edit-detail, .btn-delete-detail { padding: 10px 24px; border-radius: 40px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+.btn-like-detail { background: #fff5ea; color: #c96b4a; border: 1px solid #f0dfbf; }
+.btn-like-detail:hover, .btn-like-detail.liked { background: #c96b4a; color: white; }
+.btn-save-detail { background: #fff5ea; color: #e2b13b; border: 1px solid #f0dfbf; }
+.btn-save-detail:hover, .btn-save-detail.saved { background: #e2b13b; color: white; }
+.btn-share-detail { background: #4a90e2; color: white; }
+.btn-edit-detail { background: #e2b13b; color: white; text-decoration: none; display: inline-block; }
+.btn-delete-detail { background: #dc3545; color: white; }
+.related-tips-section { margin-top: 2rem; background: white; border-radius: 32px; padding: 1.5rem; }
+.related-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 1rem; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+.related-card { background: #fef9f5; border-radius: 20px; padding: 1rem; text-decoration: none; text-align: center; transition: all 0.2s; }
+.related-card:hover { transform: translateY(-3px); background: #fff5ea; }
+.related-icon { font-size: 2rem; color: #c96b4a; margin-bottom: 0.5rem; }
+.related-card h4 { font-size: 0.9rem; color: #5a3e2e; margin: 0; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { max-width: 450px; width: 90%; background: white; border-radius: 32px; overflow: hidden; }
+.modal-header { background: linear-gradient(135deg, #c96b4a, #a55233); color: white; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+.close-modal { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+.modal-body { padding: 1.5rem; }
+.warning-text { color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem; }
+.modal-actions { display: flex; gap: 1rem; margin-top: 1rem; }
+.btn-danger { background: #dc3545; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none; }
+.btn-outline { background: none; border: 1px solid #f0dfbf; padding: 10px 20px; border-radius: 50px; cursor: pointer; }
+@media (max-width: 768px) { .tip-title-detail { font-size: 1.5rem; } .tip-meta-detail { flex-direction: column; align-items: flex-start; } .related-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const likeBtn = document.getElementById('likeBtn');
+const saveBtn = document.getElementById('saveBtn');
+
+if (likeBtn) {
+    likeBtn.addEventListener('click', async function() {
+        const tipId = this.getAttribute('data-tip-id');
+        const response = await fetch(`/api/tip/${tipId}/like/`, { method: 'POST', headers: { 'X-CSRFToken': getCSRFToken() } });
+        const data = await response.json();
+        if (data.liked !== undefined) {
+            const icon = this.querySelector('i');
+            const likeSpan = document.getElementById('likeCount');
+            if (data.liked) { icon.classList.remove('far'); icon.classList.add('fas'); this.classList.add('liked'); }
+            else { icon.classList.remove('fas'); icon.classList.add('far'); this.classList.remove('liked'); }
+            likeSpan.textContent = data.likes_count;
+        }
+    });
+}
+
+if (saveBtn) {
+    saveBtn.addEventListener('click', async function() {
+        const tipId = this.getAttribute('data-tip-id');
+        const response = await fetch(`/api/tip/${tipId}/save/`, { method: 'POST', headers: { 'X-CSRFToken': getCSRFToken() } });
+        const data = await response.json();
+        if (data.saved !== undefined) {
+            const icon = this.querySelector('i');
+            const saveSpan = document.getElementById('saveCount');
+            if (data.saved) { icon.classList.remove('far'); icon.classList.add('fas'); this.classList.add('saved'); }
+            else { icon.classList.remove('fas'); icon.classList.add('far'); this.classList.remove('saved'); }
+            saveSpan.textContent = data.saves_count;
+        }
+    });
+}
+
+function shareTip() { navigator.clipboard.writeText(window.location.href); alert('Link copied!'); }
+function confirmDelete() { document.getElementById('deleteModal').style.display = 'flex'; }
+function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+window.onclick = function(event) { const modal = document.getElementById('deleteModal'); if (event.target === modal) modal.style.display = 'none'; }
+</script>
+{% endblock %}

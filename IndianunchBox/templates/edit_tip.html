@@ -1,0 +1,900 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<style>
+    .edit-tip-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+        background: linear-gradient(135deg, #fff9f5 0%, #fff5ed 100%);
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .edit-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .header-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .header-icon i {
+        margin: 0 8px;
+        animation: bounce 2s ease infinite;
+    }
+
+    .header-icon i:nth-child(1) { color: #c96b4a; animation-delay: 0s; }
+    .header-icon i:nth-child(2) { color: #e25822; animation-delay: 0.2s; }
+    .header-icon i:nth-child(3) { color: #e2b13b; animation-delay: 0.4s; }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .edit-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        color: #5a3e2e;
+        margin-bottom: 0.5rem;
+    }
+
+    .edit-subtitle {
+        color: #7a624b;
+        font-size: 0.9rem;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: white;
+        border-radius: 32px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #f0dfbf;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #5a4a3a;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-label i {
+        color: #c96b4a;
+        font-size: 1rem;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: white;
+    }
+
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #c96b4a;
+        box-shadow: 0 0 0 3px rgba(201, 107, 74, 0.1);
+    }
+
+    textarea.form-control-custom {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .char-count {
+        font-size: 0.7rem;
+        color: #7a624b;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    /* Current Image */
+    .current-image-card {
+        background: #fefbf8;
+        border-radius: 20px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #f0dfbf;
+        margin-bottom: 1rem;
+    }
+
+    .current-image {
+        max-width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 12px;
+        margin-bottom: 8px;
+    }
+
+    .remove-image-checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 0.8rem;
+        padding: 6px;
+        border-radius: 30px;
+        transition: all 0.2s;
+    }
+
+    .remove-image-checkbox:hover {
+        background: #fff0f0;
+    }
+
+    /* Upload Options */
+    .upload-options {
+        border: 2px solid #f0dfbf;
+        border-radius: 20px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .upload-tabs {
+        display: flex;
+        border-bottom: 2px solid #f0dfbf;
+        background: #fff5ea;
+    }
+
+    .upload-tab {
+        flex: 1;
+        padding: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: #7a624b;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .upload-tab.active {
+        background: white;
+        color: #c96b4a;
+        border-bottom: 2px solid #c96b4a;
+        margin-bottom: -2px;
+    }
+
+    .upload-area {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .file-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 1.5rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        transition: all 0.2s;
+    }
+
+    .file-label:hover {
+        border-color: #c96b4a;
+        background: #fff9ef;
+    }
+
+    .file-label i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    .file-label span {
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .paste-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 1.5rem;
+        border: 2px dashed #f0dfbf;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .paste-area:hover {
+        border-color: #c96b4a;
+        background: #fff9ef;
+    }
+
+    .paste-area i {
+        font-size: 2rem;
+        color: #c96b4a;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        margin-top: 1rem;
+        border: 2px solid #f0dfbf;
+        border-radius: 16px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 15px;
+        background: #fff5ea;
+        border-bottom: 1px solid #f0dfbf;
+        font-weight: 600;
+        color: #c96b4a;
+    }
+
+    .remove-new-image {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc3545;
+        font-size: 0.8rem;
+        padding: 4px 12px;
+        border-radius: 20px;
+        transition: all 0.2s;
+    }
+
+    .remove-new-image:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .image-preview img {
+        width: 100%;
+        max-height: 250px;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    /* Tips Box */
+    .tips-box {
+        background: linear-gradient(135deg, #fff5ea, #fff0e0);
+        border-radius: 20px;
+        padding: 1.2rem;
+        margin-top: 1rem;
+    }
+
+    .tips-header {
+        font-weight: 700;
+        color: #c96b4a;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tips-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .tips-list li {
+        padding: 5px 0;
+        font-size: 0.85rem;
+        color: #5a3e2e;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tips-list li i {
+        color: #28a745;
+        font-size: 0.8rem;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-cozy {
+        flex: 1;
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-cozy:hover {
+        background: linear-gradient(135deg, #b85c3a, #944a2e);
+        transform: translateY(-2px);
+    }
+
+    .btn-cozy:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-outline-cozy {
+        flex: 1;
+        background: transparent;
+        border: 2px solid #c96b4a;
+        color: #c96b4a;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-outline-cozy:hover {
+        background: #c96b4a;
+        color: white;
+    }
+
+    .btn-danger-cozy {
+        flex: 1;
+        background: #dc3545;
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-danger-cozy:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+
+    /* Modal */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        max-width: 450px;
+        width: 90%;
+        background: white;
+        border-radius: 32px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #c96b4a, #a55233);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .warning-text {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .btn-danger-modal {
+        background: #dc3545;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    /* Inspiration Quote */
+    .inspiration-quote {
+        text-align: center;
+        margin-top: 2rem;
+        padding: 1rem;
+    }
+
+    .inspiration-quote p {
+        font-family: 'Kalam', cursive;
+        font-size: 0.9rem;
+        color: #c96b4a;
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .edit-tip-container { padding: 1rem; }
+        .form-card { padding: 1.2rem; }
+        .form-actions { flex-direction: column; }
+        .edit-title { font-size: 1.5rem; }
+        .upload-tab { font-size: 0.8rem; padding: 8px; }
+        .upload-area { padding: 1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-tip-container">
+    <div class="edit-header">
+        <div class="header-icon">
+            <i class="fas fa-edit"></i>
+            <i class="fas fa-graduation-cap"></i>
+            <i class="fas fa-heart"></i>
+        </div>
+        <h1 class="edit-title">Edit Kitchen Wisdom ✏️</h1>
+        <p class="edit-subtitle">Update your grandmother's secret tip</p>
+        <div class="divider-nostalgic"></div>
+    </div>
+
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data" id="editTipForm">
+            {% csrf_token %}
+            
+            <!-- Tip Title -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-tag"></i> Tip Title
+                </label>
+                <input type="text" name="title" id="tipTitle" class="form-control-custom" 
+                       value="{{ tip.1 }}" placeholder="e.g., Grandma's Secret to Perfect Roti" required>
+                <div class="char-count" id="titleCount">0/100 characters</div>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-category"></i> Category
+                </label>
+                <select name="category" id="tipCategory" class="form-control-custom" required>
+                    <option value="Kitchen Secrets" {% if tip.4 == 'Kitchen Secrets' %}selected{% endif %}>🔪 Kitchen Secrets</option>
+                    <option value="Ingredient Tips" {% if tip.4 == 'Ingredient Tips' %}selected{% endif %}>🥕 Ingredient Tips</option>
+                    <option value="Cooking Hacks" {% if tip.4 == 'Cooking Hacks' %}selected{% endif %}>⚡ Cooking Hacks</option>
+                    <option value="Traditional Wisdom" {% if tip.4 == 'Traditional Wisdom' %}selected{% endif %}>📿 Traditional Wisdom</option>
+                    <option value="Preservation" {% if tip.4 == 'Preservation' %}selected{% endif %}>🏺 Preservation</option>
+                    <option value="Health & Wellness" {% if tip.4 == 'Health & Wellness' %}selected{% endif %}>🌿 Health & Wellness</option>
+                    <option value="Festive Specials" {% if tip.4 == 'Festive Specials' %}selected{% endif %}>🎊 Festive Specials</option>
+                    <option value="Kitchen Organization" {% if tip.4 == 'Kitchen Organization' %}selected{% endif %}>📦 Kitchen Organization</option>
+                </select>
+            </div>
+
+            <!-- Current Image -->
+            {% if tip.3 and tip.3 != '' %}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-image"></i> Current Image
+                </label>
+                <div class="current-image-card">
+                    <img src="/media/{{ tip.3 }}" alt="{{ tip.1 }}" class="current-image">
+                    <label class="remove-image-checkbox">
+                        <input type="checkbox" name="remove_image" id="removeImageCheckbox">
+                        <i class="fas fa-trash-alt"></i> Remove this image
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- New Image Upload -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-image"></i> Change Image (Optional)
+                </label>
+                
+                <div class="upload-options">
+                    <div class="upload-tabs">
+                        <button type="button" class="upload-tab active" onclick="switchUploadTab('file')">
+                            <i class="fas fa-upload"></i> Upload New
+                        </button>
+                        <button type="button" class="upload-tab" onclick="switchUploadTab('paste')">
+                            <i class="fas fa-paste"></i> Paste Image
+                        </button>
+                    </div>
+                    
+                    <div id="fileUpload" class="upload-area">
+                        <input type="file" name="image" id="imageInput" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" class="file-input">
+                        <label for="imageInput" class="file-label">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Click or drag to upload</span>
+                            <small>PNG, JPG, JPEG, GIF, WEBP up to 5MB</small>
+                        </label>
+                    </div>
+                    
+                    <div id="pasteUpload" class="upload-area" style="display: none;">
+                        <div class="paste-area" id="pasteArea">
+                            <i class="fas fa-paste"></i>
+                            <span>Paste image here (Ctrl+V / Cmd+V)</span>
+                            <small>Paste an image from your clipboard</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="imagePreview" class="image-preview" style="display: none;">
+                    <div class="preview-header">
+                        <i class="fas fa-image"></i> New Image Preview
+                        <button type="button" class="remove-new-image" onclick="removeNewImage()">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                    <img id="previewImg" src="#" alt="New preview">
+                </div>
+            </div>
+
+            <!-- Tip Content -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-align-left"></i> Your Wisdom
+                </label>
+                <textarea name="content" id="tipContent" class="form-control-custom" rows="8" required>{{ tip.2 }}</textarea>
+                <div class="char-count" id="contentCount">0/5000 characters</div>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-tags"></i> Tags (Optional)
+                </label>
+                <input type="text" name="tags" id="tipTags" class="form-control-custom" value="{{ tip.5|default:'' }}" placeholder="e.g., roti, chapati, kneading">
+                <small class="text-muted">Separate tags with spaces</small>
+            </div>
+
+            <!-- Tips Box -->
+            <div class="tips-box">
+                <div class="tips-header">
+                    <i class="fas fa-lightbulb"></i> Tips for a Great Tip
+                </div>
+                <ul class="tips-list">
+                    <li><i class="fas fa-check-circle"></i> Be specific and detailed in your explanation</li>
+                    <li><i class="fas fa-check-circle"></i> Explain the "why" behind the tip</li>
+                    <li><i class="fas fa-check-circle"></i> Add a photo to make it more engaging</li>
+                    <li><i class="fas fa-check-circle"></i> Share personal stories or experiences</li>
+                </ul>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-cozy" id="submitBtn">
+                    <i class="fas fa-save"></i> Update Wisdom
+                </button>
+                <a href="/tip/{{ tip.0 }}/" class="btn-outline-cozy">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="button" class="btn-danger-cozy" onclick="confirmDelete()">
+                    <i class="fas fa-trash-alt"></i> Delete
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Inspiration Quote -->
+    <div class="inspiration-quote">
+        <p><i class="fas fa-quote-left me-2"></i> Every grandmother's kitchen holds secrets worth preserving. Update yours with love! <i class="fas fa-quote-right ms-2"></i></p>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Delete Wisdom</h3>
+            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete "<strong>{{ tip.1 }}</strong>"?</p>
+            <p class="warning-text">This action cannot be undone. All likes and saves will also be deleted.</p>
+            <div class="modal-actions">
+                <a href="/delete-tip/{{ tip.0 }}/" class="btn-danger-modal">Yes, Delete</a>
+                <button type="button" class="btn-outline-cozy" onclick="closeDeleteModal()" style="flex:1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Character counters
+    function updateCharCount(element, countElement, max) {
+        const length = element.value.length;
+        const countSpan = document.getElementById(countElement);
+        if (countSpan) {
+            countSpan.textContent = `${length}/${max} characters`;
+            if (length > max - 50) {
+                countSpan.style.color = '#e25822';
+            } else {
+                countSpan.style.color = '#7a624b';
+            }
+        }
+    }
+
+    const titleInput = document.getElementById('tipTitle');
+    const contentInput = document.getElementById('tipContent');
+
+    if (titleInput) {
+        titleInput.addEventListener('input', () => updateCharCount(titleInput, 'titleCount', 100));
+        updateCharCount(titleInput, 'titleCount', 100);
+    }
+
+    if (contentInput) {
+        contentInput.addEventListener('input', () => updateCharCount(contentInput, 'contentCount', 5000));
+        updateCharCount(contentInput, 'contentCount', 5000);
+    }
+
+    // Image upload handling
+    let currentImageFile = null;
+
+    function switchUploadTab(tab) {
+        const fileUpload = document.getElementById('fileUpload');
+        const pasteUpload = document.getElementById('pasteUpload');
+        const tabs = document.querySelectorAll('.upload-tab');
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if (tab === 'file') {
+            fileUpload.style.display = 'block';
+            pasteUpload.style.display = 'none';
+            tabs[0].classList.add('active');
+        } else {
+            fileUpload.style.display = 'none';
+            pasteUpload.style.display = 'block';
+            tabs[1].classList.add('active');
+        }
+    }
+
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    function validateImage(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024;
+        
+        if (!validTypes.includes(file.type)) {
+            Swal.fire({
+                title: 'Invalid File',
+                text: 'Please upload PNG, JPG, JPEG, GIF, or WEBP',
+                icon: 'error',
+                confirmButtonColor: '#c96b4a'
+            });
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            Swal.fire({
+                title: 'File Too Large',
+                text: 'Image must be less than 5MB',
+                icon: 'error',
+                confirmButtonColor: '#c96b4a'
+            });
+            return false;
+        }
+        return true;
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && validateImage(file)) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+                const removeCheckbox = document.getElementById('removeImageCheckbox');
+                if (removeCheckbox) removeCheckbox.checked = false;
+            }
+        });
+    }
+
+    // Paste image functionality
+    document.addEventListener('paste', function(e) {
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                if (validateImage(blob)) {
+                    const dt = new DataTransfer();
+                    dt.items.add(blob);
+                    imageInput.files = dt.files;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImg.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(blob);
+                    currentImageFile = blob;
+                    
+                    const removeCheckbox = document.getElementById('removeImageCheckbox');
+                    if (removeCheckbox) removeCheckbox.checked = false;
+                    
+                    Swal.fire({
+                        title: 'Image Pasted!',
+                        text: 'Image pasted successfully',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+                break;
+            }
+        }
+    });
+
+    function removeNewImage() {
+        if (imageInput) {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            previewImg.src = '#';
+            currentImageFile = null;
+            Swal.fire({
+                title: 'Image Removed',
+                text: 'New image removed',
+                icon: 'info',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+    }
+
+    // Delete confirmation
+    function confirmDelete() {
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Form validation
+    const form = document.getElementById('editTipForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const title = titleInput?.value.trim();
+            const content = contentInput?.value.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Missing Title',
+                    text: 'Please enter a tip title',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a'
+                });
+                titleInput?.focus();
+                return false;
+            }
+            
+            if (title.length < 3) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Title Too Short',
+                    text: 'Title must be at least 3 characters',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a'
+                });
+                return false;
+            }
+            
+            if (!content) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Empty Tip',
+                    text: 'Please share your kitchen wisdom',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a'
+                });
+                contentInput?.focus();
+                return false;
+            }
+            
+            if (content.length < 20) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Tip Too Short',
+                    text: 'Please write at least 20 characters',
+                    icon: 'warning',
+                    confirmButtonColor: '#c96b4a'
+                });
+                return false;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating wisdom...';
+        });
+    }
+
+    // Auto-resize textarea
+    if (contentInput) {
+        contentInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+        });
+        // Trigger initial resize
+        contentInput.style.height = 'auto';
+        contentInput.style.height = Math.min(contentInput.scrollHeight, 300) + 'px';
+    }
+</script>
+{% endblock %}
