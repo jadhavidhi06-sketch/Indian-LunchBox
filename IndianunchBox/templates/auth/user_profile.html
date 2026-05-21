@@ -26,7 +26,7 @@
                     <p class="profile-favorite"><i class="fas fa-heart"></i> Loves {{ profile.favorite_food }}</p>
                     {% endif %}
                     
-                    <button class="btn-cozy btn-sm" onclick="openEditProfile()">
+                    <button class="btn-cozy btn-sm" onclick="openEditProfileModal()">
                         <i class="fas fa-edit"></i> Edit Profile
                     </button>
                 </div>
@@ -86,28 +86,35 @@
     </div>
 </div>
 
-<!-- Edit Profile Modal -->
-<div id="editProfileModal" class="modal" style="display: none;">
-    <div class="modal-content nostalgia-card">
-        <div class="modal-header">
+<!-- Edit Profile Modal - Unique ID: editProfileModal -->
+<div id="editProfileModal" class="profile-modal" style="display: none;">
+    <div class="profile-modal-content nostalgia-card">
+        <div class="profile-modal-header">
             <h3>Edit Profile</h3>
-            <button class="close-modal" onclick="closeEditProfile()">&times;</button>
+            <button class="profile-modal-close" onclick="closeEditProfileModal()">&times;</button>
         </div>
-        <form method="POST" action="/update-profile/">
+        <form method="POST" action="/update-profile/" id="editProfileForm">
             {% csrf_token %}
             <div class="form-group">
-                <label>Bio</label>
-                <textarea name="bio" class="form-control" rows="4">{{ profile.bio }}</textarea>
+                <label for="profileBio">Bio</label>
+                <textarea name="bio" id="profileBio" class="form-control" rows="4">{{ profile.bio|default:'' }}</textarea>
             </div>
             <div class="form-group">
-                <label>Location</label>
-                <input type="text" name="location" class="form-control" value="{{ profile.location }}">
+                <label for="profileLocation">Location</label>
+                <input type="text" name="location" id="profileLocation" class="form-control" value="{{ profile.location|default:'' }}">
             </div>
             <div class="form-group">
-                <label>Favorite Food</label>
-                <input type="text" name="favorite_food" class="form-control" value="{{ profile.favorite_food }}">
+                <label for="profileFavoriteFood">Favorite Food</label>
+                <input type="text" name="favorite_food" id="profileFavoriteFood" class="form-control" value="{{ profile.favorite_food|default:'' }}">
             </div>
-            <button type="submit" class="btn-cozy">Save Changes</button>
+            <div class="form-group">
+                <label for="profileAvatar">Avatar URL</label>
+                <input type="text" name="avatar" id="profileAvatar" class="form-control" value="{{ profile.avatar|default:'' }}" placeholder="Optional: Image URL or path">
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn-cozy btn-secondary" onclick="closeEditProfileModal()">Cancel</button>
+                <button type="submit" class="btn-cozy">Save Changes</button>
+            </div>
         </form>
     </div>
 </div>
@@ -170,6 +177,7 @@
         text-align: center;
         border-radius: 24px;
         transition: all 0.3s ease;
+        cursor: pointer;
     }
     
     .stat-card:hover {
@@ -240,42 +248,73 @@
         font-weight: 500;
     }
     
-    .modal {
+    /* Updated modal styles with unique class names to prevent conflicts */
+    .profile-modal {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0,0,0,0.6);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1000;
+        z-index: 10000;
+        backdrop-filter: blur(2px);
     }
     
-    .modal-content {
+    .profile-modal-content {
         max-width: 500px;
         width: 90%;
         padding: 2rem;
+        background: white;
+        border-radius: 32px;
+        position: relative;
+        animation: modalFadeIn 0.2s ease;
     }
     
-    .modal-header {
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .profile-modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f0dfbf;
     }
     
-    .close-modal {
+    .profile-modal-header h3 {
+        font-family: 'Playfair Display', serif;
+        color: #5a3e2e;
+        margin: 0;
+    }
+    
+    .profile-modal-close {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         cursor: pointer;
         color: #c96b4a;
+        transition: color 0.2s;
+        line-height: 1;
+    }
+    
+    .profile-modal-close:hover {
+        color: #a0522a;
     }
     
     .form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 1.2rem;
     }
     
     .form-group label {
@@ -287,15 +326,95 @@
     
     .form-control {
         width: 100%;
-        padding: 10px;
+        padding: 10px 12px;
         border: 2px solid #f0dfbf;
-        border-radius: 12px;
+        border-radius: 16px;
         font-family: inherit;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
     }
     
     .form-control:focus {
         outline: none;
         border-color: #e2b13b;
+        box-shadow: 0 0 0 2px rgba(226, 177, 59, 0.2);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+    }
+    
+    .btn-cozy {
+        background: #c96b4a;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+    
+    .btn-cozy:hover {
+        background: #a0522a;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: #e0d6cc;
+        color: #5a3e2e;
+    }
+    
+    .btn-secondary:hover {
+        background: #d0c4b8;
+        transform: translateY(-2px);
+    }
+    
+    .btn-sm {
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    
+    .form-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 1.5rem;
+    }
+    
+    /* Loading state */
+    .btn-loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    /* Toast notification */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #5a3e2e;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        z-index: 10001;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
     
     @media (max-width: 768px) {
@@ -310,23 +429,143 @@
         .quick-actions {
             grid-template-columns: 1fr;
         }
+        
+        .profile-modal-content {
+            width: 95%;
+            padding: 1.5rem;
+        }
+        
+        .form-buttons {
+            flex-direction: column;
+        }
+        
+        .form-buttons button {
+            width: 100%;
+        }
     }
 </style>
 
 <script>
-function openEditProfile() {
-    document.getElementById('editProfileModal').style.display = 'flex';
-}
-
-function closeEditProfile() {
-    document.getElementById('editProfileModal').style.display = 'none';
-}
-
-window.onclick = function(event) {
-    const modal = document.getElementById('editProfileModal');
-    if (event.target == modal) {
-        modal.style.display = 'none';
+    // Function to show toast notification
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = isError ? '#c96b4a' : '#5a3e2e';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
     }
-}
+    
+    // Function to open the Edit Profile modal
+    function openEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    // Function to close the Edit Profile modal
+    function closeEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        if (modal) {
+            modal.style.display = 'none';
+            // Re-enable body scroll
+            document.body.style.overflow = '';
+        }
+    }
+    
+    // Close modal when clicking outside of modal content
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('editProfileModal');
+        if (event.target === modal) {
+            closeEditProfileModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('editProfileModal');
+            if (modal && modal.style.display === 'flex') {
+                closeEditProfileModal();
+            }
+        }
+    });
+    
+    // Handle form submission - traditional submit (no AJAX)
+    document.addEventListener('DOMContentLoaded', function() {
+        const editForm = document.getElementById('editProfileForm');
+        if (editForm) {
+            // Remove any existing AJAX handlers and let the form submit normally
+            // This avoids the JSON parsing error
+            editForm.onsubmit = function(e) {
+                // Allow normal form submission - don't prevent default
+                // The form will submit normally and the page will reload
+                // Show loading state on button
+                const submitBtn = editForm.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.classList.add('btn-loading');
+                    submitBtn.textContent = 'Saving...';
+                }
+                return true; // Allow form submission
+            };
+        }
+    });
+    
+    // If you prefer AJAX, uncomment this section and make sure your backend returns JSON
+    /*
+    document.addEventListener('DOMContentLoaded', function() {
+        const editForm = document.getElementById('editProfileForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(editForm);
+                const submitBtn = editForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                
+                submitBtn.classList.add('btn-loading');
+                submitBtn.textContent = 'Saving...';
+                
+                fetch(editForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast('Profile updated successfully!');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showToast(data.message || 'Something went wrong. Please try again.', true);
+                        submitBtn.classList.remove('btn-loading');
+                        submitBtn.textContent = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error saving profile. Please try again.', true);
+                    submitBtn.classList.remove('btn-loading');
+                    submitBtn.textContent = originalText;
+                });
+            });
+        }
+    });
+    */
 </script>
 {% endblock %}

@@ -55,18 +55,18 @@
 
                         <!-- Action Buttons -->
                         <div class="story-actions">
-                            <button class="btn-like" id="likeBtn" data-story-id="{{ story.0 }}" data-liked="{{ user_liked|lower }}">
+                            <button class="btn-like" id="storyLikeBtn" data-story-id="{{ story.0 }}" data-liked="{{ user_liked|lower }}">
                                 <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i>
-                                <span id="likeCount">{{ story.6 }}</span> Likes
+                                <span id="storyLikeCount">{{ story.6 }}</span> Likes
                             </button>
-                            <button class="btn-share" onclick="shareStory()">
+                            <button class="btn-share" onclick="openStoryShareModal()">
                                 <i class="fas fa-share-alt"></i> Share
                             </button>
                             {% if request.session.user_id and request.session.user_name == story.9 %}
                             <a href="/edit-story/{{ story.0 }}/" class="btn-edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <button class="btn-delete" onclick="confirmDelete()">
+                            <button class="btn-delete" onclick="openStoryDeleteModal()">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </button>
                             {% endif %}
@@ -80,7 +80,7 @@
                             <span class="comment-count">({{ comments|length }})</span>
                         </h3>
 
-                        <div id="commentsContainer">
+                        <div id="storyCommentsContainer">
                             {% for comment in comments %}
                             <div class="comment-card" data-comment-id="{{ comment.0 }}">
                                 <div class="comment-header">
@@ -92,7 +92,7 @@
                                 <div class="comment-text">{{ comment.1 }}</div>
                                 {% if request.session.user_id and request.session.user_name == comment.3 %}
                                 <div class="comment-footer">
-                                    <button class="delete-comment" onclick="deleteComment({{ comment.0 }})">
+                                    <button class="delete-comment" onclick="deleteStoryComment({{ comment.0 }})">
                                         <i class="fas fa-trash-alt"></i> Delete
                                     </button>
                                 </div>
@@ -110,8 +110,8 @@
                         {% if request.session.user_id %}
                         <div class="comment-form">
                             <h4><i class="fas fa-pen-fancy"></i> Share Your Thoughts</h4>
-                            <textarea id="commentText" rows="3" placeholder="Write your comment here... 💬" class="form-control-custom"></textarea>
-                            <button onclick="submitComment()" class="btn-cozy mt-2">
+                            <textarea id="storyCommentText" rows="3" placeholder="Write your comment here... 💬" class="form-control-custom"></textarea>
+                            <button onclick="submitStoryComment()" class="btn-cozy mt-2">
                                 <i class="fas fa-paper-plane"></i> Post Comment
                             </button>
                         </div>
@@ -151,19 +151,69 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal" style="display: none;">
-    <div class="modal-content nostalgia-card">
-        <div class="modal-header">
-            <h3><i class="fas fa-exclamation-triangle"></i> Delete Story</h3>
-            <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+<!-- Share Preview Modal -->
+<div id="storySharePreviewModal" class="story-modal" style="display: none;">
+    <div class="story-modal-content share-preview-modal">
+        <div class="story-modal-header share-header">
+            <h3><i class="fas fa-share-alt"></i> Share This Story</h3>
+            <button class="story-modal-close" onclick="closeStoryShareModal()">&times;</button>
         </div>
-        <div class="modal-body">
+        <div class="story-modal-body">
+            <div class="share-preview-content">
+                <div class="share-preview-card">
+                    <div class="share-preview-header">
+                        <i class="fas fa-book-open"></i>
+                        <span>Heartwarming Story</span>
+                    </div>
+                    <div class="share-preview-title">{{ story.1 }}</div>
+                    <div class="share-preview-text-full">{{ story.2|truncatechars:300 }}</div>
+                    {% if story.5 %}
+                    <div class="share-preview-tags">
+                        {% for tag in story.5.split|slice:":3" %}
+                        <span>#{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="share-preview-footer">
+                        <span><i class="fas fa-heart"></i> {{ story.6 }} likes</span>
+                        <span><i class="fas fa-user-circle"></i> {{ story.9 }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="share-options">
+                <button class="share-option-btn" onclick="copyStoryToClipboard('text')">
+                    <i class="fas fa-copy"></i> Copy as Text
+                </button>
+                <button class="share-option-btn" onclick="copyStoryToClipboard('markdown')">
+                    <i class="fab fa-markdown"></i> Copy as Markdown
+                </button>
+                <button class="share-option-btn" onclick="copyStoryToClipboard('html')">
+                    <i class="fab fa-html5"></i> Copy as HTML
+                </button>
+                <button class="share-option-btn" onclick="copyStoryToClipboard('social')">
+                    <i class="fab fa-twitter"></i> Copy for Social Media
+                </button>
+                <button class="share-option-btn" onclick="copyStoryToClipboard('full')">
+                    <i class="fas fa-file-alt"></i> Copy Full Content
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="storyDeleteModal" class="story-modal" style="display: none;">
+    <div class="story-modal-content">
+        <div class="story-modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Delete Story</h3>
+            <button class="story-modal-close" onclick="closeStoryDeleteModal()">&times;</button>
+        </div>
+        <div class="story-modal-body">
             <p>Are you sure you want to delete "<strong>{{ story.1 }}</strong>"?</p>
             <p class="warning-text">This action cannot be undone. All likes and comments will also be deleted.</p>
-            <div class="modal-actions">
-                <a href="/delete-story/{{ story.0 }}/" class="btn-danger">Yes, Delete Story</a>
-                <button type="button" class="btn-outline-cozy" onclick="closeDeleteModal()">Cancel</button>
+            <div class="story-modal-actions">
+                <a href="/delete-story/{{ story.0 }}/" class="btn-danger-story">Yes, Delete Story</a>
+                <button type="button" class="btn-outline-story" onclick="closeStoryDeleteModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -487,8 +537,113 @@
         margin: 0;
     }
 
-    /* Modal */
-    .modal {
+    /* Share Preview Modal Styles */
+    .share-preview-modal {
+        max-width: 600px !important;
+    }
+
+    .share-header {
+        background: linear-gradient(135deg, #4a90e2, #357abd) !important;
+    }
+
+    .share-preview-content {
+        margin-bottom: 1.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .share-preview-card {
+        background: linear-gradient(135deg, #fff9ef, #fff5ea);
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 2px solid #f0dfbf;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .share-preview-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: #c96b4a;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dashed #f0dfbf;
+    }
+
+    .share-preview-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #5a3e2e;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+    }
+
+    .share-preview-text-full {
+        font-size: 0.85rem;
+        color: #7a624b;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        max-height: 200px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .share-preview-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .share-preview-tags span {
+        background: #fff;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        color: #c96b4a;
+    }
+
+    .share-preview-footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.7rem;
+        color: #b48b72;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f0dfbf;
+    }
+
+    .share-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .share-option-btn {
+        padding: 10px;
+        border: 2px solid #f0dfbf;
+        background: white;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #5a3e2e;
+    }
+
+    .share-option-btn:hover {
+        border-color: #c96b4a;
+        background: #fff5ea;
+        transform: translateY(-2px);
+    }
+
+    .share-option-btn i {
+        margin-right: 6px;
+    }
+
+    /* Modal Styles */
+    .story-modal {
         position: fixed;
         top: 0;
         left: 0;
@@ -498,18 +653,31 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1000;
+        z-index: 10000;
+        backdrop-filter: blur(2px);
     }
 
-    .modal-content {
-        max-width: 450px;
+    .story-modal-content {
+        max-width: 600px;
         width: 90%;
         background: white;
         border-radius: 32px;
         overflow: hidden;
+        animation: storyModalFadeIn 0.2s ease;
     }
 
-    .modal-header {
+    @keyframes storyModalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .story-modal-header {
         background: linear-gradient(135deg, #c96b4a, #a55233);
         color: white;
         padding: 1rem 1.5rem;
@@ -518,15 +686,30 @@
         align-items: center;
     }
 
-    .close-modal {
+    .story-modal-header h3 {
+        margin: 0;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .story-modal-header h3 i {
+        margin-right: 8px;
+    }
+
+    .story-modal-close {
         background: none;
         border: none;
         color: white;
         font-size: 1.5rem;
         cursor: pointer;
+        transition: opacity 0.2s;
+        line-height: 1;
     }
 
-    .modal-body {
+    .story-modal-close:hover {
+        opacity: 0.8;
+    }
+
+    .story-modal-body {
         padding: 1.5rem;
     }
 
@@ -534,23 +717,78 @@
         color: #dc3545;
         font-size: 0.85rem;
         margin-top: 0.5rem;
+        padding: 8px;
+        background: #fff5f5;
+        border-radius: 8px;
     }
 
-    .modal-actions {
+    .story-modal-actions {
         display: flex;
         gap: 1rem;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
     }
 
-    .btn-danger {
+    .btn-danger-story {
         background: #dc3545;
         color: white;
-        border: none;
         padding: 10px 20px;
         border-radius: 50px;
         text-decoration: none;
         display: inline-block;
         text-align: center;
+        flex: 1;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-danger-story:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-story {
+        background: none;
+        border: 2px solid #f0dfbf;
+        padding: 10px 20px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex: 1;
+        font-weight: 600;
+        color: #5a3e2e;
+    }
+
+    .btn-outline-story:hover {
+        border-color: #c96b4a;
+        background: #fff5ea;
+        transform: translateY(-2px);
+    }
+
+    /* Toast notification */
+    .toast-notification-story {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #5a3e2e;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        z-index: 10001;
+        animation: storyToastSlideIn 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    @keyframes storyToastSlideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 
     @media (max-width: 768px) {
@@ -570,11 +808,32 @@
         .related-grid {
             grid-template-columns: 1fr;
         }
+
+        .share-options {
+            grid-template-columns: 1fr;
+        }
+
+        .story-modal-actions {
+            flex-direction: column;
+        }
     }
 </style>
 
 <script>
-    function getCSRFToken() {
+    // Story data for sharing
+    const storyData = {
+        id: "{{ story.0 }}",
+        title: "{{ story.1|escapejs }}",
+        content: "{{ story.2|escapejs }}",
+        category: "{{ story.4|escapejs }}",
+        author: "{{ story.9|escapejs }}",
+        likes: "{{ story.6 }}",
+        tags: "{{ story.5|escapejs }}",
+        url: window.location.href
+    };
+
+    // Function to get CSRF token
+    function getStoryCSRFToken() {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
@@ -589,52 +848,233 @@
         return cookieValue;
     }
 
+    // Function to show toast notification
+    function showStoryToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification-story';
+        toast.style.background = isError ? '#dc3545' : '#5a3e2e';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // Share functionality
+    function openStoryShareModal() {
+        const modal = document.getElementById('storySharePreviewModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeStoryShareModal() {
+        const modal = document.getElementById('storySharePreviewModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Generate share text in different formats
+    function generateStoryShareText(format) {
+        const title = storyData.title;
+        const fullContent = storyData.content;
+        const author = storyData.author;
+        const url = storyData.url;
+        const category = storyData.category;
+        const tags = storyData.tags.split(' ').filter(t => t.trim());
+        const likes = storyData.likes;
+        
+        const formattedContent = fullContent.replace(/\n/g, '\n\n');
+        
+        switch(format) {
+            case 'text':
+                return `📖 ${title} 📖\n\n${formattedContent}\n\n— ${author}\n📂 Category: ${category}\n❤️ ${likes} likes\n🔗 Read more: ${url}\n\n`;
+                
+            case 'markdown':
+                return `## 📖 ${title}\n\n${formattedContent}\n\n**— ${author}**  \n*Category: ${category}*  \n*❤️ ${likes} likes*  \n\n[Read full story](${url})\n\n`;
+                
+            case 'html':
+                return `<div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #fff9ef, #fff5ea); border-radius: 20px; border: 2px solid #f0dfbf;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px dashed #e2b13b;">
+        <span style="font-size: 24px;">📖</span>
+        <span style="color: #c96b4a; font-weight: bold;">Heartwarming Story</span>
+    </div>
+    <h2 style="color: #5a3e2e; font-family: 'Playfair Display', serif; margin: 0 0 15px 0;">${title}</h2>
+    <div style="color: #7a624b; line-height: 1.8; margin-bottom: 20px;">${formattedContent.replace(/\n/g, '<br>')}</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f0dfbf; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <span style="color: #c96b4a;">— ${author}</span><br>
+            <span style="font-size: 12px; color: #b48b72;">📂 ${category} | ❤️ ${likes} likes</span>
+        </div>
+        <a href="${url}" style="background: #c96b4a; color: white; padding: 8px 20px; border-radius: 25px; text-decoration: none; font-size: 13px; font-weight: bold;">Read Full Story →</a>
+    </div>
+</div>`;
+                
+            case 'social':
+                let socialText = `📖 ${title}\n\n`;
+                const socialContent = fullContent.length > 500 ? fullContent.substring(0, 497) + '...' : fullContent;
+                socialText += `${socialContent}\n\n`;
+                socialText += `✨ By ${author}\n`;
+                socialText += `📂 Category: ${category}\n`;
+                socialText += `❤️ ${likes} likes\n`;
+                if (tags.length > 0) {
+                    socialText += `\n${tags.slice(0, 5).map(t => `#${t}`).join(' ')}\n`;
+                }
+                socialText += `\n🔗 ${url}`;
+                return socialText;
+                
+            case 'full':
+                return `📖 HEARTWARMING STORY 📖
+                
+📌 TITLE: ${title}
+
+📝 FULL STORY:
+${formattedContent}
+
+👨‍💻 AUTHOR: ${author}
+📂 CATEGORY: ${category}
+❤️ LIKES: ${likes}
+🏷️ TAGS: ${tags.join(', ')}
+
+🔗 ORIGINAL LINK: ${url}
+
+---
+Shared from Kitchen Stories App
+`;
+                
+            default:
+                return `${title}\n\n${formattedContent}\n\n— ${author}\n${url}`;
+        }
+    }
+
+    // Copy to clipboard function
+    async function copyStoryToClipboard(format) {
+        const shareText = generateStoryShareText(format);
+        let formatName = '';
+        
+        switch(format) {
+            case 'text': formatName = 'Text'; break;
+            case 'markdown': formatName = 'Markdown'; break;
+            case 'html': formatName = 'HTML'; break;
+            case 'social': formatName = 'Social Media'; break;
+            case 'full': formatName = 'Full Content'; break;
+            default: formatName = 'Text';
+        }
+        
+        try {
+            if (format === 'html') {
+                const htmlBlob = new Blob([shareText], { type: 'text/html' });
+                const textBlob = new Blob([stripHtml(shareText)], { type: 'text/plain' });
+                
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        'text/html': htmlBlob,
+                        'text/plain': textBlob
+                    })
+                ]);
+            } else {
+                await navigator.clipboard.writeText(shareText);
+            }
+            
+            showStoryToast(`✨ Copied as ${formatName}! ✨`);
+            closeStoryShareModal();
+            showCopySuccessAnimation();
+            
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+            fallbackCopy(shareText);
+            showStoryToast(`✓ Copied as ${formatName}`, false);
+            closeStoryShareModal();
+        }
+    }
+
+    function stripHtml(html) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        return temp.textContent || temp.innerText || '';
+    }
+
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.top = '0';
+        textarea.style.left = '0';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+
+    function showCopySuccessAnimation() {
+        const btn = document.querySelector('.btn-share');
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.style.background = '#28a745';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '#4a90e2';
+            }, 2000);
+        }
+    }
+
     // Like functionality
-    const likeBtn = document.getElementById('likeBtn');
-    if (likeBtn) {
-        likeBtn.addEventListener('click', async function() {
+    const storyLikeBtn = document.getElementById('storyLikeBtn');
+    if (storyLikeBtn) {
+        storyLikeBtn.addEventListener('click', async function() {
             const storyId = this.getAttribute('data-story-id');
-            const isLiked = this.getAttribute('data-liked') === 'true';
+            const likeSpan = document.getElementById('storyLikeCount');
+            
+            this.disabled = true;
+            this.classList.add('btn-loading');
             
             try {
                 const response = await fetch(`/api/story/${storyId}/like/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': getCSRFToken(),
+                        'X-CSRFToken': getStoryCSRFToken(),
+                        'Content-Type': 'application/json'
                     }
                 });
                 const data = await response.json();
                 
                 if (data.liked !== undefined) {
                     const icon = this.querySelector('i');
-                    const likeSpan = this.querySelector('#likeCount');
-                    
                     if (data.liked) {
                         icon.classList.remove('far');
                         icon.classList.add('fas');
-                        this.setAttribute('data-liked', 'true');
                         this.classList.add('liked');
+                        showStoryToast('❤️ Story liked!');
                     } else {
                         icon.classList.remove('fas');
                         icon.classList.add('far');
-                        this.setAttribute('data-liked', 'false');
                         this.classList.remove('liked');
+                        showStoryToast('💔 Story unliked');
                     }
-                    likeSpan.textContent = data.likes_count;
-                    
-                    window.showToast(data.liked ? '❤️ Story liked!' : '💔 Story unliked', 'success');
+                    if (likeSpan) likeSpan.textContent = data.likes_count;
                 }
             } catch (error) {
                 console.error('Error:', error);
+                showStoryToast('Error processing like', true);
+            } finally {
+                this.disabled = false;
+                this.classList.remove('btn-loading');
             }
         });
     }
 
     // Submit comment
-    async function submitComment() {
-        const commentText = document.getElementById('commentText').value.trim();
+    async function submitStoryComment() {
+        const commentText = document.getElementById('storyCommentText').value.trim();
         if (!commentText) {
-            window.showToast('Please write a comment', 'warning');
+            showStoryToast('Please write a comment', 'warning');
             return;
         }
         
@@ -643,7 +1083,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
+                    'X-CSRFToken': getStoryCSRFToken(),
                 },
                 body: JSON.stringify({ comment: commentText })
             });
@@ -651,24 +1091,24 @@
             const data = await response.json();
             
             if (data.success) {
-                window.showToast('💬 Comment posted!', 'success');
+                showStoryToast('💬 Comment posted!');
                 location.reload();
             }
         } catch (error) {
             console.error('Error:', error);
-            window.showToast('Error posting comment', 'error');
+            showStoryToast('Error posting comment', true);
         }
     }
 
     // Delete comment
-    async function deleteComment(commentId) {
+    async function deleteStoryComment(commentId) {
         if (!confirm('Delete this comment?')) return;
         
         try {
             const response = await fetch(`/api/story/delete-comment/${commentId}/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCSRFToken(),
+                    'X-CSRFToken': getStoryCSRFToken(),
                 }
             });
             
@@ -676,41 +1116,69 @@
             if (data.success) {
                 const commentElement = document.querySelector(`.comment-card[data-comment-id="${commentId}"]`);
                 if (commentElement) commentElement.remove();
-                window.showToast('Comment deleted', 'info');
+                showStoryToast('Comment deleted');
             }
         } catch (error) {
             console.error('Error:', error);
+            showStoryToast('Error deleting comment', true);
         }
     }
 
-    // Share story
-    function shareStory() {
-        if (navigator.share) {
-            navigator.share({
-                title: '{{ story.1 }}',
-                text: 'Check out this heartwarming story on IndianLunchBox!',
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            window.showToast('📋 Link copied to clipboard!', 'success');
+    // Delete modal functions
+    function openStoryDeleteModal() {
+        const modal = document.getElementById('storyDeleteModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
     }
 
-    // Delete modal
-    function confirmDelete() {
-        document.getElementById('deleteModal').style.display = 'flex';
-    }
-
-    function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('deleteModal');
-        if (event.target === modal) {
+    function closeStoryDeleteModal() {
+        const modal = document.getElementById('storyDeleteModal');
+        if (modal) {
             modal.style.display = 'none';
+            document.body.style.overflow = '';
         }
     }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        const shareModal = document.getElementById('storySharePreviewModal');
+        const deleteModal = document.getElementById('storyDeleteModal');
+        
+        if (event.target === shareModal) {
+            closeStoryShareModal();
+        }
+        if (event.target === deleteModal) {
+            closeStoryDeleteModal();
+        }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const shareModal = document.getElementById('storySharePreviewModal');
+            const deleteModal = document.getElementById('storyDeleteModal');
+            
+            if (shareModal && shareModal.style.display === 'flex') {
+                closeStoryShareModal();
+            }
+            if (deleteModal && deleteModal.style.display === 'flex') {
+                closeStoryDeleteModal();
+            }
+        }
+    });
+
+    // Confirm before delete
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteLink = document.querySelector('.btn-danger-story');
+        if (deleteLink) {
+            deleteLink.addEventListener('click', function(e) {
+                if (!confirm('Are you absolutely sure you want to delete this story? This action cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}
